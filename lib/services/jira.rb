@@ -48,8 +48,7 @@ class Service::Jira < Service::Base
       'project' => {'id' => project_id},
       'summary'     => payload[:title] + ' [Crashlytics]',
       'description' => issue_description,
-      'issuetype' => {'id' => '1'},
-      'priority' => {'id' => '5'} } }
+      'issuetype' => {'id' => '1'} } }
 
     resp = http_post "#{parsed[:url_prefix]}/rest/api/2/issue" do |req|
       req.headers['Content-Type'] = 'application/json'
