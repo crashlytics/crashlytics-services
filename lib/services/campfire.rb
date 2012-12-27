@@ -47,7 +47,7 @@ class Service::Campfire < Service::Base
     elsif room.name == config[:room]
       [true,  "Successfully verified Campfire settings"]
     end
-    rescue Tinder::AuthenticationFailed => e
+    rescue ::Tinder::AuthenticationFailed => e
       [false, "Oops! Is your API token correct?"]
     rescue => e
       log "Rescued a verification error. #{e}"
@@ -57,7 +57,7 @@ class Service::Campfire < Service::Base
   private
 
   def find_campfire_room(config)
-    campfire = Tinder::Campfire.new(config[:subdomain], :token => config[:api_token])
+    campfire = ::Tinder::Campfire.new(config[:subdomain], :token => config[:api_token])
     campfire.find_room_by_name config[:room]
   end
 end
