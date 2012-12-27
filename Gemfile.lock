@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    crashlytics-service (2.0.1)
+    crashlytics-service (2.1.0)
       faraday (= 0.8.1)
       nokogiri (= 1.5.5)
       tinder (= 1.9.1)
@@ -19,10 +19,9 @@ GEM
     http_parser.rb (0.5.3)
     json (1.7.5)
     mime-types (1.19)
-    multi_json (1.5.0)
+    multi_json (1.4.0)
     multipart-post (1.1.5)
     nokogiri (1.5.5)
-    rake (10.0.3)
     rspec (2.11.0)
       rspec-core (~> 2.11.0)
       rspec-expectations (~> 2.11.0)
@@ -52,5 +51,4 @@ PLATFORMS
 
 DEPENDENCIES
   crashlytics-service!
-  rake
   rspec (= 2.11.0)
