@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'faraday', '0.8.1'
   s.add_dependency 'nokogiri', '1.5.5'
+  s.add_dependency 'tinder', '1.9.1'
 
   s.add_development_dependency 'rspec', '2.11.0'
 end
