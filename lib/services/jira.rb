@@ -74,7 +74,7 @@ class Service::Jira < Service::Base
       [false, "Oops! Please check your settings again."]
     end
   rescue => e
-    log "Rescued a verification error. Most likely due to a malformed url: #{ config[:project_url] }"
+    log e
     [false, "Oops! Is your project url correct?"]
   end
 
