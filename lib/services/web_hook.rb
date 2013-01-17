@@ -20,7 +20,7 @@ class Service::WebHook < Service::Base
     ok = post_event(config[:url], 'verification', 'none', nil)
     ok ? success : failure
   rescue => e
-    log "Rescued a verification error. Most likely due to a malformed url: #{ config[:url] }"
+    log "Rescued a verification error in webhook: (url=#{config[:url]}) #{e}"
     failure
   end
 

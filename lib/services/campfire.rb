@@ -48,7 +48,7 @@ class Service::Campfire < Service::Base
     rescue ::Tinder::AuthenticationFailed => e
       [false, 'Oops! Is your API token correct?']
     rescue => e
-      log "Rescued a verification error. #{e}"
+      log "Rescued a verification error in campfire: #{e}"
       [false, "Oops! Encountered an unexpected error (#{e}). Please check your settings."]
   end
 

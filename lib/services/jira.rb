@@ -74,7 +74,7 @@ class Service::Jira < Service::Base
       [false, "Oops! Please check your settings again."]
     end
   rescue => e
-    log e
+    log "Rescued a verification error in jira: (url=#{config[:project_url]}) #{e}"
     [false, "Oops! Is your project url correct?"]
   end
 

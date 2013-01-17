@@ -67,7 +67,7 @@ class Service::Redmine < Service::Base
       [false, "Oops! Please check your settings again."]
     end
   rescue => e
-    log "Rescued a verification error. Most likely due to a malformed url: #{ config[:project_url] }"
+    log "Rescued a verification error in redmine: (url=#{config[:project_url]}) #{e}"
     [false, "Oops! Is your project url correct?"]
   end
 
