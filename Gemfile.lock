@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    crashlytics-service (2.1.1)
+    crashlytics-service (2.2.0)
       faraday (= 0.8.1)
       hipchat (~> 0.7.0)
       nokogiri (= 1.5.5)
