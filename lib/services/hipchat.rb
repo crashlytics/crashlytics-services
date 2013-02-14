@@ -9,7 +9,7 @@ class Service::HipChat < Service::Base
                    'You can create a notification token ' \
                    '<a href="https://www.hipchat.com/admin/api">here</a>.'
   string :room, :placeholder => 'Room ID or Name', :label => 'The ID or name of the room.'
-  boolean :notify, :label => 'Should a notification be triggered for people in the room?'
+  checkbox :notify, :label => 'Should a notification be triggered for people in the room?'
 
   page 'API Token', [:api_token]
   page 'Room', [:room, :notify]
