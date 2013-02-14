@@ -56,7 +56,7 @@ describe Service::HipChat do
       client = mock(HipChat::Client)
       HipChat::Client.should_receive(:new).with(config[:api_token]).and_return(client)
       client.should_receive(:[]).with(config[:room]).and_return(client)
-      client.should_receive(:send).with('Crashlytics', message, config[:notify])
+      client.should_receive(:send).with('Crashlytics', message, { :notify => config[:notify] })
 
       Service::HipChat.new('verification', {}).send(:send_message, config, message)
     end
