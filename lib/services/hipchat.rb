@@ -32,14 +32,15 @@ class Service::HipChat < Service::Base
   private
 
   def receive_verification_message
-    'Adding Crashlytics crash notifications in HipChat, ' \
+    'Boom! Crashlytics issue change notifications have been added.  ' \
     '<a href="http://support.crashlytics.com/knowledgebase/articles/118543-what-kind-of-third-party-integrations-does-crashly">' \
-    'see this for more info</a>.'
+    'Click here for more info</a>.'
   end
 
   def format_issue_impact_change_message(payload)
     "<a href=#{ payload[:url].to_s }>" \
-    "[#{ payload[:app][:name] }] #{ payload[:title] } in #{ payload[:method] }" \
+    "[#{ payload[:app][:name] } - #{ payload[:app][:bundle_identifier] }] Issue ##{ payload[:display_id] }: " \
+    "#{ payload[:title] } #{ payload[:method] }" \
     '</a>'
   end
 
