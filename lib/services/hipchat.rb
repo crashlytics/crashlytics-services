@@ -17,19 +17,22 @@ class Service::HipChat < Service::Base
   def receive_verification(config, _)
     send_message(config, receive_verification_message)
     [true, "Successfully sent a mesage to room #{ config[:room] }"]
-  rescue
+  rescue => e
+    log "Rescued a verification error in HipChat: #{ e }"
     [false, "Could not send a message to room #{ config[:room] }"]
   end
 
   def receive_issue_impact_change(config, payload)
     send_message(config, format_issue_impact_change_message(payload))
     :no_resource
+  rescue => e
+    log "Rescued an issue_impact_change error in HipChat: #{ e }"
   end
 
   private
 
   def receive_verification_message
-    'Adding Crashlytics crash notifications in HipChat,' \
+    'Adding Crashlytics crash notifications in HipChat, ' \
     '<a href="http://support.crashlytics.com/knowledgebase/articles/118543-what-kind-of-third-party-integrations-does-crashly">' \
     'see this for more info</a>.'
   end
