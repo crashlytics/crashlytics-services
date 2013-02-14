@@ -1,8 +1,9 @@
 PATH
   remote: .
   specs:
-    crashlytics-service (2.1.0)
+    crashlytics-service (3.1.0)
       faraday (= 0.8.1)
+      hipchat (~> 0.7.0)
       nokogiri (= 1.5.5)
       tinder (= 1.9.1)
 
@@ -16,10 +17,17 @@ GEM
     faraday_middleware (0.9.0)
       faraday (>= 0.7.4, < 0.9)
     hashie (1.2.0)
+    hipchat (0.7.0)
+      httparty
+      httparty
     http_parser.rb (0.5.3)
-    json (1.7.5)
-    mime-types (1.19)
-    multi_json (1.4.0)
+    httparty (0.10.2)
+      multi_json (~> 1.0)
+      multi_xml (>= 0.5.2)
+    json (1.7.7)
+    mime-types (1.21)
+    multi_json (1.6.0)
+    multi_xml (0.5.3)
     multipart-post (1.1.5)
     nokogiri (1.5.5)
     rspec (2.11.0)
