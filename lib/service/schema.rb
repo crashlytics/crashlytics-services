@@ -61,30 +61,32 @@ module Service
       add_to_schema :password, identifier, options
     end
 
-    # Public: Adds the given attributes as Boolean attributes in the Service's
+    # Public: Adds the given attributes as Checkbox attributes in the Service's
     # schema. This will display a checkbox in the UI.
+    #
+    # The value of this option will be true if the checkbox is checked and false otherwise.
     #
     # Example:
     #
     #   class FooService < Service
-    #     boolean :mark_as_read, :label => "Mark as Read", :help => "..."
+    #     checkbox :mark_as_read, :label => "Mark as Read", :help => "..."
     #   end
     #
     #   FooService.schema
-    #   # => [[:boolean, :mark_as_read, { :label => "Mark as Read", :help => "..." } ]]
+    #   # => [[:checkbox, :mark_as_read, { :label => "Mark as Read", :help => "..." } ]]
     #
     # identifier - attribute identifier
     # options    - a hash of options for the attribute, including :label,
     #              :placeholder, and :help (:help is a longer help text string)
     #
     # Returns nothing.
-    def boolean(identifier, options={})
-      add_to_schema :boolean, identifier, options
+    def checkbox(identifier, options={})
+      add_to_schema :checkbox, identifier, options
     end
 
     # Adds the given attributes to the Service's data schema.
     #
-    # type - A Symbol specifying the type: :string, :password, :boolean.
+    # type - A Symbol specifying the type: :string, :password, :checkbox.
     # identifier - Symbol for attribute name.
     # options - options hash: { :label => "", :placeholder => "", :help => "" }
     #

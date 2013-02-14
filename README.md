@@ -37,7 +37,7 @@ class Service::Foo < Service::Base
   # input type methods take an identifier and optional options hash
   string   :email [, :label => "label text", :placeholder => "jane@doe.com" ]
   password :password [, :label => "label text", :hint => "8 characters or longer" ]
-  boolean  :checkbox_1 [, :label => "" ]
+  checkbox  :checkbox_1 [, :label => "" ]
 
   page "Title", [ :array, :of, :input, :identifiers, :to, :show, :on, :this, :page ]
   page "Two",   [ :other, :identifiers ]
