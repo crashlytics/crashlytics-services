@@ -15,7 +15,7 @@ describe Service::HipChat do
   end
 
   it 'should have a logo' do
-    Service::HipChat.logo.should == 'v1/settings/app_settings/hipchat.png'
+    Service::HipChat.logo.should_not be_nil
   end
 
   describe :receive_verification do
