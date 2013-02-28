@@ -6,7 +6,7 @@ Simple, powerful, declarative integrations for popular third-party services.
 
 ### Rationale ###
 
-Crashlytics users have oft-requested that we integrate with their favorite ticket-tracker or notification service. Given the shear volume of awesome services out there, it was a daunting goal to try to satisfy everyone. Instead, we sought a more scalable approach:  open-sourced, event-driven integrations that anyone can add to!
+Crashlytics users have oft-requested that we integrate with their favorite ticket-tracker or notification service. Given the sheer volume of awesome services out there, it was a daunting goal to try to satisfy everyone. Instead, we sought a more scalable approach:  open-sourced, event-driven integrations that anyone can add to!
 
 ### Giving Credit ###
 
