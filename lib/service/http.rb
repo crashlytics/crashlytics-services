@@ -99,6 +99,9 @@ module Service
     def http_method(method, url = nil, body = nil, headers = nil)
       block = Proc.new if block_given?
 
+      # Set url_prefix for basic auth
+      http.url_prefix = url if url
+
       http.send(method) do |req|
         req.url(url)                if url
         req.headers.update(headers) if headers
