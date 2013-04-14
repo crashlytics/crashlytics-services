@@ -18,7 +18,7 @@ We've started with GitHub's approach and simplified and streamlined the implemen
 
 1. Fork the project
 2. Create a new file in `lib/services/` called `service_name.rb`. See the full example below for details.
-3. Add any external gems your code relies on to the Gemfile, with specific version numbers.
+3. Add any external gems your code relies on to the gemspec, with specific version numbers.
 4. Add Rspec tests so we know your code works!
 5. Include a logo for the service - max 155x45px on a transparent background.
 6. Send a pull request from your fork to [crashlytics/crashlytics-services](https://github.com/crashlytics/crashlytics-services)
