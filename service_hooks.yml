@@ -1,7 +1,7 @@
 ---
 - :identifier: asana
   :name: Asana
-  :logo: v1/settings/app_settings/asana.png
+  :logo: ''
   :events:
   - :issue_impact_change
   :schema:
