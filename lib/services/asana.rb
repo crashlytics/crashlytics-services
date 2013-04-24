@@ -20,7 +20,7 @@ class Service::Asana < Service::Base
   def receive_verification(config, _)
     url_parts = parse_url config[:project_url]
     workspace = find_workspace config[:api_key], url_parts[:workspace]
-    if workspace.id == parsed_url[:workspace]
+    if workspace.id == url_parts[:workspace]
       [true,  "Successfully verified Asana settings!"]
     else
       log "Returned workspace.id (#{workspace.id}) did not match URL workspace (#{config[:project_url]})"
@@ -34,9 +34,9 @@ class Service::Asana < Service::Base
   def receive_issue_impact_change(config, issue)
     url_parts = parse_url config[:project_url]
     task_options = {
-      name: issue[:title],
-      notes: create_notes(issue),
-      projects: [url_parts[:project]]
+      :name => issue[:title],
+      :notes => create_notes(issue),
+      :projects => [url_parts[:project]]
     }
 
     workspace = find_workspace config[:api_key], url_parts[:workspace]
@@ -68,9 +68,9 @@ class Service::Asana < Service::Base
   def parse_url(url_string)
     url = URI.parse url_string
     path_parts = url.path.split '/'
-    if url.scheme != 'https' or url.hostname != 'app.asana.com' or path_parts.length != 3
+    if url.scheme != 'https' or url.hostname != 'app.asana.com' or path_parts.length != 4
       raise "Please use a valid Asana URL in the format https://app.asana.com/0/:workspace/:project"
     end
-    { workspace: path_parts[1], project: path_parts[2] }
+    { :workspace => path_parts[2], :project => path_parts[3] }
   end
 end

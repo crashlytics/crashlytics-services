@@ -1,0 +1,192 @@
+---
+- :identifier: asana
+  :name: Asana
+  :logo: v1/settings/app_settings/asana.png
+  :events:
+  - :issue_impact_change
+  :schema:
+  - :type: :string
+    :name: :api_key
+    :options:
+      :placeholder: Your Asana API key
+      :label: ! "Your Asana API key can be found by \\\n         clicking on your
+        name in the lefthand pane, \\\n         click 'Account Settings' and select
+        the 'APPS' tab."
+  - :type: :string
+    :name: :project_url
+    :options:
+      :placeholder: https://app.asana.com/0/:workspace/:project
+      :label: ! "The URL to the project where you would like the \\\n         Crashlytics
+        tasks to go."
+  :pages:
+  - :title: Project
+    :attrs:
+    - :project_url
+  - :title: API Key
+    :attrs:
+    - :api_key
+- :identifier: campfire
+  :name: Campfire
+  :logo: v1/settings/app_settings/campfire.png
+  :events:
+  - :issue_impact_change
+  :schema:
+  - :type: :string
+    :name: :subdomain
+    :options:
+      :label: ! 'Your Campfire subdomain:'
+  - :type: :string
+    :name: :room
+    :options:
+      :label: ! 'Your Campfire chatrooom:'
+  - :type: :string
+    :name: :api_token
+    :options:
+      :label: Get it from Campfire's "My Info" screen.
+  :pages:
+  - :title: Chatroom
+    :attrs:
+    - :subdomain
+    - :room
+  - :title: API Token
+    :attrs:
+    - :api_token
+- :identifier: hipchat
+  :name: HipChat
+  :logo: v1/settings/app_settings/hipchat.png
+  :events:
+  - :issue_impact_change
+  :schema:
+  - :type: :string
+    :name: :api_token
+    :options:
+      :placeholder: API Token
+      :label: Your HipChat API Token. <br />You can create a notification token <a
+        href="https://www.hipchat.com/admin/api">here</a>.
+  - :type: :string
+    :name: :room
+    :options:
+      :placeholder: Room ID or Name
+      :label: The ID or name of the room.
+  - :type: :checkbox
+    :name: :notify
+    :options:
+      :label: Should a notification be triggered for people in the room?
+  :pages:
+  - :title: API Token
+    :attrs:
+    - :api_token
+  - :title: Room
+    :attrs:
+    - :room
+    - :notify
+- :identifier: jira
+  :name: Jira 5
+  :logo: v1/settings/app_settings/jira.png
+  :events:
+  - :issue_impact_change
+  :schema:
+  - :type: :string
+    :name: :project_url
+    :options:
+      :placeholder: https://domain.atlassian.net/browse/projectkey
+      :label: ! 'URL to your Jira 5 project: <br />This should be your URL after you
+        select your project under the "Projects" tab.'
+  - :type: :string
+    :name: :username
+    :options:
+      :placeholder: username
+      :label: ! 'These values are encrypted to ensure your security. <br /><br />Your
+        Jira username:'
+  - :type: :password
+    :name: :password
+    :options:
+      :placeholder: password
+      :label: ! 'Your Jira password:'
+  :pages:
+  - :title: Project
+    :attrs:
+    - :project_url
+  - :title: Login Information
+    :attrs:
+    - :username
+    - :password
+- :identifier: pagerduty
+  :name: Pagerduty
+  :logo: v1/settings/app_settings/pagerduty.png
+  :events:
+  - :issue_impact_change
+  :schema:
+  - :type: :string
+    :name: :api_key
+    :options:
+      :label: Create a new Pagerduty service using the Generic API, then paste the
+        API key here.
+  :pages:
+  - :title: API Key
+    :attrs:
+    - :api_key
+- :identifier: pivotal
+  :name: Pivotal
+  :logo: v1/settings/app_settings/pivotal.png
+  :events:
+  - :issue_impact_change
+  :schema:
+  - :type: :string
+    :name: :project_url
+    :options:
+      :placeholder: https://www.pivotaltracker.com/projects/yourproject/
+      :label: ! 'URL to your Pivotal project:'
+  - :type: :string
+    :name: :api_key
+    :options:
+      :label: ! 'Paste your API Token (located under "Profile"). Make sure API Access
+        is on for your project in Project Settings!<br />Tip: Create a Crashlytics
+        user for easier sorting.'
+  :pages:
+  - :title: Project
+    :attrs:
+    - :project_url
+  - :title: API Token
+    :attrs:
+    - :api_key
+- :identifier: redmine
+  :name: Redmine
+  :logo: v1/settings/app_settings/redmine.png
+  :events:
+  - :issue_impact_change
+  :schema:
+  - :type: :string
+    :name: :project_url
+    :options:
+      :placeholder: http://redmine.acme.com/projects/yourproject
+      :label: ! 'URL to your Redmine project:'
+  - :type: :string
+    :name: :api_key
+    :options:
+      :label: ! 'Paste your API Key (located under "My Account")<br><br>You must also
+        "Enable REST web service" in Admin > Settings > Auth.<br><br>Tip: Create a
+        Crashlytics user for easier sorting.'
+  :pages:
+  - :title: Project
+    :attrs:
+    - :project_url
+  - :title: API Key
+    :attrs:
+    - :api_key
+- :identifier: webhook
+  :name: Web Hook
+  :logo: v1/settings/app_settings/webhook.png
+  :events:
+  - :issue_impact_change
+  :schema:
+  - :type: :string
+    :name: :url
+    :options:
+      :placeholder: https://[user:pass@]acme.com?key=123
+      :label: Enter the URL to receive our JSON data POST. (<a href="http://support.crashlytics.com/knowledgebase/articles/102391-how-do-i-configure-a-custom-web-hook"
+        target="_blank">more info</a>)
+  :pages:
+  - :title: One-Step Setup
+    :attrs:
+    - :url
