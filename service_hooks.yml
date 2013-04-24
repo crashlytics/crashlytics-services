@@ -9,15 +9,15 @@
     :name: :api_key
     :options:
       :placeholder: Your Asana API key
-      :label: ! "Your Asana API key can be found by \\\n         clicking on your
-        name in the lefthand pane, \\\n         click 'Account Settings' and select
-        the 'APPS' tab."
+      :label: Your Asana API key can be found in Asana by clicking on your name in
+        the lower lefthand pane, clicking 'Account Settings' and selecting the 'APPS'
+        tab.
   - :type: :string
     :name: :project_url
     :options:
       :placeholder: https://app.asana.com/0/:workspace/:project
-      :label: ! "The URL to the project where you would like the \\\n         Crashlytics
-        tasks to go."
+      :label: The URL to the project where you would like the Crashlytics tasks to
+        go.
   :pages:
   - :title: Project
     :attrs:

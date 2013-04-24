@@ -36,4 +36,12 @@ namespace :services do
 
     puts output
   end
+
+  desc 'Copy service_hooks.yml to other projects'
+  task :copy do
+    file = ENV['FILE'] || File.join(File.dirname(__FILE__), 'service_hooks.yml')
+    FileUtils.cp file, '/srv/crashlytics/config/notifier/service_hooks.yml'
+    FileUtils.cp file, '/srv/crashlytics/config/www/service_hooks.yml'
+    FileUtils.cp file, '/crashlytics/chef/deploy/templates/default/service_hooks.yml'
+  end
 end

@@ -5,13 +5,13 @@ class Service::Asana < Service::Base
   title 'Asana'
   
   string :api_key, :placeholder => 'Your Asana API key',
-         :label => 'Your Asana API key can be found by \
-         clicking on your name in the lefthand pane, \
-         click \'Account Settings\' and select the \'APPS\' tab.'
+         :label => 'Your Asana API key can be found in Asana by ' \
+         'clicking on your name in the lower lefthand pane, ' \
+         'clicking \'Account Settings\' and selecting the \'APPS\' tab.'
 
   string :project_url, :placeholder => 'https://app.asana.com/0/:workspace/:project',
-         :label => 'The URL to the project where you would like the \
-         Crashlytics tasks to go.'
+         :label => 'The URL to the project where you would like the ' \
+         'Crashlytics tasks to go.'
          
   page 'Project', [:project_url]
   page 'API Key', [:api_key]
