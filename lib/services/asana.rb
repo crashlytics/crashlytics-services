@@ -3,6 +3,7 @@ require 'uri'
 
 class Service::Asana < Service::Base
   title 'Asana'
+  logo "v1/settings/app_settings/asana.png"
 
   page 'API Key', [:api_key]
   string :api_key, :placeholder => 'Your Asana API key',
