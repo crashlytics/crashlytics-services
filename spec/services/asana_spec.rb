@@ -27,12 +27,12 @@ describe Service::Asana do
           :name => 'foo name',
           :bundle_identifier => 'foo.bar.baz'
         },
-        :url => "http://foo.com/bar"
+        :url => 'http://foo.com/bar'
       }
     end
 
     describe :create_notes do
-      it "should create well formatted notes for asana" do
+      it 'should create well formatted notes for asana' do
         notes = @service.send :create_notes, @issue
         notes.should include @issue[:url]
         notes.should include @issue[:method]
