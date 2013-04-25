@@ -13,21 +13,18 @@
         the lower lefthand pane, clicking 'Account Settings' and selecting the 'APPS'
         tab.
   - :type: :string
-    :name: :project_url
+    :name: :project_id
     :options:
-      :placeholder: ''
-      :label: The Asana project id for the project where you would like the Crashlytics
-        tasks to be created.  You can find this using the Asana API or by visiting
-        the project page in a browser and taking the first long number in the URL.
-        For example, in the URL https://app.asana.com/0/3330339702444/7770339702888,
-        the project_id is "3330339702444".
+      :placeholder: Asana project ID
+      :label: You can find this using the Asana API or by visiting the project page
+        in a browser and taking the first long number in the URL.
   :pages:
-  - :title: Project ID
-    :attrs:
-    - :project_id
   - :title: API Key
     :attrs:
     - :api_key
+  - :title: Project ID
+    :attrs:
+    - :project_id
 - :identifier: campfire
   :name: Campfire
   :logo: v1/settings/app_settings/campfire.png

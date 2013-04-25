@@ -3,21 +3,17 @@ require 'uri'
 
 class Service::Asana < Service::Base
   title 'Asana'
-  
+
+  page 'API Key', [:api_key]
   string :api_key, :placeholder => 'Your Asana API key',
          :label => 'Your Asana API key can be found in Asana by ' \
          'clicking on your name in the lower lefthand pane, ' \
          'clicking \'Account Settings\' and selecting the \'APPS\' tab.'
 
-  string :project_url, :placeholder => '',
-         :label => 'The Asana project id for the project where you would like the ' \
-         'Crashlytics tasks to be created.  You can find this using the Asana API or ' \
-         'by visiting the project page in a browser and taking the first long number in the URL. ' \
-         'For example, in the URL https://app.asana.com/0/3330339702444/7770339702888, the project_id ' \
-         'is "3330339702444".'
-         
-  page 'Project ID', [:project_id]
-  page 'API Key', [:api_key]
+  page 'Project ID', [:project_id]  
+  string :project_id, :placeholder => 'Asana project ID',
+         :label => 'You can find this using the Asana API or ' \
+         'by visiting the project page in a browser and taking the first long number in the URL.'
   
   def receive_verification(config, _)
     begin
