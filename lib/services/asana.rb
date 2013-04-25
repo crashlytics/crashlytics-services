@@ -9,41 +9,37 @@ class Service::Asana < Service::Base
          'clicking on your name in the lower lefthand pane, ' \
          'clicking \'Account Settings\' and selecting the \'APPS\' tab.'
 
-  string :project_url, :placeholder => 'https://app.asana.com/0/:workspace/:project',
-         :label => 'The URL to the project where you would like the ' \
-         'Crashlytics tasks to go.'
+  string :project_url, :placeholder => '',
+         :label => 'The Asana project id for the project where you would like the ' \
+         'Crashlytics tasks to be created.  You can find this using the Asana API or ' \
+         'by visiting the project page in a browser and taking the first long number in the URL. ' \
+         'For example, in the URL https://app.asana.com/0/3330339702444/7770339702888, the project_id ' \
+         'is "3330339702444".'
          
-  page 'Project', [:project_url]
+  page 'Project ID', [:project_id]
   page 'API Key', [:api_key]
   
   def receive_verification(config, _)
-    url_parts = parse_url config[:project_url]
-    workspace = find_workspace config[:api_key], url_parts[:workspace]
-    if workspace.id == url_parts[:workspace]
+    begin
+      project = find_project config[:api_key], config[:project_id]
       [true,  "Successfully verified Asana settings!"]
-    else
-      log "Returned workspace.id (#{workspace.id}) did not match URL workspace (#{config[:project_url]})"
-      [false, "Oops! Encountered an error. Please check your settings."]
-    end
     rescue => e
       log "Rescued a verification error in Asana: #{e}"
       [false, "Oops! Encountered an error. Please check your settings."]
+    end
   end
   
   def receive_issue_impact_change(config, issue)
-    url_parts = parse_url config[:project_url]
     task_options = {
       :name => issue[:title],
       :notes => create_notes(issue),
-      :projects => [url_parts[:project]]
+      :projects => [config[:project_id]]
     }
 
-    workspace = find_workspace config[:api_key], url_parts[:workspace]
-    response = workspace.create_task task_options
-    unless response.id
-      raise "Asana Task creation failed: #{(response.map {|e| e.join(' ') }).join(', ')}"
-    end
-    { :asana_task_id => response.id }
+    project = find_project config[:api_key], config[:project_id]
+    task = project.workspace.create_task task_options
+    raise "Asana Task creation failed: #{task}" unless task.id
+    { :asana_task_id => task.id }
   end
   
   private
@@ -56,20 +52,9 @@ class Service::Asana < Service::Base
     notes
   end
   
-  # Returns Asana::Workspace or raises if any error
-  def find_workspace(api_key, workspace_id)
+  # Returns Asana::Project or raises if any error
+  def find_project(api_key, project_id)
     Asana.configure {|client| client.api_key = api_key }
-    Asana::Workspace.find workspace_id
-  end
-  
-  # Takes a URL string and returns a hash with :workspace and :project keys.
-  # Raises on problem parsing URL
-  def parse_url(url_string)
-    url = URI.parse url_string
-    path_parts = url.path.split '/'
-    if url.scheme != 'https' or url.hostname != 'app.asana.com' or path_parts.length != 4
-      raise "Please use a valid Asana URL in the format https://app.asana.com/0/:workspace/:project"
-    end
-    { :workspace => path_parts[2], :project => path_parts[3] }
+    Asana::Project.find project_id
   end
 end

@@ -11,7 +11,7 @@ describe Service::Asana do
       @service = Service::Asana.new('event_name', {})
       @config = {
         :api_key => 'key',
-        :project_url => 'https://app.asana.com/0/ws/proj'
+        :project_id => 'project_id_foo'
       }
       @issue = {
         :title => 'foo title',
@@ -27,26 +27,6 @@ describe Service::Asana do
       }
     end
 
-    describe :parse_url do
-      it 'should parse a valid url' do
-        url_parts = @service.send :parse_url, 'https://app.asana.com/0/ws/proj'
-        url_parts.should eq({ :workspace => 'ws', :project => 'proj' })
-      end
-
-      it 'should catch an invalid hostname' do
-        expect { @service.send :parse_url, 'https://crashlytics.com/0/ws/proj' }.to raise_error
-      end
-
-      it 'should catch an invalid scheme' do
-        expect { @service.send :parse_url, 'http://app.asana.com/0/ws/proj' }.to raise_error
-      end
-
-      it 'should catch an invalid path' do
-        expect { @service.send :parse_url, 'https://app.asana.com/0/ws/proj/extra' }.to raise_error
-        expect { @service.send :parse_url, 'https://app.asana.com/ws/proj' }.to raise_error
-      end
-    end
-
     describe :create_notes do
       it "should create well formatted notes for asana" do
         notes = @service.send :create_notes, @issue
@@ -60,21 +40,15 @@ describe Service::Asana do
     end
 
     describe :receive_verification do
-      it 'should succeed if API returns same workspace id' do
-        @service.should_receive(:find_workspace).with(@config[:api_key], 'ws').and_return(mock(:id => 'ws'))
-        response = @service.receive_verification(@config, @issue)
+      it 'should succeed if API can authenticate and find product' do
+        @service.should_receive(:find_project).with(@config[:api_key], 'project_id_foo').and_return(mock(:id => 'project_id_foo'))
+        response = @service.receive_verification(@config, nil)
         response.should == [true, 'Successfully verified Asana settings!']
       end
       
-      it 'should fail if API returns anything other than same workspace id' do
-        @service.should_receive(:find_workspace).and_return(nil)
-        response = @service.receive_verification(@config, @issue)
-        response.first.should == false
-      end
-
       it 'should fail if API call raises an exception' do
-        @service.should_receive(:find_workspace).and_raise
-        response = @service.receive_verification(@config, @payload)
+        @service.should_receive(:find_project).and_raise
+        response = @service.receive_verification(@config, nil)
         response.first.should == false
       end
     end
@@ -82,26 +56,31 @@ describe Service::Asana do
     describe :receive_issue_impact_change do
       before do
         @notes = @service.send :create_notes, @issue
-        @workspace = mock(:id => 'ws')
+        @project_id = 'project_id_foo'
         @expected_task_options = {
           :name => 'foo title',
           :notes => @notes,
-          :projects => ['proj']
+          :projects => [@project_id]
         }
+        @project = mock(:id => @project_id)
+        @workspace = mock(:id => 'workspace_id_foo')
+        @task = mock(:id => 'new_task_id')
       end
       
       it 'should create a new Asana task' do
-        @service.should_receive(:find_workspace).with(@config[:api_key], 'ws').and_return @workspace
-        @workspace.should_receive(:create_task).with(@expected_task_options).and_return(mock(:id => 'new_task_id'))
+        @service.should_receive(:find_project).with(@config[:api_key], @project_id).and_return @project
+        @project.should_receive(:workspace).and_return @workspace
+        @workspace.should_receive(:create_task).with(@expected_task_options).and_return @task
 
         response = @service.receive_issue_impact_change @config, @issue
-        response.should == { :asana_task_id => 'new_task_id' }
+        response.should == { :asana_task_id => @task.id }
       end
       
       it 'should raise if creating a new Asana task fails' do
-        @service.should_receive(:find_workspace).with(@config[:api_key], 'ws').and_return @workspace
-        @workspace.should_receive(:create_task).with(@expected_task_options).and_return nil
-
+        @service.should_receive(:find_project).with(@config[:api_key], @project_id).and_return @project
+        @project.should_receive(:workspace).and_return @workspace
+        @workspace.should_receive(:create_task).with(@expected_task_options).and_raise
+  
         expect { @service.receive_issue_impact_change @config, @issue }.to raise_error
       end
     end
