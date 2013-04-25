@@ -19,10 +19,10 @@ class Service::Asana < Service::Base
   def receive_verification(config, _)
     begin
       project = find_project config[:api_key], config[:project_id]
-      [true,  "Successfully verified Asana settings!"]
+      [true,  'Successfully verified Asana settings!']
     rescue => e
       log "Rescued a verification error in Asana: #{e}"
-      [false, "Oops! Encountered an error. Please check your settings."]
+      [false, 'Oops! Encountered an error. Please check your settings.']
     end
   end
   
@@ -51,7 +51,7 @@ class Service::Asana < Service::Base
   
   # Returns Asana::Project or raises if any error
   def find_project(api_key, project_id)
-    Asana.configure {|client| client.api_key = api_key }
+    Asana.configure { |client| client.api_key = api_key }
     Asana::Project.find project_id
   end
 end

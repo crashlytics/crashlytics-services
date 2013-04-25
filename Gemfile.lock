@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    crashlytics-service (3.2.1)
+    crashlytics-service (3.2.0)
       asana (= 0.0.4)
       faraday (= 0.8.1)
       hipchat (~> 0.7.0)
