@@ -15,13 +15,16 @@
   - :type: :string
     :name: :project_url
     :options:
-      :placeholder: https://app.asana.com/0/:workspace/:project
-      :label: The URL to the project where you would like the Crashlytics tasks to
-        go.
+      :placeholder: ''
+      :label: The Asana project id for the project where you would like the Crashlytics
+        tasks to be created.  You can find this using the Asana API or by visiting
+        the project page in a browser and taking the first long number in the URL.
+        For example, in the URL https://app.asana.com/0/3330339702444/7770339702888,
+        the project_id is "3330339702444".
   :pages:
-  - :title: Project
+  - :title: Project ID
     :attrs:
-    - :project_url
+    - :project_id
   - :title: API Key
     :attrs:
     - :api_key
