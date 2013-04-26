@@ -14,10 +14,6 @@ describe Service::HipChat do
     Service::HipChat.title.should == 'HipChat'
   end
 
-  it 'should have a logo' do
-    Service::HipChat.logo.should_not be_nil
-  end
-
   describe :receive_verification do
     it :success do
       service = Service::HipChat.new('verification', {})
