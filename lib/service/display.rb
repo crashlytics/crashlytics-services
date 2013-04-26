@@ -24,19 +24,5 @@ module Service
     def pages
       @pages ||= []
     end
-
-    # Public: getter and setter for services' logo URL string
-    #
-    # Example:
-    #
-    #   class FooService < Service
-    #     logo "foo_logo.png"
-    #   end
-    #
-    #   FooService.logo # => "foo_logo.png"
-    #
-    def logo(*args)
-      args.empty? ? @logo || "" : @logo = args.first
-    end
   end
 end
