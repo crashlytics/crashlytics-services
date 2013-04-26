@@ -15,13 +15,7 @@ GitHub leads the way in this space with their [Github Services](https://github.c
 We've started with GitHub's approach and simplified and streamlined the implementation to fit better within Crashlytics' backend architecture and permit more customization of the front-end UI. As with the original, our additions are available under the Logical Awesome license and we're excited to see who takes this even further.
 
 ## How to Contribute ##
-
-1. Fork the project
-2. Create a new file in `lib/services/` called `service_name.rb`. See the full example below for details.
-3. Add any external gems your code relies on to the Gemfile, with specific version numbers.
-4. Add Rspec tests so we know your code works!
-5. Include a logo for the service - max 155x45px on a transparent background.
-6. Send a pull request from your fork to [crashlytics/crashlytics-services](https://github.com/crashlytics/crashlytics-services)
+See [CONTRIBUTING.md](https://github.com/crashlytics/crashlytics-services/CONTRIBUTING.md)
 
 ## Example ##
 
@@ -32,7 +26,6 @@ The Service is responsible for acting in response to events it receives and for 
 ```ruby
 class Service::Foo < Service::Base
   title "Display Title"
-  logo "path/to/logo.png"
 
   # input type methods take an identifier and optional options hash
   string   :email [, :label => "label text", :placeholder => "jane@doe.com" ]
@@ -74,6 +67,22 @@ A working service must respond to two methods: `receive_issue_impact_change` and
 When a user is configuring a service, `receive_verification` will be called and passed in their configuration data. This method should confirm that the data is correct (eg. authenticate with the service) and return a 2-tuple with a boolean and a message.
 
 When an issue's impact reaches the threshold set by the user, `receive_issue_impact_change` will be called with a hash of configuration data and a hash of data about the issue. Check out the other service implementations for examples of how to use this data.
+
+Example issue hash:
+```
+{
+  :title => 'issue title',
+  :method => 'method name',
+  :impact_level => 1,
+  :impacted_devices_count => 1,
+  :crashes_count => 1,
+  :app => {
+    :name => 'app name',
+    :bundle_identifier => 'foo.bar.baz'
+  },
+  :url => "http://foo.com/bar"
+}
+```
 
 ### Utilities ###
 

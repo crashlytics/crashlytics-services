@@ -31,3 +31,6 @@ tmp
 .yardoc
 _yardoc
 doc/
+
+# YML artifact
+service_hooks.yml
