@@ -1,6 +1,6 @@
 class Service::Pagerduty < Service::Base
   title 'Pagerduty'
-  logo 'v1/settings/app_settings/pagerduty.png'
+  
   string :api_key, :label => 'Create a new Pagerduty service using the Generic API, then paste the API key here.'
   page "API Key", [:api_key]
   

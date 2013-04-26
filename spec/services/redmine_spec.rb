@@ -1,10 +1,6 @@
 require 'spec_helper'
 
 describe Service::Redmine do
-  it 'should have a logo' do
-    Service::Redmine.logo.should == 'v1/settings/app_settings/redmine.png'
-  end
-
   describe 'receive_verification' do
     before do
       @config = { :project_url => 'http://redmine.acme.com/projects/foo_project' }

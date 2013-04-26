@@ -12,10 +12,6 @@ describe Service::Campfire do
     Service::Campfire.title.should == 'Campfire'
   end
 
-  it 'should have a logo' do
-    Service::Campfire.logo.should == 'v1/settings/app_settings/campfire.png'
-  end
-
   describe 'find_campfire_room' do
     before do
       @service = Service::Campfire.new('verification', {})

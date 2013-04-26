@@ -1,5 +1,4 @@
 class Service::Pivotal < Service::Base
-  logo "v1/settings/app_settings/pivotal.png"
   string :project_url, :placeholder => "https://www.pivotaltracker.com/projects/yourproject/",
          :label => "URL to your Pivotal project:"
   string :api_key, :label => 'Paste your API Token (located under "Profile"). ' \

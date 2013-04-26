@@ -2,7 +2,7 @@ require 'tinder'
 
 class Service::Campfire < Service::Base
   title 'Campfire'
-  logo 'v1/settings/app_settings/campfire.png'
+  
   string :subdomain, :label => 'Your Campfire subdomain:'
   string :room, :label => 'Your Campfire chatrooom:'
   string :api_token, :label => "Get it from Campfire's \"My Info\" screen."

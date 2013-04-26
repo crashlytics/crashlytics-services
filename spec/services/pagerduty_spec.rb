@@ -5,10 +5,6 @@ describe Service::Pagerduty do
     Service::Pagerduty.title.should == 'Pagerduty'
   end
 
-  it 'should have a logo' do
-    Service::Pagerduty.logo.should == 'v1/settings/app_settings/pagerduty.png'
-  end
-
   describe 'receive_verification' do
     before do
       @config = {}

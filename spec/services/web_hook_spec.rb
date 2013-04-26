@@ -1,10 +1,6 @@
 require 'spec_helper'
 
 describe Service::WebHook do
-  it 'should have a logo' do
-    Service::WebHook.logo.should == 'v1/settings/app_settings/webhook.png'
-  end
-
   it 'should have a title' do
     Service::WebHook.title.should == 'Web Hook'
   end
