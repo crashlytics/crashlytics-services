@@ -2,7 +2,6 @@ require 'hipchat'
 
 class Service::HipChat < Service::Base
   title 'HipChat'
-  logo 'v1/settings/app_settings/hipchat.png'
 
   string :api_token, :placeholder => 'API Token',
          :label => 'Your HipChat API Token. <br />' \

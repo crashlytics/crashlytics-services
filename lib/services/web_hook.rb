@@ -1,6 +1,5 @@
 class Service::WebHook < Service::Base
   title "Web Hook"
-  logo "v1/settings/app_settings/webhook.png"
   string :url, :placeholder => "https://[user:pass@]acme.com?key=123",
          :label => 'Enter the URL to receive our JSON data POST. ' \
                    '(<a href="http://support.crashlytics.com/knowledgebase/articles/102391-how-do-i-configure-a-custom-web-hook" target="_blank">more info</a>)'

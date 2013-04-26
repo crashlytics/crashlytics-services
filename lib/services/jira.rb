@@ -1,6 +1,6 @@
 class Service::Jira < Service::Base
   title "Jira 5"
-  logo "v1/settings/app_settings/jira.png"
+
   string :project_url, :placeholder => "https://domain.atlassian.net/browse/projectkey",
          :label => 'URL to your Jira 5 project: <br />' \
                    'This should be your URL after you select your project ' \

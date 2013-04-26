@@ -1,10 +1,6 @@
 require 'spec_helper'
 
 describe Service::Pivotal do
-  it 'should have a logo' do
-    Service::Pivotal.logo.should == 'v1/settings/app_settings/pivotal.png'
-  end
-
   describe 'receive_verification' do
     before do
       @config = { :project_url => 'https://www.pivotaltracker.com/projects/foo_project' }

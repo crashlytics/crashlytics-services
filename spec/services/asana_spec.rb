@@ -6,10 +6,6 @@ describe Service::Asana do
     Service::Asana.title.should == 'Asana'
   end
 
-  it 'should have a logo' do
-    Service::Asana.logo.should == 'v1/settings/app_settings/asana.png'
-  end
-
   context 'with service' do
     let(:service) { Service::Asana.new('event_name', {}) }
     let(:config) do

@@ -1,5 +1,4 @@
 class Service::Redmine < Service::Base
-  logo "v1/settings/app_settings/redmine.png"
   string :project_url, :placeholder => "http://redmine.acme.com/projects/yourproject",
          :label => "URL to your Redmine project:"
   string :api_key, :label => 'Paste your API Key (located under "My Account")<br><br>' \
