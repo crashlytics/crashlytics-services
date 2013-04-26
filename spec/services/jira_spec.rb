@@ -5,10 +5,6 @@ describe Service::Jira do
     Service::Jira.title.should == 'Jira 5'
   end
 
-  it 'should have a logo' do
-    Service::Jira.logo.should == 'v1/settings/app_settings/jira.png'
-  end
-
   describe 'receive_verification' do
     before do
       @config = { :project_url => 'https://domain.atlassian.net/browse/project_key' }
