@@ -23,7 +23,6 @@ namespace :services do
       services << {
         :identifier => identifier,
         :name   => svc.title,
-        :logo   => svc.logo,
         :events => svc.handles,
         :schema => svc.schema,
         :pages  => svc.pages }
