@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Service::Jira do
   it 'should have a title' do
-    Service::Jira.title.should == 'Jira 5'
+    Service::Jira.title.should == 'Jira'
   end
 
   describe 'receive_verification' do
