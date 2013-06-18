@@ -15,7 +15,7 @@ GitHub leads the way in this space with their [Github Services](https://github.c
 We've started with GitHub's approach and simplified and streamlined the implementation to fit better within Crashlytics' backend architecture and permit more customization of the front-end UI. As with the original, our additions are available under the Logical Awesome license and we're excited to see who takes this even further.
 
 ## How to Contribute ##
-See [CONTRIBUTING.md](https://github.com/crashlytics/crashlytics-services/CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/crashlytics/crashlytics-services/blob/master/CONTRIBUTING.md)
 
 ## Example ##
 
