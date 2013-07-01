@@ -78,7 +78,7 @@ Example issue hash:
   :crashes_count => 1,
   :app => {
     :name => 'app name',
-    :bundle_identifier => 'foo.bar.baz'
+    :bundle_identifier => 'foo.bar.baz',
     :platform => 'ios'
   },
   :url => "http://foo.com/bar"
