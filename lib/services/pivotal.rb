@@ -11,6 +11,7 @@ class Service::Pivotal < Service::Base
   # Create an issue on Pivotal
   def receive_issue_impact_change(config, payload)
     parsed = parse_url config[:project_url]
+    url_prefix = parsed[:url_prefix]
     project_id = parsed[:project_id]
     http.ssl[:verify] = true
 
@@ -38,7 +39,7 @@ class Service::Pivotal < Service::Base
       'story_type'    => 'bug',
       'description' => issue_body }
 
-    resp = http_post "https://#{parsed[:url_prefix]}/services/v3/projects/#{project_id}/stories" do |req|
+    resp = http_post "https://#{url_prefix}/services/v3/projects/#{project_id}/stories" do |req|
       req.headers['Content-Type'] = 'application/xml'
       req.headers['X-TrackerToken'] = config[:api_key]
       req.params[:token] = config[:api_key]
@@ -52,10 +53,11 @@ class Service::Pivotal < Service::Base
 
   def receive_verification(config, _)
     parsed = parse_url config[:project_url]
-    project_id      = parsed[:project_id]
+    url_prefix = parsed[:url_prefix]
+    project_id = parsed[:project_id]
     http.ssl[:verify] = true
 
-    resp = http_get "https://#{parsed[:url_prefix]}/services/v3/projects/#{project_id}" do |req|
+    resp = http_get "https://#{url_prefix}/services/v3/projects/#{project_id}" do |req|
       req.headers['X-TrackerToken'] = config[:api_key]
     end
     if resp.status == 200
@@ -73,8 +75,10 @@ class Service::Pivotal < Service::Base
   require 'uri'
   def parse_url(url)
     uri = URI(url)
-    { :url_prefix => url.match(/https?:\/\/(.*?)\/projects\//)[1],
-      :project_id => uri.path.match(/\/projects\/(.+?)(\/|$)/)[1]}
+    {
+      :url_prefix => uri.hostname,
+      :project_id => uri.path.match(/\/projects\/(.+?)(\/|$)/)[1]
+    }
   end
 
   private
