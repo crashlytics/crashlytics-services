@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Service::Pivotal do
   describe 'receive_verification' do
     before do
-      @config = { :project_url => 'https://www.pivotaltracker.com/projects/foo_project' }
+      @config = { :project_url => 'https://www.pivotaltracker.com/s/projects/foo_project' }
       @service = Service::Pivotal.new('verification', {})
       @payload = {}
     end
@@ -45,7 +45,7 @@ describe Service::Pivotal do
 
   describe 'receive_issue_impact_change' do
     before do
-      @config = { :project_url => 'https://www.pivotaltracker.com/projects/foo_project' }
+      @config = { :project_url => 'https://www.pivotaltracker.com/s/projects/foo_project' }
       @service = Service::Pivotal.new('issue_impact_change', {})
       @payload = {
         :title => 'foo title',
@@ -91,6 +91,22 @@ describe Service::Pivotal do
         .and_return(test.post('/services/v3/projects/foo_project/stories'))
 
       lambda { @service.receive_issue_impact_change(@config, @payload) }.should raise_error
+    end
+  end
+
+  describe 'parse_url' do
+    let(:service) { Service::Pivotal.new('issue_impact_change', {}) }
+
+    it 'should parse_url with /s/ prefix correctly' do
+      project_url = 'https://www.pivotaltracker.com/s/projects/12345'
+      parsed_url = service.send :parse_url, project_url
+      parsed_url[:project_id].should eq '12345'
+    end
+
+    it 'should parse_url without /s/ prefix correctly' do
+      project_url = 'https://www.pivotaltracker.com/projects/12345'
+      parsed_url = service.send :parse_url, project_url
+      parsed_url[:project_id].should eq '12345'
     end
   end
 end
