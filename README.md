@@ -54,7 +54,7 @@ end
 
 ### Schema ###
 
-The schema is defined in a declarative manner with Ruby class methods for each input type. Specify the unique identifer for the field and an optional options Hash. If no pages are declared, all the inputs will be put on one page. 
+The schema is defined in a declarative manner with Ruby class methods for each input type. Specify the unique identifer for the field and an optional options Hash. If no pages are declared, all the inputs will be put on one page.
 
 For a better, friendlier UI, you can spearate these fields into pages. If one or more pages are declared, each input identifier must be included on one page or it will be ignored. Pages will be shown in the order they are declared in the schema. Labels can include span, p, br, and anchor html tags.
 
@@ -78,7 +78,8 @@ Example issue hash:
   :crashes_count => 1,
   :app => {
     :name => 'app name',
-    :bundle_identifier => 'foo.bar.baz'
+    :bundle_identifier => 'foo.bar.baz',
+    :platform => 'ios'
   },
   :url => "http://foo.com/bar"
 }
