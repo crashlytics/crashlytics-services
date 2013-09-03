@@ -77,7 +77,7 @@ describe Service::GitHub do
       service = Service::GitHub.new('issue_impact_change', {})
       failed_github_issue = mock(:message => 'GitHub error message')
       service.should_receive(:create_github_issue) { [failed_github_issue, 401] }
-      expect { service.receive_issue_impact_change config, crashlytics_issue }.to raise_error "GitHub issue creation failed: 401 - GitHub error message"
+      expect { service.receive_issue_impact_change config, crashlytics_issue }.to raise_error 'GitHub issue creation failed: 401 - GitHub error message'
     end
   end
 end
