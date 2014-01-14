@@ -22,5 +22,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'asana', '0.0.4'
   s.add_dependency 'octokit', '~> 2.0.0'
 
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'simplecov'
   s.add_development_dependency 'rspec', '2.11.0'
+  s.add_development_dependency 'webmock', '1.9.0'
 end

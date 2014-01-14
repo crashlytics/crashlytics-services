@@ -41,6 +41,6 @@ namespace :services do
     file = ENV['FILE'] || File.join(File.dirname(__FILE__), 'service_hooks.yml')
     FileUtils.cp file, '/srv/crashlytics/config/notifier/service_hooks.yml'
     FileUtils.cp file, '/srv/crashlytics/config/www/service_hooks.yml'
-    FileUtils.cp file, '/crashlytics/chef/deploy/templates/default/service_hooks.yml'
+    FileUtils.cp file, '/srv/crashlytics/config/daemon/service_hooks.yml'
   end
 end
