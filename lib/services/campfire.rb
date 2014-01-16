@@ -2,7 +2,7 @@ require 'tinder'
 
 class Service::Campfire < Service::Base
   title 'Campfire'
-  
+
   string :subdomain, :label => 'Your Campfire subdomain:'
   string :room, :label => 'Your Campfire chatroom:'
   string :api_token, :label => "Get it from Campfire's \"My Info\" screen."

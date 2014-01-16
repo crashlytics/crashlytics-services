@@ -47,14 +47,14 @@ describe Service::Asana do
         response = service.receive_verification(config, nil)
         response.should == [true, 'Successfully verified Asana settings!']
       end
-      
+
       it 'should fail if API call raises an exception' do
         service.should_receive(:find_project).and_raise
         response = service.receive_verification(config, nil)
         response.first.should == false
       end
     end
-  
+
     describe :receive_issue_impact_change do
       let(:notes) { service.send :create_notes, issue }
       let(:project_id) { 'project_id_foo' }
@@ -68,7 +68,7 @@ describe Service::Asana do
       let(:project) { mock(:id => project_id) }
       let(:workspace) { mock(:id => 'workspace_id_foo') }
       let(:task) { mock(:id => 'new_task_id') }
-      
+
       it 'should create a new Asana task' do
         service.should_receive(:find_project).with(config[:api_key], project_id).and_return project
         project.should_receive(:workspace).and_return workspace
@@ -77,12 +77,12 @@ describe Service::Asana do
         response = service.receive_issue_impact_change config, issue
         response.should == { :asana_task_id => task.id }
       end
-      
+
       it 'should raise if creating a new Asana task fails' do
         service.should_receive(:find_project).with(config[:api_key], project_id).and_return project
         project.should_receive(:workspace).and_return workspace
         workspace.should_receive(:create_task).with(expected_task_options).and_raise
-  
+
         expect { service.receive_issue_impact_change config, issue }.to raise_error
       end
     end

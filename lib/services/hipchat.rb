@@ -46,7 +46,7 @@ class Service::HipChat < Service::Base
   def send_message(config, message)
     token = config[:api_token]
     room = config[:room]
-    client = HipChat::Client.new(token)    
+    client = HipChat::Client.new(token)
     client[room].send('Crashlytics', message, :notify => config[:notify]) 
   end
 end

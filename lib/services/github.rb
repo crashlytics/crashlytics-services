@@ -15,7 +15,7 @@ class Service::GitHub < Service::Base
 
   def receive_verification(config, _)
     repo = github_repo(config[:access_token], config[:repo])
-    [true, "Successsfully accessed repo #{config[:repo]}."]
+    [true, "Successfully accessed repo #{config[:repo]}."]
   rescue => e
     log "Rescued a verification error in GitHub for repo #{config[:repo]}: #{e}"
     [false, "Could not access repository for #{config[:repo]}."]
