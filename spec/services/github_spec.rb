@@ -26,7 +26,7 @@ describe Service::GitHub do
 
       success, message = service.receive_verification(config, nil)
       success.should be_true
-      message.should == 'Successsfully accessed repo crashlytics/sample-project.'
+      message.should == 'Successfully accessed repo crashlytics/sample-project.'
     end
 
     it :failure do

@@ -1,7 +1,7 @@
 class Service::YouTrack < Service::Base
   title 'YouTrack'
 
-  string :base_url, :label => 'URL to YouTrack server:', :placeholder => 'http://myname.jetbrains.com/youtrack/'
+  string :base_url, :label => 'URL to YouTrack server:', :placeholder => 'https://myname.jetbrains.com/youtrack/'
   string :project_id, :label => 'YouTrack Project ID:', :placeholder => 'PROJ'
   string :username, :label => 'Email address:', :placeholder => 'user@domain.com'
   password :password, :label => 'Password:'
