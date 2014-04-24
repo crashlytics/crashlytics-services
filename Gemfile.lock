@@ -1,10 +1,11 @@
 PATH
   remote: .
   specs:
-    crashlytics-service (3.5.1)
+    crashlytics-service (3.5.2)
       asana (= 0.0.4)
       faraday (= 0.8.1)
       hipchat (~> 0.7.0)
+      jira-ruby (~> 0.1.8)
       nokogiri (= 1.5.5)
       octokit (~> 2.0.0)
       tinder (= 1.9.1)
@@ -12,13 +13,13 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (3.2.16)
-      activesupport (= 3.2.16)
+    activemodel (3.2.17)
+      activesupport (= 3.2.17)
       builder (~> 3.0.0)
-    activeresource (3.2.16)
-      activemodel (= 3.2.16)
-      activesupport (= 3.2.16)
-    activesupport (3.2.16)
+    activeresource (3.2.17)
+      activemodel (= 3.2.17)
+      activesupport (= 3.2.17)
+    activesupport (3.2.17)
       i18n (~> 0.6, >= 0.6.4)
       multi_json (~> 1.0)
     addressable (2.3.5)
@@ -32,23 +33,27 @@ GEM
     eventmachine (1.0.3)
     faraday (0.8.1)
       multipart-post (~> 1.1)
-    faraday_middleware (0.9.0)
-      faraday (>= 0.7.4, < 0.9)
+    faraday_middleware (0.9.1)
+      faraday (>= 0.7.4, < 0.10)
     hashie (1.2.0)
     hipchat (0.7.0)
       httparty
       httparty
     http_parser.rb (0.5.3)
-    httparty (0.12.0)
+    httparty (0.13.1)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
     i18n (0.6.9)
+    jira-ruby (0.1.9)
+      activesupport
+      oauth
     json (1.8.1)
     mime-types (1.25.1)
     multi_json (1.8.2)
     multi_xml (0.5.5)
     multipart-post (1.2.0)
     nokogiri (1.5.5)
+    oauth (0.4.7)
     octokit (2.0.0)
       sawyer (~> 0.3.0)
     rake (10.1.0)
