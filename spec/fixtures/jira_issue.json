@@ -1,0 +1,166 @@
+{
+  "expand":"renderedFields,names,schema,transitions,operations,editmeta,changelog",
+  "id":"10105",
+  "self":"https://example.com/rest/api/2/issue/10105",
+  "key":"CRASHES-17",
+  "fields":{
+    "summary":"SLCCG.mm line 198 [Crashlytics]",
+    "progress":{
+      "progress":0,
+      "total":0
+    },
+    "timetracking":{
+
+    },
+    "issuetype":{
+      "self":"https://example.com/rest/api/2/issuetype/1",
+      "id":"1",
+      "description":"A problem which impairs or prevents the functions of the product.",
+      "iconUrl":"https://example.com/images/icons/issuetypes/bug.png",
+      "name":"Bug",
+      "subtask":false
+    },
+    "timespent":null,
+    "reporter":{
+      "self":"https://example.com/rest/api/2/user?username=user",
+      "name":"user",
+      "emailAddress":"user@example.com",
+      "avatarUrls":{
+        "16x16":"https://example.com/secure/useravatar?size=xsmall&avatarId=10113",
+        "24x24":"https://example.com/secure/useravatar?size=small&avatarId=10113",
+        "32x32":"https://example.com/secure/useravatar?size=medium&avatarId=10113",
+        "48x48":"https://example.com/secure/useravatar?avatarId=10113"
+      },
+      "displayName":"Manuel Deschamps [Administrator]",
+      "active":true
+    },
+    "created":"2014-04-30T16:04:14.634-0700",
+    "updated":"2014-04-30T16:04:14.634-0700",
+    "priority":{
+      "self":"https://example.com/rest/api/2/priority/3",
+      "iconUrl":"https://example.com/images/icons/priorities/major.png",
+      "name":"Major",
+      "id":"3"
+    },
+    "description":"Crashlytics detected a new issue.\\nSLCCG.mm line 198 in -[CrashTestGenerator generateCrashWithKey:]\\n\\nThis issue is affecting at least 1 user who has crashed at least 1 time.\\n\\nMore information: http://vagrant-pipeline/crashlyticsinc/ios/apps/com.crashlytics.ios.crashtest/issues/53617fb6e2fad417dd7f8c48",
+    "customfield_10001":null,
+    "customfield_10002":null,
+    "customfield_10003":null,
+    "issuelinks":[
+
+    ],
+    "customfield_10000":null,
+    "subtasks":[
+
+    ],
+    "customfield_10008":null,
+    "customfield_10007":null,
+    "status":{
+      "self":"https://example.com/rest/api/2/status/1",
+      "description":"The issue is open and ready for the assignee to start work on it.",
+      "iconUrl":"https://example.com/images/icons/statuses/open.png",
+      "name":"Open",
+      "id":"1",
+      "statusCategory":{
+        "self":"https://example.com/rest/api/2/statuscategory/2",
+        "id":2,
+        "key":"new",
+        "colorName":"blue-gray",
+        "name":"New"
+      }
+    },
+    "customfield_10006":"6",
+    "labels":[
+
+    ],
+    "workratio":-1,
+    "project":{
+      "self":"https://example.com/rest/api/2/project/10000",
+      "id":"10000",
+      "key":"CRASHES",
+      "name":"Crashlytics",
+      "avatarUrls":{
+        "16x16":"https://example.com/secure/projectavatar?size=xsmall&pid=10000&avatarId=10011",
+        "24x24":"https://example.com/secure/projectavatar?size=small&pid=10000&avatarId=10011",
+        "32x32":"https://example.com/secure/projectavatar?size=medium&pid=10000&avatarId=10011",
+        "48x48":"https://example.com/secure/projectavatar?pid=10000&avatarId=10011"
+      }
+    },
+    "environment":null,
+    "customfield_10014":null,
+    "customfield_10015":null,
+    "lastViewed":"2014-05-08T14:27:12.115-0700",
+    "aggregateprogress":{
+      "progress":0,
+      "total":0
+    },
+    "customfield_10012":null,
+    "components":[
+
+    ],
+    "customfield_10013":null,
+    "comment":{
+      "startAt":0,
+      "maxResults":0,
+      "total":0,
+      "comments":[
+
+      ]
+    },
+    "timeoriginalestimate":null,
+    "customfield_10017":null,
+    "customfield_10016":null,
+    "customfield_10019":null,
+    "customfield_10018":null,
+    "votes":{
+      "self":"https://example.com/rest/api/2/issue/CRASHES-17/votes",
+      "votes":0,
+      "hasVoted":false
+    },
+    "fixVersions":[
+
+    ],
+    "resolution":null,
+    "resolutiondate":null,
+    "creator":{
+      "self":"https://example.com/rest/api/2/user?username=user",
+      "name":"user",
+      "emailAddress":"user@example.com",
+      "avatarUrls":{
+        "16x16":"https://example.com/secure/useravatar?size=xsmall&avatarId=10113",
+        "24x24":"https://example.com/secure/useravatar?size=small&avatarId=10113",
+        "32x32":"https://example.com/secure/useravatar?size=medium&avatarId=10113",
+        "48x48":"https://example.com/secure/useravatar?avatarId=10113"
+      },
+      "displayName":"Manuel Deschamps [Administrator]",
+      "active":true
+    },
+    "aggregatetimeoriginalestimate":null,
+    "duedate":null,
+    "customfield_10020":null,
+    "customfield_10021":"Not Started",
+    "watches":{
+      "self":"https://example.com/rest/api/2/issue/CRASHES-17/watchers",
+      "watchCount":1,
+      "isWatching":true
+    },
+    "worklog":{
+      "startAt":0,
+      "maxResults":20,
+      "total":0,
+      "worklogs":[
+
+      ]
+    },
+    "assignee":null,
+    "attachment":[
+
+    ],
+    "aggregatetimeestimate":null,
+    "versions":[
+
+    ],
+    "timeestimate":null,
+    "aggregatetimespent":null
+  }
+}

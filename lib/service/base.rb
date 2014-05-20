@@ -31,8 +31,11 @@ module Service
       def receive(event, config, payload = nil, logger = nil)
         svc = new(event, config, payload, logger)
 
-        Timeout.timeout(20, TimeoutError) do
-          svc.send("receive_#{event}", config, payload)
+        method = "receive_#{event}"
+        if svc.respond_to?(method)
+          Timeout.timeout(20, TimeoutError) do
+            svc.send(method, config, payload)
+          end
         end
       end
 
