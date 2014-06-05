@@ -15,7 +15,8 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.version       = Service::VERSION
 
-  s.add_dependency 'faraday', '0.8.1'
+  # Careful, faraday 0.9.0 has breaking changes...
+  s.add_dependency 'faraday', '~> 0.8'
   s.add_dependency 'nokogiri', '1.5.5'
   s.add_dependency 'tinder', '1.9.1'
   s.add_dependency 'hipchat', '~> 0.7.0'
