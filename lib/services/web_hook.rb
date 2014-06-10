@@ -12,7 +12,7 @@ class Service::WebHook < Service::Base
       # return :no_resource if we don't have a resource identifier to save
       :no_resource
     else
-      raise "Web Hook Issue Create Failed: #{ payload }"
+      raise "WebHook issue create failed: HTTP status code: #{response.status}, body: #{response.body}"
     end
   end
 
