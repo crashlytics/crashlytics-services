@@ -82,10 +82,10 @@ describe Service::WebHook do
       resp.should == :no_resource
     end
 
-    it 'should fail upon unsuccessful api response' do
+    it 'should fail with extra information upon unsuccessful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
-          stub.post('/') { [500, {}, ''] }
+          stub.post('/') { [500, {}, 'fake_body'] }
         end
       end
 
@@ -93,7 +93,9 @@ describe Service::WebHook do
         .with('https://example.org')
         .and_return(test.post('/'))
 
-      lambda { @service.receive_issue_impact_change(@config, @payload) }.should raise_error
+      lambda {
+        @service.receive_issue_impact_change(@config, @payload)
+      }.should raise_error(/WebHook issue create failed: HTTP status code: 500, body: fake_body/)
     end
   end
 end

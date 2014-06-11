@@ -7,20 +7,31 @@ class Service::WebHook < Service::Base
 
   # Create an issue
   def receive_issue_impact_change(config, payload)
-    ok = post_event(config[:url], 'issue_impact_change', 'issue', payload)
-    raise "Web Hook Issue Create Failed: #{ payload }" unless ok
-    # return :no_resource if we don't have a resource identifier to save
-    :no_resource
+    response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
+    if successful_response?(response)
+      # return :no_resource if we don't have a resource identifier to save
+      :no_resource
+    else
+      raise "WebHook issue create failed: HTTP status code: #{response.status}, body: #{response.body}"
+    end
   end
 
   def receive_verification(config, _)
     success = [true,  "Successfully verified Web Hook settings"]
     failure = [false, "Oops! Please check your settings again."]
-    ok = post_event(config[:url], 'verification', 'none', nil)
-    ok ? success : failure
+    response = post_event(config[:url], 'verification', 'none', nil)
+    if successful_response?(response)
+      success
+    else
+      failure
+    end
   rescue => e
     log "Rescued a verification error in webhook: (url=#{config[:url]}) #{e}"
     failure
+  end
+
+  def successful_response?(response)
+    (200..299).include?(response.status)
   end
 
   private
@@ -32,13 +43,10 @@ class Service::WebHook < Service::Base
       :payload_type => payload_type }
     body[:payload]  =  payload if payload
 
-    resp = http_post url do |req|
+    http_post(url) do |req|
       req.headers['Content-Type'] = 'application/json'
       req.body                    = body.to_json
       req.params['verification']  = 1 if event == 'verification'
     end
-    ok = (200..299).include? resp.status
-    log "HTTP Error: status code: #{ resp.status }, body: #{ resp.body }" unless ok
-    ok
   end
 end
