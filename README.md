@@ -2,7 +2,7 @@
 
 Simple, powerful, declarative integrations for popular third-party services.
 
-![Screenshot](http://public.crashlytics.com.s3.amazonaws.com/crashlytics-services_readme_image.png)
+![Screenshot](http://public.crashlytics.com.s3.amazonaws.com/crashlytics-services-readme-image.png)
 
 ### Rationale ###
 
