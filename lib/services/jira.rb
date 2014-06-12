@@ -143,6 +143,20 @@ class Service::Jira < Service::Base
    false
   end
 
+  def jira_client(config)
+    ssl_enabled = (URI(config[:project_url]).scheme == 'https')
+    ssl_verify_mode = ssl_enabled ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
+    JIRA::Client.new(
+      :username =>     config[:username],
+      :password =>     config[:password],
+      :site =>         config[:project_url],
+      :context_path => '',
+      :auth_type =>    :basic,
+      :use_ssl =>      ssl_enabled,
+      :ssl_verify_mode => ssl_verify_mode
+    )
+  end
+
   private
   require 'uri'
   def parse_url(url)
@@ -150,16 +164,6 @@ class Service::Jira < Service::Base
     result = { :url_prefix => url.match(/(https?:\/\/.*?)\/browse\//)[1],
       :project_key => uri.path.match(/\/browse\/(.+?)(\/|$)/)[1]}
     result
-  end
-
-  def jira_client(config)
-    JIRA::Client.new({
-      :username=>     config[:username],
-      :password=>     config[:password],
-      :site=>         config[:project_url],
-      :context_path=> '',
-      :auth_type=>    :basic,
-      :use_ssl=>      true })
   end
 
   def callback_webhook_url(payload)
