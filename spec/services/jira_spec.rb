@@ -36,6 +36,22 @@ describe Service::Jira do
     end
   end
 
+  describe 'jira_client' do
+    it 'disables SSL checking when the project_url is http' do
+      service = Service::Jira.new('verification', {})
+      client = service.jira_client(:project_url => 'http://example.com/browse/project_key')
+      expect(client.options[:use_ssl]).to be_false
+      expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_NONE)
+    end
+
+    it 'enables SSL checking and peer verification when the project_url is https' do
+      service = Service::Jira.new('verification', {})
+      client = service.jira_client(:project_url => 'https://example.com/browse/project_key')
+      expect(client.options[:use_ssl]).to be_true
+      expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_PEER)
+    end
+  end
+
   describe 'receive_issue_impact_change' do
     before do
       @config = { :project_url => 'https://example.com/browse/project_key' }
