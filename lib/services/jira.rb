@@ -15,10 +15,12 @@ class Service::Jira < Service::Base
   password :password, :placeholder => 'password',
          :label => 'Your Jira password:'
 
-  checkbox :sync_issues, :label => 'Would you like to sync issue status with Jira?'
+  # TODO - This should not be on the master branch. This enables syncing
+  #        of issue status between Jira and Crashlytics. This feature is a WIP.
+  # checkbox :sync_issues, :label => 'Would you like to sync issue status with Jira?'
 
   page "Project", [ :project_url ]
-  page "Login Information", [ :username, :password, :sync_issues ]
+  page "Login Information", [ :username, :password ] # TODO - See comment above, :sync_issues ]
 
   # Create an issue on Jira
   def receive_issue_impact_change(config, payload)
@@ -88,60 +90,62 @@ class Service::Jira < Service::Base
     [false, 'Oops! Is your project url correct?']
   end
 
-  def receive_issue_integration_request(config, payload)
-    client = jira_client(config)
+  # TODO - This should not be on master. The commented out methods
+  #        support the incomplete issue syncing feature. 
+  # def receive_issue_integration_request(config, payload)
+  #   client = jira_client(config)
 
-    jira_id = payload[:service_hook][:issue_impact_change][:jira_story_id]
-    jira_issue = client.Issue.find(jira_id)
+  #   jira_id = payload[:service_hook][:issue_impact_change][:jira_story_id]
+  #   jira_issue = client.Issue.find(jira_id)
 
-    format_jira_issue jira_issue
-  rescue => e
-    log "Rescued a service hook request error in jira: (url=#{config[:project_url]}) #{e}"
-    false
-  end
+  #   format_jira_issue jira_issue
+  # rescue => e
+  #   log "Rescued a service hook request error in jira: (url=#{config[:project_url]}) #{e}"
+  #   false
+  # end
 
-  def receive_issue_resolution_change(config, payload)
-    client = jira_client(config)
+  # def receive_issue_resolution_change(config, payload)
+  #   client = jira_client(config)
 
-    jira_id = payload[:service_hook][:issue_impact_change][:jira_story_id]
-    jira_issue = client.Issue.find(jira_id)
+  #   jira_id = payload[:service_hook][:issue_impact_change][:jira_story_id]
+  #   jira_issue = client.Issue.find(jira_id)
 
-    if jira_issue.resolution.nil? && !payload[:resolved_at]
-      log "Jira ticket #{jira_id} is open, no need to call API."
-      return true
-    elsif jira_issue.resolution.present? && payload[:resolved_at]
-      log "Jira ticket #{jira_id} is resolved already."
-      return true
-    end
+  #   if jira_issue.resolution.nil? && !payload[:resolved_at]
+  #     log "Jira ticket #{jira_id} is open, no need to call API."
+  #     return true
+  #   elsif jira_issue.resolution.present? && payload[:resolved_at]
+  #     log "Jira ticket #{jira_id} is resolved already."
+  #     return true
+  #   end
 
-    transition_request = {
-      :update => {
-        :comment => [{
-          :add => {
-            :body => nil
-          }
-        }]
-      },
-      :transition => {
-        :id => nil
-      }
-    }
+  #   transition_request = {
+  #     :update => {
+  #       :comment => [{
+  #         :add => {
+  #           :body => nil
+  #         }
+  #       }]
+  #     },
+  #     :transition => {
+  #       :id => nil
+  #     }
+  #   }
 
-    if payload[:resolved_at]
-      transition_request[:update][:comment][0][:add][:body] = 'This CR has been marked as resolved in Crashlytics'
-      transition_request[:transition][:id] = '2'
-    else
-      transition_request[:update][:comment][0][:add][:body] = 'This CR has been reopened in Crashlytics'
-      transition_request[:transition][:id] = '3'
-    end
+  #   if payload[:resolved_at]
+  #     transition_request[:update][:comment][0][:add][:body] = 'This CR has been marked as resolved in Crashlytics'
+  #     transition_request[:transition][:id] = '2'
+  #   else
+  #     transition_request[:update][:comment][0][:add][:body] = 'This CR has been reopened in Crashlytics'
+  #     transition_request[:transition][:id] = '3'
+  #   end
 
-    client.post("#{ jira_issue.self }/transitions?expand=transitions.fields", transition_request.to_json)
+  #   client.post("#{ jira_issue.self }/transitions?expand=transitions.fields", transition_request.to_json)
 
-    format_jira_issue client.Issue.find(jira_id) # fetch updated issue and return it
-  rescue => e
-   log "Rescued a service hook request error in jira: (url=#{config[:project_url]}) #{e.message}"
-   false
-  end
+  #   format_jira_issue client.Issue.find(jira_id) # fetch updated issue and return it
+  # rescue => e
+  #  log "Rescued a service hook request error in jira: (url=#{config[:project_url]}) #{e.message}"
+  #  false
+  # end
 
   def jira_client(config)
     ssl_enabled = (URI(config[:project_url]).scheme == 'https')
