@@ -4,10 +4,17 @@ class Service::Trello < Service::Base
   title 'Trello'
 
   string :board, placeholder: 'Board ID',
-                 label: 'Example: 4d5ea62fd76aa1136000000c (Trello Development board)'
-  string :list,  placeholder: 'List name'
+    label: 
+      'Your Trello board id:' \
+      '<br />' \
+      'Example: 4d5ea62fd76aa1136000000c (Trello Development board)'
+  string :list,  placeholder: 'List name',
+    label: 'The list to post issues to:'
   string :key,   placeholder: 'Developer public key',
-                 label: 'Can be obtained <a href="https://trello.com/1/appKey/generate">here</a> (Key field)'
+    label:
+      'Your Trello API key:' \
+      '<br />' \
+      'Can be obtained <a href="https://trello.com/1/appKey/generate">here</a> (Key field)'
   string :token, placeholder: 'Member token',
                  label: <<-EOT
 You should generate a token by opening the following URL. Replace DEVELOPER_PUBLIC_KEY with your key.
