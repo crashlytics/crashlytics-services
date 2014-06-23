@@ -1,6 +1,10 @@
 require 'spec_helper'
 require 'webmock/rspec'
 
+RSpec.configure do |c|
+  c.filter_run_excluding :wip => true
+end
+
 describe Service::Jira do
   it 'should have a title' do
     Service::Jira.title.should == 'Jira'
@@ -98,7 +102,7 @@ describe Service::Jira do
     end
   end
 
-  describe 'receive_issue_integration_request' do
+  describe 'receive_issue_integration_request', :wip => true do
     before do
       @config = { :project_url => 'https://example.com/browse/project_key' }
       @service = Service::Jira.new('issue_integration_request', {})
@@ -135,7 +139,7 @@ describe Service::Jira do
     end
   end
 
-  describe 'issue_resolution_change' do
+  describe 'issue_resolution_change', :wip => true do
     before do
       @config = { :project_url => 'https://example.com/browse/project_key' }
       @service = Service::Jira.new('issue_resolution_change', {})
