@@ -98,7 +98,19 @@ describe Service::Jira do
          with(:headers => {'Accept'=>'application/json', 'Content-Type'=>'application/json', 'User-Agent'=>'Ruby'}).
          to_return(:status => 500, :body => "{\"id\":\"foo\"}", :headers => {})
 
-      lambda { @service.receive_issue_impact_change(@config, @payload) }.should raise_error
+      lambda { 
+        @service.receive_issue_impact_change(@config, @payload) 
+      }.should raise_error(/Status: 500, Body: {\"id\":\"foo\"}/)
+    end
+
+    it 'should handle and re-raise any non-HTTP errors' do
+      mock_client = double("Client")
+      mock_client.stub(:Project) {raise "Some Other Error"}
+      @service.stub(:jira_client).and_return(mock_client)
+
+      lambda {
+        @service.receive_issue_impact_change(@config, @payload)
+      }.should raise_error(/Jira Issue Create Failed: Some Other Error/)
     end
   end
 
