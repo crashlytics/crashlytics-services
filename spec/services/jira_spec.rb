@@ -41,18 +41,30 @@ describe Service::Jira do
   end
 
   describe 'jira_client' do
+    before do
+      @service = Service::Jira.new('verification', {})
+    end
+
     it 'disables SSL checking when the project_url is http' do
-      service = Service::Jira.new('verification', {})
-      client = service.jira_client(:project_url => 'http://example.com/browse/project_key')
+      client = @service.jira_client(:project_url => 'http://example.com/browse/project_key')
       expect(client.options[:use_ssl]).to be_false
       expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_NONE)
     end
 
     it 'enables SSL checking and peer verification when the project_url is https' do
-      service = Service::Jira.new('verification', {})
-      client = service.jira_client(:project_url => 'https://example.com/browse/project_key')
+      client = @service.jira_client(:project_url => 'https://example.com/browse/project_key')
       expect(client.options[:use_ssl]).to be_true
       expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_PEER)
+    end
+
+    it 'handles urls with empty context paths' do
+      client = @service.jira_client(:project_url => 'https://example.com/browse/project_key')
+      expect(client.options[:context_path]).to eq("")
+    end
+
+    it 'handles urls with non-empty context paths' do 
+      client = @service.jira_client(:project_url => 'https://example.com/non/empty/path/browse/project_key')
+      expect(client.options[:context_path]).to eq("/non/empty/path")
     end
   end
 
