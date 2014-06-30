@@ -84,7 +84,7 @@ class Service::Jira < Service::Base
     end
     verification_response
   rescue JIRA::HTTPError => e
-    log "HTTP Error: status code: #{ e.code }, body: #{ e.message }"
+    log "HTTP Error: status code: #{ e.code }, body: #{ e.response.body }"
     [false, 'Oops! Please check your settings again.']
   rescue => e
     log "Rescued a verification error in jira: (url=#{config[:project_url]}) #{e}"
@@ -149,13 +149,14 @@ class Service::Jira < Service::Base
   # end
 
   def jira_client(config)
-    ssl_enabled = (URI(config[:project_url]).scheme == 'https')
+    url = config[:project_url]
+    ssl_enabled = (URI(url).scheme == 'https')
     ssl_verify_mode = ssl_enabled ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
     JIRA::Client.new(
       :username =>     config[:username],
       :password =>     config[:password],
       :site =>         config[:project_url],
-      :context_path => '',
+      :context_path => get_context_path(url),
       :auth_type =>    :basic,
       :use_ssl =>      ssl_enabled,
       :ssl_verify_mode => ssl_verify_mode
@@ -169,6 +170,11 @@ class Service::Jira < Service::Base
     result = { :url_prefix => url.match(/(https?:\/\/.*?)\/browse\//)[1],
       :project_key => uri.path.match(/\/browse\/(.+?)(\/|$)/)[1]}
     result
+  end
+
+  def get_context_path(url)
+    m = url.match(/https?:\/\/.*?..+?((?:\/.+)+)\/browse\//)
+    m ? m[1] : ''
   end
 
   def callback_webhook_url(payload)
