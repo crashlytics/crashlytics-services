@@ -27,13 +27,15 @@ class Service::Bitbucket < Service::Base
       'Your Bitbucket username:'
   password :password, :placeholder => 'password',
      :label => 'Your Bitbucket password:'
+  string :repo_owner, :placeholder => "repository owner",
+     :label => 'The owner of your repo (enter your username again if you are the repo owner):'
   string :repo, :placeholder => "repository",
      :label => 'The name of your repo:'
 
   page "Username", [:username]
   page "Password", [:password]
+  page "Repository Owner", [:repo_owner]
   page "Repository", [:repo]
-  
 
   def receive_verification(config, _)
     username = config[:username]
@@ -41,7 +43,7 @@ class Service::Bitbucket < Service::Base
     http.ssl[:verify] = true
     http.basic_auth username, config[:password]
 
-    resp = http_get build_url(username, repo)
+    resp = http_get build_url(repo_owner(config), repo)
 
     if resp.status == 200
       [true, "Successfully verified Bitbucket settings"]
@@ -87,7 +89,7 @@ class Service::Bitbucket < Service::Base
       :content => issue_description
     }
 
-    resp = http_post build_url(username, repo) do |req|
+    resp = http_post build_url(repo_owner(config), repo) do |req|
       req.body = post_body
     end
 
@@ -98,10 +100,25 @@ class Service::Bitbucket < Service::Base
     { :bitbucket_issue_id => JSON.parse(resp.body)['local_id'] }
   end
 
-  def build_url(username, repo)
+  def build_url(repo_owner, repo)
     url_prefix = 'https://bitbucket.org/api/1.0/repositories'
-    url = "#{url_prefix}/#{username}/#{repo}/issues"
+    url = "#{url_prefix}/#{repo_owner}/#{repo}/issues"
     puts url
     url
+  end
+
+  private
+
+  def nil_or_empty?(str)
+    str.to_s.strip.empty?
+  end
+
+  def repo_owner(config)
+    repo_owner = config[:repo_owner]
+    if nil_or_empty?(repo_owner)
+      config[:username]
+    else
+      repo_owner
+    end
   end
 end
