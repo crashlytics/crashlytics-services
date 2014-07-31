@@ -24,13 +24,24 @@ class Service::Bitbucket < Service::Base
       'Limit the account\'s write access to the repo you want ' \
       'to post issues to.' \
       '<br /><br />' \
+      'Please make sure you have issues enabled for your Bitbucket ' \
+      'repository. Instructions for Bitbucket can be found here: ' \
+      'https://confluence.atlassian.com/display/BITBUCKET' \
+      '<br /><br />' \
+      'Example url: ' \
+      'https://bitbucket.org/example-owner/example-repo' \
+      '<br /><br />' \
       'Your Bitbucket username:'
   password :password, :placeholder => 'password',
      :label => 'Your Bitbucket password:'
-  string :repo_owner, :placeholder => "repository owner",
-     :label => 'The owner of your repo (enter your username again if you are the repo owner):'
-  string :repo, :placeholder => "repository",
-     :label => 'The name of your repo:'
+  string :repo_owner, :placeholder => 'example-owner',
+    :label => 
+      'The owner of your repo (enter your username again if you are the repo owner):'
+
+  string :repo, :placeholder => "example-repo",
+    :label => 
+      'The name of your repo:'
+
 
   page "Username", [:username]
   page "Password", [:password]
