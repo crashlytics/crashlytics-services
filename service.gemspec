@@ -15,18 +15,23 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.version       = Service::VERSION
 
-  # Careful, faraday 0.9.0 has breaking changes...
-  s.add_dependency 'faraday', '~> 0.8'
-  s.add_dependency 'nokogiri', '1.5.5'
-  s.add_dependency 'tinder', '1.9.1'
-  s.add_dependency 'hipchat', '~> 0.7.0'
+  s.add_dependency 'faraday'
+  s.add_dependency 'nokogiri', '~> 1.5'
+
+  # Note: we are stuck at tinder 1.9 until we can eliminate our dependency
+  # on eventmachine 1.0.0.beta.4
+  s.add_dependency 'tinder', '~> 1.9'
+
+  # enforce consistency with worker pipeline version of eventmachine
+  s.add_dependency 'eventmachine', '1.0.0.beta.4'
+  s.add_dependency 'hipchat', '~> 0.7'
   s.add_dependency 'asana', '0.0.4'
-  s.add_dependency 'octokit', '~> 2.0.0'
-  s.add_dependency 'jira-ruby', '~> 0.1.8'
-  s.add_dependency 'ruby-trello', '~> 1.1.1'
+  s.add_dependency 'octokit', '~> 2.0'
+  s.add_dependency 'jira-ruby', '~> 0.1'
+  s.add_dependency 'ruby-trello', '~> 1.1'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'simplecov'
-  s.add_development_dependency 'rspec', '2.11.0'
-  s.add_development_dependency 'webmock', '1.9.0'
+  s.add_development_dependency 'rspec', '~> 2.11'
+  s.add_development_dependency 'webmock', '~> 1.9'
 end
