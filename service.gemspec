@@ -29,9 +29,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'octokit', '~> 2.0'
   s.add_dependency 'jira-ruby', '~> 0.1'
   s.add_dependency 'ruby-trello', '~> 1.1'
+  s.add_dependency 'slack-notifier', '~> 1.0.0'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'simplecov'
-  s.add_development_dependency 'rspec', '~> 2.11'
+  s.add_development_dependency 'rspec', '~> 2.99'
   s.add_development_dependency 'webmock', '~> 1.9'
 end

@@ -22,7 +22,7 @@ describe Service::Campfire do
     end
 
     it "should find and return Campfire room" do
-      campfire = mock(Tinder::Campfire)
+      campfire = double(Tinder::Campfire)
       Tinder::Campfire.should_receive(:new).with(@config[:subdomain], :token => @config[:api_token]).and_return(campfire)
       campfire.should_receive(:find_room_by_name).with(@config[:room])
 
@@ -41,7 +41,7 @@ describe Service::Campfire do
     end
 
     it 'should succeed upon successful api response' do
-      @service.should_receive(:find_campfire_room).with(@config).and_return(mock(:name => @config[:room]))
+      @service.should_receive(:find_campfire_room).with(@config).and_return(double(:name => @config[:room]))
 
       resp = @service.receive_verification(@config, @payload)
       resp.should == [true, 'Successfully verified Campfire settings']
@@ -70,7 +70,7 @@ describe Service::Campfire do
         :url => "http://foo.com/bar"
       }
 
-      @room = mock(:name =>@config[:room])
+      @room = double(:name =>@config[:room])
       @service.should_receive(:find_campfire_room).and_return(@room)
     end
 

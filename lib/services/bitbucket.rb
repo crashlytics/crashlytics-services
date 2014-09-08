@@ -110,9 +110,7 @@ class Service::Bitbucket < Service::Base
 
   def build_url(repo_owner, repo)
     url_prefix = 'https://bitbucket.org/api/1.0/repositories'
-    url = "#{url_prefix}/#{repo_owner}/#{repo}/issues"
-    puts url
-    url
+    "#{url_prefix}/#{repo_owner}/#{repo}/issues"
   end
 
   private

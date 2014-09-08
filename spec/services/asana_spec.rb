@@ -43,7 +43,7 @@ describe Service::Asana do
 
     describe :receive_verification do
       it 'should succeed if API can authenticate and find product' do
-        service.should_receive(:find_project).with(config[:api_key], 'project_id_foo').and_return(mock(:id => 'project_id_foo'))
+        service.should_receive(:find_project).with(config[:api_key], 'project_id_foo').and_return(double(:id => 'project_id_foo'))
         response = service.receive_verification(config, nil)
         response.should == [true, 'Successfully verified Asana settings!']
       end
@@ -65,9 +65,9 @@ describe Service::Asana do
           :projects => [project_id]
         }
       end
-      let(:project) { mock(:id => project_id) }
-      let(:workspace) { mock(:id => 'workspace_id_foo') }
-      let(:task) { mock(:id => 'new_task_id') }
+      let(:project) { double(:id => project_id) }
+      let(:workspace) { double(:id => 'workspace_id_foo') }
+      let(:task) { double(:id => 'new_task_id') }
 
       it 'should create a new Asana task' do
         service.should_receive(:find_project).with(config[:api_key], project_id).and_return project

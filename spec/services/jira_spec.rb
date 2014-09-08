@@ -18,7 +18,7 @@ describe Service::Jira do
     end
 
     it 'should respond' do
-      expect(@service.respond_to?(:receive_verification)).to be_true
+      expect(@service.respond_to?(:receive_verification)).to be true
     end
 
     it 'should succeed upon successful api response' do
@@ -47,13 +47,13 @@ describe Service::Jira do
 
     it 'disables SSL checking when the project_url is http' do
       client = @service.jira_client(:project_url => 'http://example.com/browse/project_key')
-      expect(client.options[:use_ssl]).to be_false
+      expect(client.options[:use_ssl]).to be false
       expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_NONE)
     end
 
     it 'enables SSL checking and peer verification when the project_url is https' do
       client = @service.jira_client(:project_url => 'https://example.com/browse/project_key')
-      expect(client.options[:use_ssl]).to be_true
+      expect(client.options[:use_ssl]).to be true
       expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_PEER)
     end
 
@@ -85,7 +85,7 @@ describe Service::Jira do
     end
 
     it 'should respond to receive_issue_impact_change' do
-      expect(@service.respond_to?(:receive_issue_impact_change)).to be_true
+      expect(@service.respond_to?(:receive_issue_impact_change)).to be true
     end
 
     it 'should succeed upon successful api response' do
@@ -141,7 +141,7 @@ describe Service::Jira do
     end
 
     it 'should respond' do
-      expect(@service.respond_to?(:receive_issue_integration_request)).to be_true
+      expect(@service.respond_to?(:receive_issue_integration_request)).to be true
     end
 
     it 'should succeed upon successful api response' do
@@ -159,7 +159,7 @@ describe Service::Jira do
          to_return(:status => 500, :body => "", :headers => {})
 
       resp = @service.receive_issue_integration_request(@config, @payload)
-      expect(resp).to be_false
+      expect(resp).to be false
     end
   end
 
@@ -178,7 +178,7 @@ describe Service::Jira do
     end
 
     it 'should respond' do
-      expect(@service.respond_to?(:receive_issue_resolution_change)).to be_true
+      expect(@service.respond_to?(:receive_issue_resolution_change)).to be true
     end
 
     it 'should succeed upon successful api response (resolved)' do
@@ -227,7 +227,7 @@ describe Service::Jira do
          to_return(:status => 200, :body => @resolved_issue.to_json, :headers => {})
 
       resp = @service.receive_issue_resolution_change(@config, @payload)
-      expect(resp).to be_true
+      expect(resp).to be true
     end
 
     it 'should not do anything if statuses are the same (reopened)' do
@@ -238,7 +238,7 @@ describe Service::Jira do
          to_return(:status => 200, :body => @jira_issue, :headers => {})
 
       resp = @service.receive_issue_resolution_change(@config, @payload)
-      expect(resp).to be_true
+      expect(resp).to be true
     end
   end
 end

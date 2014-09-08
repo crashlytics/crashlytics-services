@@ -27,13 +27,13 @@ describe Service::Hall do
     it 'should succeed upon successful api response' do
       @service.stub(:verify_hall_service).with(@config) {@success}
       resp = @service.receive_verification(@config, @payload)
-      resp[0].should be_true
+      resp[0].should be true
     end
 
     it 'should fail upon unsuccessful api response' do
       @service.stub(:verify_hall_service).with(@config) {@failure}
       resp = @service.receive_verification(@config, @payload)
-      resp[0].should be_false
+      resp[0].should be false
     end
   end
 
@@ -49,12 +49,12 @@ describe Service::Hall do
     it 'should succeed upon successful api response' do
       @service.stub(:send_hall_message).with(@config, @payload) {@success}
       resp = @service.receive_issue_impact_change(@config, @payload)
-      resp.should be_true
+      resp.should eq(:no_resource)
     end
 
     it 'should fail upon unsuccessful api response' do
       @service.stub(:send_hall_message).with(@config, @payload) {@failure}
-      lambda { 
+      lambda {
         @service.receive_issue_impact_change(@config, @payload) 
       }.should raise_error(/Failed to send Hall message. HTTP status code: 404, body: fakebody/)
     end

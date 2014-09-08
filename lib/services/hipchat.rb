@@ -32,7 +32,7 @@ class Service::HipChat < Service::Base
 
   def receive_verification_message
     'Boom! Crashlytics issue change notifications have been added.  ' \
-    '<a href="http://support.crashlytics.com/knowledgebase/articles/118543-what-kind-of-third-party-integrations-does-crashly">' \
+    '<a href="http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly">' \
     'Click here for more info</a>.'
   end
 

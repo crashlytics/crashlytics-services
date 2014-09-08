@@ -4,6 +4,6 @@ require 'json'
 require 'nokogiri'
 
 RSpec.configure do |c|
-  c.color_enabled = true
+  c.color = true
   c.formatter     = 'documentation'
 end
