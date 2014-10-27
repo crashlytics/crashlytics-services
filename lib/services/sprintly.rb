@@ -53,7 +53,7 @@ class Service::Sprintly < Service::Base
   private
   def sprintly_issue_description(payload)
     users_text = if payload[:impacted_devices_count] == 1
-      "This issue is affecting at least 1 user who has crashed "
+      'This issue is affecting at least 1 user who has crashed '
     else
       "This issue is affecting at least #{ payload[:impacted_devices_count] } users who have crashed "
     end

@@ -55,9 +55,9 @@ class Service::YouTrack < Service::Base
 
   def issue_description_text(payload)
     users_text = if payload[:impacted_devices_count] == 1
-      'This issue is affecting at least 1 user who has crashed'
+      'This issue is affecting at least 1 user who has crashed '
     else
-      "This issue is affecting at least #{payload[:impacted_devices_count]} users who have crashed"
+      "This issue is affecting at least #{payload[:impacted_devices_count]} users who have crashed "
     end
 
     crashes_text = if payload[:crashes_count] == 1
