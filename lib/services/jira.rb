@@ -29,15 +29,14 @@ class Service::Jira < Service::Base
     parsed = parse_url config[:project_url]
     project = client.Project.find(parsed[:project_key])
 
-    users_text = ''
-    crashes_text = ''
-    if payload[:impacted_devices_count] == 1
-      users_text = 'This issue is affecting at least 1 user who has crashed '
+    users_text = if payload[:impacted_devices_count] == 1
+      'This issue is affecting at least 1 user who has crashed '
     else
-      users_text = "This issue is affecting at least #{ payload[:impacted_devices_count] } users who have crashed "
+      "This issue is affecting at least #{ payload[:impacted_devices_count] } users who have crashed "
     end
-    if payload[:crashes_count] == 1
-      crashes_text = 'at least 1 time.\n\n'
+
+    crashes_text = if payload[:crashes_count] == 1
+      "at least 1 time.\n\n"
     else
       "at least #{ payload[:crashes_count] } times.\n\n"
     end

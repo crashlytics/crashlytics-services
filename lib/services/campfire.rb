@@ -13,15 +13,15 @@ class Service::Campfire < Service::Base
   # Post an issue to Campfire room
   def receive_issue_impact_change(config, payload)
     room = find_campfire_room(config)
-    users_text = ''
-    crashes_text = ''
-    if payload[:impacted_devices_count] == 1
-      users_text = 'This issue is affecting at least 1 user who has crashed '
+
+    users_text = if payload[:impacted_devices_count] == 1
+      'This issue is affecting at least 1 user who has crashed '
     else
-      users_text = "This issue is affecting at least #{payload[:impacted_devices_count]} users who have crashed "
+      "This issue is affecting at least #{payload[:impacted_devices_count]} users who have crashed "
     end
-    if payload[:crashes_count] == 1
-      crashes_text = 'at least 1 time. '
+
+    crashes_text = if payload[:crashes_count] == 1
+      'at least 1 time. '
     else
       "at least #{payload[:crashes_count]} times. "
     end
