@@ -43,7 +43,7 @@ describe Service::YouTrack do
     }.merge(options)
   end
 
-  describe :login do
+  describe '#login' do
     it 'should return cookie string on success' do
       stub_successful_login_for(config)
       resp = service.send :login, config[:base_url], config[:username], config[:password]
@@ -58,7 +58,7 @@ describe Service::YouTrack do
   end
 
 
-  describe :receive_verification do
+  describe '#receive_verification' do
     it 'should succeed if login is successful and project exists' do
       stub_successful_login_for(config)
       stub_request(:get, "#{config[:base_url]}/rest/admin/project/foo_project_id")
@@ -85,7 +85,7 @@ describe Service::YouTrack do
     end
   end
 
-  describe :receive_issue_impact_change do
+  describe '#receive_issue_impact_change' do
     it 'should succeed if login is successful and PUT succeeds' do
       stub_successful_login_for(config)
       service.stub(:issue_description_text).with(issue_payload).and_return 'foo_issue_description'
@@ -127,7 +127,7 @@ describe Service::YouTrack do
     end
   end
 
-  describe :issue_description_text do
+  describe '#issue_description_text' do
     it 'displays a singular message when only one device is impacted' do
       result = service.send(:issue_description_text,
           issue_payload(:impacted_devices_count => 1))

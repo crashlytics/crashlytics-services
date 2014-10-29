@@ -25,7 +25,7 @@ describe Service::GitHub do
       service.should_receive(:github_repo).with('foo_access_token', 'crashlytics/sample-project')
 
       success, message = service.receive_verification(config, nil)
-      success.should be_true
+      success.should be true
       message.should == 'Successfully accessed repo crashlytics/sample-project.'
     end
 
@@ -34,7 +34,7 @@ describe Service::GitHub do
       service.should_receive(:github_repo).with('foo_access_token', 'crashlytics/sample-project') { raise }
 
       success, message = service.receive_verification(config, nil)
-      success.should be_false
+      success.should be false
       message.should == 'Could not access repository for crashlytics/sample-project.'
     end
   end
@@ -62,7 +62,7 @@ describe Service::GitHub do
 
     it 'should create a new GitHub issue' do
       service = Service::GitHub.new('issue_impact_change', {})
-      github_issue = mock(:id => 743, :number => 42)
+      github_issue = double(:id => 743, :number => 42)
       service.should_receive(:create_github_issue).with(
         'foo_access_token',
         'crashlytics/sample-project',
@@ -75,7 +75,7 @@ describe Service::GitHub do
 
     it 'should raise if creating a new GitHub issue fails' do
       service = Service::GitHub.new('issue_impact_change', {})
-      failed_github_issue = mock(:message => 'GitHub error message')
+      failed_github_issue = double(:message => 'GitHub error message')
       service.should_receive(:create_github_issue) { [failed_github_issue, 401] }
       expect { service.receive_issue_impact_change config, crashlytics_issue }.to raise_error 'GitHub issue creation failed: 401 - GitHub error message'
     end

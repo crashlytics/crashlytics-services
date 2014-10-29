@@ -61,7 +61,7 @@ describe Service::Trello do
       let(:find_result) { :board_with_list }
 
       it 'sets success flag to true' do
-        expect(receive_verification.first).to be_true
+        expect(receive_verification.first).to be true
       end
     end
 
@@ -70,7 +70,7 @@ describe Service::Trello do
         let(:find_result) { :board_not_found }
 
         it 'sets success flag to false' do
-          expect(receive_verification.first).to be_false
+          expect(receive_verification.first).to be false
         end
 
         it 'sets failure message' do
@@ -83,7 +83,7 @@ describe Service::Trello do
         let(:find_result) { :board_with_list }
 
         it 'sets success flag to false' do
-          expect(receive_verification.first).to be_false
+          expect(receive_verification.first).to be false
         end
 
         it 'sets failure message' do
@@ -95,7 +95,7 @@ describe Service::Trello do
         let(:find_result) { :invalid_key }
 
         it 'sets success flag to false' do
-          expect(receive_verification.first).to be_false
+          expect(receive_verification.first).to be false
         end
 
         it 'sets failure message' do
@@ -107,7 +107,7 @@ describe Service::Trello do
         let(:find_result) { :invalid_token }
 
         it 'sets success flag to false' do
-          expect(receive_verification.first).to be_false
+          expect(receive_verification.first).to be false
         end
 
         it 'sets failure message' do

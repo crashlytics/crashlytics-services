@@ -21,7 +21,7 @@ describe Service::HipChat do
       service.should_receive(:send_message)
 
       success, message = service.receive_verification(config, nil)
-      success.should be_true
+      success.should be true
     end
 
     it :failure do
@@ -30,7 +30,7 @@ describe Service::HipChat do
       service.should_receive(:send_message).and_raise
 
       success, message = service.receive_verification(config, nil)
-      success.should be_false
+      success.should be false
     end
   end
 
@@ -49,7 +49,7 @@ describe Service::HipChat do
   describe :send_message do
     it do
       message = 'hi'
-      client = mock(HipChat::Client)
+      client = double(HipChat::Client)
       HipChat::Client.should_receive(:new).with(config[:api_token]).and_return(client)
       client.should_receive(:[]).with(config[:room]).and_return(client)
       client.should_receive(:send).with('Crashlytics', message, { :notify => config[:notify] })
