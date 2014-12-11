@@ -8,14 +8,14 @@ describe Service::YouTrack do
 
   def stub_successful_login_for(config)
     stub_request(:post, "#{config[:base_url]}/rest/user/login")
-      .with({:login => config[:username], :password => config[:password]})
-      .to_return(status: 200, body: {}, headers: { 'Set-Cookie' => 'cookie-string' })
+      .with(:body => { :login => config[:username], :password => config[:password]})
+      .to_return(:status => 200, :body => {}.to_json, :headers => { 'Set-Cookie' => 'cookie-string' })
   end
 
   def stub_failed_login_for(config)
     stub_request(:post, "#{config[:base_url]}/rest/user/login")
-      .with({:login => config[:username], :password => config[:password]})
-      .to_return(status: 500, body: {})
+      .with(:body => {:login => config[:username], :password => config[:password]})
+      .to_return(:status => 500, :body => {}.to_json)
   end
 
   let(:service) { described_class.new('event_name', {}, {}) }
@@ -63,7 +63,7 @@ describe Service::YouTrack do
       stub_successful_login_for(config)
       stub_request(:get, "#{config[:base_url]}/rest/admin/project/foo_project_id")
         .with({:headers => { 'Cookie' => 'cookie-string' }})
-        .to_return(status: 200, body: {})
+        .to_return(:status => 200, :body => {}.to_json)
 
       response = service.receive_verification(config, nil)
       response.should == [true, 'Successfully connected to your YouTrack project!']
@@ -73,7 +73,7 @@ describe Service::YouTrack do
       stub_successful_login_for(config)
       stub_request(:get, "#{config[:base_url]}/rest/admin/project/foo_project_id")
         .with({:headers => { 'Cookie' => 'cookie-string' }})
-        .to_return(status: 500, body: {})
+        .to_return(:status => 500, :body => {}.to_json)
 
       response = service.receive_verification(config, nil)
       response.should == [false, 'Oops! Please check your YouTrack settings again.']
@@ -98,7 +98,7 @@ describe Service::YouTrack do
             :description => 'foo_issue_description'
           }
         })
-        .to_return(status: 201, body: {}, :headers => { 'Location' => 'foo_youtrack_issue_url' })
+        .to_return(:status => 201, :body => {}.to_json, :headers => { 'Location' => 'foo_youtrack_issue_url' })
 
       response = service.receive_issue_impact_change(config, issue_payload)
       response.should == { :youtrack_issue_url => 'foo_youtrack_issue_url' }
@@ -116,7 +116,7 @@ describe Service::YouTrack do
             :description => 'foo_issue_description'
           }
         })
-        .to_return(status: 500, body: {})
+        .to_return(:status => 500, :body => {}.to_json)
 
       expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception
     end
