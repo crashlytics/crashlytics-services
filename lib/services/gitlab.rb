@@ -3,7 +3,7 @@ require 'cgi'
 class Service::GitLab < Service::Base
   title 'GitLab'
 
-  string :url, :placeholder => 'https://www.gitlabhq.com', :label => 'Your GitLab URL:'
+  string :url, :placeholder => 'https://gitlab.com', :label => 'Your GitLab URL:'
   string :project, :placeholder => 'Namespace/Project Name', :label => 'Your GitLab Namespace/Project:'
   string :private_token, :placeholder => 'GitLab Private Token', :label => 'Your GitLab Private Token:'
 
