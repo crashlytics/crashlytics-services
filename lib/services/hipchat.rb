@@ -4,14 +4,16 @@ class Service::HipChat < Service::Base
   title 'HipChat'
 
   string :api_token, :placeholder => 'API Token',
-         :label => 'Your HipChat API Token. <br />' \
+         :label => 'Your HipChat API v1 Token. <br />' \
                    'You can create a notification token ' \
                    '<a href="https://www.hipchat.com/admin/api">here</a>.'
   string :room, :placeholder => 'Room ID or Name', :label => 'The ID or name of the room.'
   checkbox :notify, :label => 'Should a notification be triggered for people in the room?'
+  string :url, :placeholder => "https://api.hipchat.com", :label => 'The URL of the HipChat server.'
 
   page 'API Token', [:api_token]
   page 'Room', [:room, :notify]
+  page 'URL', [:url]
 
   def receive_verification(config, _)
     send_message(config, receive_verification_message)
@@ -46,7 +48,14 @@ class Service::HipChat < Service::Base
   def send_message(config, message)
     token = config[:api_token]
     room = config[:room]
-    client = HipChat::Client.new(token)
+    url = config[:url]
+    api_version = config[:v2] ? 'v2' : 'v1'
+    options = { :api_version => api_version }
+    server_url = url.to_s
+    unless server_url.empty?
+      options[:server_url] = server_url
+    end
+    client = HipChat::Client.new(token, options)
     client[room].send('Crashlytics', message, :notify => config[:notify]) 
   end
 end
