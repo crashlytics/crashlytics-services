@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
 
   # enforce consistency with worker pipeline version of eventmachine
   s.add_dependency 'eventmachine', '1.0.0.beta.4'
-  s.add_dependency 'hipchat', '~> 0.7'
+  s.add_dependency 'hipchat', '~> 1.4'
   s.add_dependency 'asana', '0.0.4'
   s.add_dependency 'octokit', '~> 3.7'
   s.add_dependency 'jira-ruby', '~> 0.1'

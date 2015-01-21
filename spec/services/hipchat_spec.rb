@@ -50,7 +50,8 @@ describe Service::HipChat do
     it do
       message = 'hi'
       client = double(HipChat::Client)
-      HipChat::Client.should_receive(:new).with(config[:api_token]).and_return(client)
+      options = { :api_version => 'v1' }
+      HipChat::Client.should_receive(:new).with(config[:api_token], options).and_return(client)
       client.should_receive(:[]).with(config[:room]).and_return(client)
       client.should_receive(:send).with('Crashlytics', message, { :notify => config[:notify] })
 
