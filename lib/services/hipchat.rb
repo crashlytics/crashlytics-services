@@ -4,14 +4,15 @@ class Service::HipChat < Service::Base
   title 'HipChat'
 
   string :api_token, :placeholder => 'API Token',
-         :label => 'Your HipChat API v1 Token. <br />' \
-                   'You can create a notification token ' \
+         :label => 'Your HipChat API Token. <br />' \
+                   'You can create an API v1 notification token ' \
                    '<a href="https://www.hipchat.com/admin/api">here</a>.'
+  checkbox :v2, :label => 'Is this an API v2 token?'
   string :room, :placeholder => 'Room ID or Name', :label => 'The ID or name of the room.'
   checkbox :notify, :label => 'Should a notification be triggered for people in the room?'
-  string :url, :placeholder => "https://api.hipchat.com", :label => 'The URL of the HipChat server.'
+  string :url, :placeholder => 'https://api.hipchat.com', :label => 'The URL of the HipChat server.'
 
-  page 'API Token', [:api_token]
+  page 'API Token', [:api_token, :v2]
   page 'Room', [:room, :notify]
   page 'URL', [:url]
 
