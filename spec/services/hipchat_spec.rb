@@ -6,7 +6,7 @@ describe Service::HipChat do
     {
       :api_token => 'token',
       :room => 'room id',
-      :notify => false
+      :notify => nil
     }
   end
 
@@ -53,7 +53,7 @@ describe Service::HipChat do
       options = { :api_version => 'v1' }
       HipChat::Client.should_receive(:new).with(config[:api_token], options).and_return(client)
       client.should_receive(:[]).with(config[:room]).and_return(client)
-      client.should_receive(:send).with('Crashlytics', message, { :notify => config[:notify] })
+      client.should_receive(:send).with('Crashlytics', message, { :notify => false })
 
       Service::HipChat.new('verification', {}).send(:send_message, config, message)
     end

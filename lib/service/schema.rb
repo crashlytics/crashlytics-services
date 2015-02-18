@@ -64,7 +64,8 @@ module Service
     # Public: Adds the given attributes as Checkbox attributes in the Service's
     # schema. This will display a checkbox in the UI.
     #
-    # The value of this option will be true if the checkbox is checked and false otherwise.
+    # The value of this option will be the value specified in the "value" option.
+    # Otherwise, no value will be present in the config for the given identifier.
     #
     # Example:
     #
