@@ -51,12 +51,13 @@ class Service::HipChat < Service::Base
     room = config[:room]
     url = config[:url]
     api_version = config[:v2] ? 'v2' : 'v1'
+    notify = config[:notify] ? true : false
     options = { :api_version => api_version }
     server_url = url.to_s
     unless server_url.empty?
       options[:server_url] = server_url
     end
     client = HipChat::Client.new(token, options)
-    client[room].send('Crashlytics', message, :notify => config[:notify]) 
+    client[room].send('Crashlytics', message, :notify => notify)
   end
 end
