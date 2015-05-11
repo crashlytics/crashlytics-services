@@ -6,8 +6,20 @@ RSpec.configure do |c|
 end
 
 describe Service::Jira do
-  it 'should have a title' do
+
+  it 'has a title' do
     expect(Service::Jira.title).to eq('Jira')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Jira }
+
+    it { is_expected.to include_string_field :project_url }
+    it { is_expected.to include_string_field :username }
+    it { is_expected.to include_password_field :password }
+
+    it { is_expected.to include_page 'Project', [:project_url] }
+    it { is_expected.to include_page 'Login Information', [:username, :password] }
   end
 
   describe 'receive_verification' do

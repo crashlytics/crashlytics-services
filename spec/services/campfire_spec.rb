@@ -4,12 +4,23 @@ require 'hashie'
 describe Service::Campfire do
   before do
     @config = { :subdomain => "crashlytics",
-                      :room => "crashlytics-test",
-                      :api_token => "376136523ffbc6b82c289b5831681db8c1835e65" }
+                :room => "crashlytics-test",
+                :api_token => "376136523ffbc6b82c289b5831681db8c1835e65" }
   end
 
-  it 'should have a title' do
+  it 'has a title' do
     expect(Service::Campfire.title).to eq('Campfire')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Campfire }
+
+    it { is_expected.to include_string_field :subdomain }
+    it { is_expected.to include_string_field :room }
+    it { is_expected.to include_string_field :api_token }
+
+    it { is_expected.to include_page 'Chatroom', [:subdomain, :room] }
+    it { is_expected.to include_page 'API Token', [:api_token] }
   end
 
   describe 'find_campfire_room' do

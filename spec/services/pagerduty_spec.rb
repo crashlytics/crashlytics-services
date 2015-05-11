@@ -1,8 +1,16 @@
 require 'spec_helper'
 
 describe Service::Pagerduty do
-  it 'should have a title' do
+
+  it 'has a title' do
     expect(Service::Pagerduty.title).to eq('Pagerduty')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Pagerduty }
+
+    it { is_expected.to include_string_field :api_key }
+    it { is_expected.to include_page 'API Key', [:api_key] }
   end
 
   describe 'receive_verification' do

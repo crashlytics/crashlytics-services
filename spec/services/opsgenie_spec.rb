@@ -1,8 +1,16 @@
 require 'spec_helper'
 
 describe Service::OpsGenie do
+
   it 'has a title' do
     expect(Service::OpsGenie.title).to eq('OpsGenie')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::OpsGenie }
+
+    it { is_expected.to include_string_field :api_key }
+    it { is_expected.to include_page 'API Key', [:api_key] }
   end
 
   describe 'receive_verification' do

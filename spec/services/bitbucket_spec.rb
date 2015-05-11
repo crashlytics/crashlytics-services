@@ -11,8 +11,22 @@ describe Service::Bitbucket do
     @invalid_repo_owners = [nil, " \t\n",  ""]
   end
 
-  it 'should have a title' do
+  it 'has a title' do
     expect(Service::Bitbucket.title).to eq('Bitbucket')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Bitbucket }
+
+    it { is_expected.to include_string_field :username }
+    it { is_expected.to include_password_field :password }
+    it { is_expected.to include_string_field :repo_owner }
+    it { is_expected.to include_string_field :repo }
+
+    it { is_expected.to include_page 'Username', [:username] }
+    it { is_expected.to include_page 'Password', [:password] }
+    it { is_expected.to include_page 'Repository Owner', [:repo_owner] }
+    it { is_expected.to include_page 'Repository', [:repo] }
   end
 
   describe 'receive_verification' do

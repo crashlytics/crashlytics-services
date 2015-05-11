@@ -10,8 +10,22 @@ describe Service::HipChat do
     }
   end
 
-  it 'should have a title' do
+  it 'has a title' do
     expect(Service::HipChat.title).to eq('HipChat')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::HipChat }
+
+    it { is_expected.to include_string_field :api_token }
+    it { is_expected.to include_checkbox_field :v2 }
+    it { is_expected.to include_string_field :room }
+    it { is_expected.to include_checkbox_field :notify }
+    it { is_expected.to include_string_field :url }
+
+    it { is_expected.to include_page 'API Token', [:api_token, :v2] }
+    it { is_expected.to include_page 'Room', [:room, :notify] }
+    it { is_expected.to include_page 'URL', [:url] }
   end
 
   describe :receive_verification do

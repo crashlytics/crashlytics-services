@@ -9,16 +9,20 @@ describe Service::GitLab do
     }
   end
 
-  it 'should have a title' do
+  it 'has a title' do
     expect(Service::GitLab.title).to eq('GitLab')
   end
 
-  it 'should require three pages of information' do
-    expect(Service::GitLab.pages).to eq([
-      { :title => 'URL', :attrs => [:url] },
-      { :title => 'Project', :attrs => [:project] },
-      { :title => 'Private Token', :attrs => [:private_token] }
-    ])
+  describe 'schema and display configuration' do
+    subject { Service::GitLab }
+
+    it { is_expected.to include_string_field :url }
+    it { is_expected.to include_string_field :project }
+    it { is_expected.to include_string_field :private_token }
+
+    it { is_expected.to include_page 'URL', [:url] }
+    it { is_expected.to include_page 'Project', [:project] }
+    it { is_expected.to include_page 'Private Token', [:private_token] }
   end
 
   describe :receive_verification do

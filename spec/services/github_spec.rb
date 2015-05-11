@@ -8,15 +8,18 @@ describe Service::GitHub do
     }
   end
 
-  it 'should have a title' do
+  it 'has a title' do
     expect(Service::GitHub.title).to eq('GitHub')
   end
 
-  it 'should require two pages of information' do
-    expect(Service::GitHub.pages).to eq([
-      { :title => 'Repository', :attrs => [:repo] },
-      { :title => 'Access token', :attrs => [:access_token] }
-    ])
+  describe 'schema and display configuration' do
+    subject { Service::GitHub }
+
+    it { is_expected.to include_string_field :repo }
+    it { is_expected.to include_string_field :access_token }
+
+    it { is_expected.to include_page 'Repository', [:repo] }
+    it { is_expected.to include_page 'Access token', [:access_token] }
   end
 
   describe :receive_verification do

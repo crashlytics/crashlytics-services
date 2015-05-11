@@ -1,6 +1,21 @@
 require 'spec_helper'
 
 describe Service::Pivotal do
+
+  it 'has a title' do
+    expect(Service::Pivotal.title).to eq('Pivotal')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Pivotal }
+
+    it { is_expected.to include_string_field :project_url }
+    it { is_expected.to include_string_field :api_key }
+
+    it { is_expected.to include_page 'Project', [:project_url] }
+    it { is_expected.to include_page 'API Token', [:api_key] }
+  end
+
   describe 'receive_verification' do
     before do
       @config = { :project_url => 'https://www.pivotaltracker.com/s/projects/foo_project' }
