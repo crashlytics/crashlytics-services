@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Service::OpsGenie do
   it 'has a title' do
-    Service::OpsGenie.title.should == 'OpsGenie'
+    expect(Service::OpsGenie.title).to eq('OpsGenie')
   end
 
   describe 'receive_verification' do
@@ -19,12 +19,12 @@ describe Service::OpsGenie do
         end
       end
 
-      @service.should_receive(:http_post)
+      allow(@service).to receive(:http_post)
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [true,  'Successfully verified OpsGenie settings']
+      expect(resp).to eq([true,  'Successfully verified OpsGenie settings'])
     end
 
     it 'fails upon unsuccessful api response' do
@@ -34,12 +34,12 @@ describe Service::OpsGenie do
         end
       end
 
-      @service.should_receive(:http_post)
+      allow(@service).to receive(:http_post)
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [false, "Couldn't verify OpsGenie settings; please check your API key."]
+      expect(resp).to eq([false, "Couldn't verify OpsGenie settings; please check your API key."])
     end
   end
 
@@ -57,12 +57,12 @@ describe Service::OpsGenie do
         end
       end
 
-      @service.should_receive(:http_post)
+      allow(@service).to receive(:http_post)
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/v1/json/crashlytics'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      resp.should == :no_resource
+      expect(resp).to eq(:no_resource)
     end
 
     it 'fails upon unsuccessful api response' do
@@ -72,7 +72,7 @@ describe Service::OpsGenie do
         end
       end
 
-      @service.should_receive(:http_post)
+      allow(@service).to receive(:http_post)
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/v1/json/crashlytics'))
 

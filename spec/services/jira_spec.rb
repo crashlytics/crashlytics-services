@@ -7,7 +7,7 @@ end
 
 describe Service::Jira do
   it 'should have a title' do
-    Service::Jira.title.should == 'Jira'
+    expect(Service::Jira.title).to eq('Jira')
   end
 
   describe 'receive_verification' do
@@ -102,19 +102,19 @@ describe Service::Jira do
          with(:headers => {'Accept'=>'application/json', 'Content-Type'=>'application/json', 'User-Agent'=>'Ruby'}).
          to_return(:status => 500, :body => "{\"id\":\"foo\"}", :headers => {})
 
-      lambda {
+      expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.should raise_error(/Status: 500, Body: {\"id\":\"foo\"}/)
+      }.to raise_error(/Status: 500, Body: {\"id\":\"foo\"}/)
     end
 
     it 'should handle and re-raise any non-HTTP errors' do
       mock_client = double("Client")
-      mock_client.stub(:Project) {raise "Some Other Error"}
-      @service.stub(:jira_client).and_return(mock_client)
+      allow(mock_client).to receive(:Project) {raise "Some Other Error"}
+      allow(@service).to receive(:jira_client).and_return(mock_client)
 
-      lambda {
+      expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.should raise_error(/Jira Issue Create Failed: Some Other Error/)
+      }.to raise_error(/Jira Issue Create Failed: Some Other Error/)
     end
   end
 

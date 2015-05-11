@@ -11,26 +11,26 @@ describe Service::HipChat do
   end
 
   it 'should have a title' do
-    Service::HipChat.title.should == 'HipChat'
+    expect(Service::HipChat.title).to eq('HipChat')
   end
 
   describe :receive_verification do
     it :success do
       service = Service::HipChat.new('verification', {})
-      service.should_receive(:receive_verification_message)
-      service.should_receive(:send_message)
+      expect(service).to receive(:receive_verification_message)
+      expect(service).to receive(:send_message)
 
       success, message = service.receive_verification(config, nil)
-      success.should be true
+      expect(success).to be true
     end
 
     it :failure do
       service = Service::HipChat.new('verification', {})
-      service.should_receive(:receive_verification_message)
-      service.should_receive(:send_message).and_raise
+      expect(service).to receive(:receive_verification_message)
+      expect(service).to receive(:send_message).and_raise
 
       success, message = service.receive_verification(config, nil)
-      success.should be false
+      expect(success).to be false
     end
   end
 
@@ -39,10 +39,10 @@ describe Service::HipChat do
       payload = { :url => 'url', :app => { :name => 'name' }, 
                   :title => 'title', :method => 'method' }
       service = Service::HipChat.new('issue_impact_change', {})
-      service.should_receive(:format_issue_impact_change_message).with(payload)
-      service.should_receive(:send_message)
+      expect(service).to receive(:format_issue_impact_change_message).with(payload)
+      expect(service).to receive(:send_message)
 
-      service.receive_issue_impact_change(config, payload).should == :no_resource
+      expect(service.receive_issue_impact_change(config, payload)).to eq(:no_resource)
     end
   end
 
@@ -51,9 +51,9 @@ describe Service::HipChat do
       message = 'hi'
       client = double(HipChat::Client)
       options = { :api_version => 'v1' }
-      HipChat::Client.should_receive(:new).with(config[:api_token], options).and_return(client)
-      client.should_receive(:[]).with(config[:room]).and_return(client)
-      client.should_receive(:send).with('Crashlytics', message, { :notify => false })
+      expect(HipChat::Client).to receive(:new).with(config[:api_token], options).and_return(client)
+      expect(client).to receive(:[]).with(config[:room]).and_return(client)
+      expect(client).to receive(:send).with('Crashlytics', message, { :notify => false })
 
       Service::HipChat.new('verification', {}).send(:send_message, config, message)
     end

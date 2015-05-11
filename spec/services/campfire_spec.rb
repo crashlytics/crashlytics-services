@@ -9,7 +9,7 @@ describe Service::Campfire do
   end
 
   it 'should have a title' do
-    Service::Campfire.title.should == 'Campfire'
+    expect(Service::Campfire.title).to eq('Campfire')
   end
 
   describe 'find_campfire_room' do
@@ -19,8 +19,8 @@ describe Service::Campfire do
 
     it "should find and return Campfire room" do
       campfire = double(Tinder::Campfire)
-      Tinder::Campfire.should_receive(:new).with(@config[:subdomain], :token => @config[:api_token]).and_return(campfire)
-      campfire.should_receive(:find_room_by_name).with(@config[:room])
+      expect(Tinder::Campfire).to receive(:new).with(@config[:subdomain], :token => @config[:api_token]).and_return(campfire)
+      expect(campfire).to receive(:find_room_by_name).with(@config[:room])
 
       proc = Proc.new do |param|
         find_campfire_room(param)
@@ -37,17 +37,17 @@ describe Service::Campfire do
     end
 
     it 'should succeed upon successful api response' do
-      @service.should_receive(:find_campfire_room).with(@config).and_return(double(:name => @config[:room]))
+      expect(@service).to receive(:find_campfire_room).with(@config).and_return(double(:name => @config[:room]))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [true, 'Successfully verified Campfire settings']
+      expect(resp).to eq([true, 'Successfully verified Campfire settings'])
     end
 
     it 'should fail upon unsuccessful api response' do
-      @service.should_receive(:find_campfire_room).with(@config).and_return(nil)
+      expect(@service).to receive(:find_campfire_room).with(@config).and_return(nil)
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [false, "Oops! Can not find #{@config[:room]} room. Please check your settings."]
+      expect(resp).to eq([false, "Oops! Can not find #{@config[:room]} room. Please check your settings."])
     end
   end
 
@@ -67,18 +67,18 @@ describe Service::Campfire do
       }
 
       @room = double(:name =>@config[:room])
-      @service.should_receive(:find_campfire_room).and_return(@room)
+      expect(@service).to receive(:find_campfire_room).and_return(@room)
     end
 
     it 'should succeed upon successful api response' do
-      @room.should_receive(:speak).and_return(Hashie::Mash.new(:message => {:id => 766665427}))
+      expect(@room).to receive(:speak).and_return(Hashie::Mash.new(:message => { :id => 766665427 }))
       resp = @service.receive_issue_impact_change(@config, @payload)
-      resp.should == { :campfire_message_id => 766665427 }
+      expect(resp).to eq(:campfire_message_id => 766665427)
     end
 
     it 'should fail upon unsuccessful api response' do
-      @room.should_receive(:speak).and_return(nil)
-      lambda { @service.receive_issue_impact_change(@config, @payload) }.should raise_error
+      expect(@room).to receive(:speak).and_return(nil)
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error
     end
   end
 end

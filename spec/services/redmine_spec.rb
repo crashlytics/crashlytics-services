@@ -15,12 +15,12 @@ describe Service::Redmine do
         end
       end
 
-      @service.should_receive(:http_get)
+      expect(@service).to receive(:http_get)
         .with('http://redmine.acme.com/issues.json', { :key => nil, :project_id => "foo_project", :limit => 1 })
         .and_return(test.get('/issues.json'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [true,  "Successfully verified Redmine settings"]
+      expect(resp).to eq([true,  "Successfully verified Redmine settings"])
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -30,12 +30,12 @@ describe Service::Redmine do
         end
       end
 
-      @service.should_receive(:http_get)
+      expect(@service).to receive(:http_get)
         .with('http://redmine.acme.com/issues.json', { :key => nil, :project_id => "foo_project", :limit => 1 })
         .and_return(test.get('/issues.json'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [false, "Oops! Please check your settings again."]
+      expect(resp).to eq([false, "Oops! Please check your settings again."])
     end
   end
 
@@ -62,12 +62,12 @@ describe Service::Redmine do
         end
       end
 
-      @service.should_receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with('http://redmine.acme.com/issues.json')
         .and_return(test.post('/issues.json'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      resp.should == { :redmine_issue_id => 'foo_id' }
+      expect(resp).to eq(:redmine_issue_id => 'foo_id')
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -77,11 +77,11 @@ describe Service::Redmine do
         end
       end
 
-      @service.should_receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with('http://redmine.acme.com/issues.json')
         .and_return(test.post('/issues.json'))
 
-      lambda { @service.receive_issue_impact_change(@config, @payload) }.should raise_error
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error
     end
   end
 end

@@ -11,26 +11,26 @@ describe Service::Slack do
   end
 
   it 'should have a title' do
-    Service::Slack.title.should == 'Slack'
+    expect(Service::Slack.title).to eq('Slack')
   end
 
   describe '#receive_verification' do
     it :success do
       service = Service::Slack.new('verification', {})
-      service.should_receive(:receive_verification_message)
-      service.should_receive(:send_message)
+      expect(service).to receive(:receive_verification_message)
+      expect(service).to receive(:send_message)
 
       success, message = service.receive_verification(config, nil)
-      success.should be true
+      expect(success).to be true
     end
 
     it :failure do
       service = Service::Slack.new('verification', {})
-      service.should_receive(:receive_verification_message)
-      service.should_receive(:send_message).and_raise
+      expect(service).to receive(:receive_verification_message)
+      expect(service).to receive(:send_message).and_raise
 
       success, message = service.receive_verification(config, nil)
-      success.should be false
+      expect(success).to be false
     end
   end
 
@@ -48,12 +48,12 @@ describe Service::Slack do
           {:title=>"Bundle identifier", :value=>nil, :short=>"true"}]
       }
 
-      service.should_receive(:send_message).with(config,
+      expect(service).to receive(:send_message).with(config,
                                                  '<url|name> crashed 1 times in method!',
                                                   :attachments=>[expected_attachment])
                                             .and_return(true)
 
-      service.receive_issue_impact_change(config, payload).should be true
+      expect(service.receive_issue_impact_change(config, payload)).to be true
     end
   end
 
