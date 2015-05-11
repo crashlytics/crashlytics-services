@@ -14,10 +14,6 @@ describe Service::Sprintly do
     end
     let(:payload) { {} }
 
-    it 'should respond' do
-      service.respond_to?(:receive_verification)
-    end
-
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -67,10 +63,6 @@ describe Service::Sprintly do
               :bundle_identifier => 'foo.bar.baz'
           }
       }
-    end
-
-    it 'should respond to receive_issue_impact_change' do
-      service.respond_to?(:receive_issue_impact_change)
     end
 
     it 'should succeed upon successful api response' do

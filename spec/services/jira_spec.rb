@@ -17,10 +17,6 @@ describe Service::Jira do
       @payload = {}
     end
 
-    it 'should respond' do
-      expect(@service.respond_to?(:receive_verification)).to be true
-    end
-
     it 'should succeed upon successful api response' do
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
          with(:headers => {'Accept'=>'application/json', 'User-Agent'=>'Ruby'}).
@@ -84,10 +80,6 @@ describe Service::Jira do
       }
     end
 
-    it 'should respond to receive_issue_impact_change' do
-      expect(@service.respond_to?(:receive_issue_impact_change)).to be true
-    end
-
     it 'should succeed upon successful api response' do
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
          with(:headers => {'Accept'=>'application/json', 'User-Agent'=>'Ruby'}).
@@ -140,10 +132,6 @@ describe Service::Jira do
       @jira_issue = File.read(File.join(File.dirname(__FILE__), '../', 'fixtures', 'jira_issue.json'))
     end
 
-    it 'should respond' do
-      expect(@service.respond_to?(:receive_issue_integration_request)).to be true
-    end
-
     it 'should succeed upon successful api response' do
       stub_request(:get, "https://example.com/rest/api/2/issue/foo").
         with(:headers => {'Accept'=>'application/json', 'User-Agent'=>'Ruby'}).
@@ -175,10 +163,6 @@ describe Service::Jira do
         }
       }
       @jira_issue = File.read(File.join(File.dirname(__FILE__), '../', 'fixtures', 'jira_issue.json'))
-    end
-
-    it 'should respond' do
-      expect(@service.respond_to?(:receive_issue_resolution_change)).to be true
     end
 
     it 'should succeed upon successful api response (resolved)' do

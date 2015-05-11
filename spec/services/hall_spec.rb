@@ -20,10 +20,6 @@ describe Service::Hall do
       @service = Service::Hall.new('verification', {})
     end
 
-    it 'should respond' do
-      @service.respond_to?(:receive_verification)
-    end
-
     it 'should succeed upon successful api response' do
       @service.stub(:verify_hall_service).with(@config) {@success}
       resp = @service.receive_verification(@config, @payload)
@@ -40,10 +36,6 @@ describe Service::Hall do
   describe 'receive_issue_impact_change' do
     before do
       @service = Service::Hall.new('issue_impact_change', {})
-    end
-
-    it 'should respond to receive_issue_impact_change' do
-      @service.respond_to?(:receive_issue_impact_change)
     end
 
     it 'should succeed upon successful api response' do

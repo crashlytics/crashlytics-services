@@ -23,10 +23,6 @@ describe Service::Bitbucket do
       @good_response = [true, 'Successfully verified Bitbucket settings']
     end
 
-    it 'should respond' do
-      @service.respond_to?(:receive_verification)
-    end
-
     it 'should use the username field in the repo url when the repo owner is missing' do
       @invalid_repo_owners.each do |empty_value|
         test = Faraday.new do |builder|
@@ -92,10 +88,6 @@ describe Service::Bitbucket do
       }
       @good_request_body = [200, {}, "{\"local_id\":12345}"]
       @good_response = { :bitbucket_issue_id => 12345 }
-    end
-
-    it 'should respond to receive_issue_impact_change' do
-      @service.respond_to?(:receive_issue_impact_change)
     end
 
     it 'should use the username field in the repo url when the repo owner is missing' do

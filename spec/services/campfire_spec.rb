@@ -17,10 +17,6 @@ describe Service::Campfire do
       @service = Service::Campfire.new('verification', {})
     end
 
-    it "should respond to find_campfire_room" do
-      @service.respond_to?(:find_campfire_room)
-    end
-
     it "should find and return Campfire room" do
       campfire = double(Tinder::Campfire)
       Tinder::Campfire.should_receive(:new).with(@config[:subdomain], :token => @config[:api_token]).and_return(campfire)

@@ -12,10 +12,6 @@ describe Service::OpsGenie do
       @payload = 'does not matter'
     end
 
-    it 'responds to receive_verification' do
-      @service.respond_to?(:receive_verification)
-    end
-
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -52,10 +48,6 @@ describe Service::OpsGenie do
       @config = {}
       @service = Service::OpsGenie.new('issue_impact_change', {})
       @payload = 'does not matter'
-    end
-
-    it 'responds to receive_issue_impact_change' do
-      @service.respond_to?(:receive_issue_impact_change)
     end
 
     it 'succeeds upon successful api response' do
