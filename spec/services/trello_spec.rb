@@ -14,7 +14,7 @@ describe Service::Trello do
   let(:service) { described_class.new('verification', {}) }
   let(:client) { double 'Trello::Client' }
 
-  before do 
+  before do
     Trello::Client.stub(:new).with(developer_public_key: 'trello_key', member_token: 'trello_token').and_return client
     client.stub(:find).with(:boards, 'aWXeu09f').and_return board
   end

@@ -8,7 +8,7 @@ class Service::OpsGenie < Service::Base
   def receive_issue_impact_change(config, payload)
     body = {
       :payload        => payload,
-      :event          => 'issue_impact_change'    
+      :event          => 'issue_impact_change'
     }
     resp = post_to_opsgenie(config, body)
     raise "OpsGenie issue creation failed: #{resp.status} - #{resp.body}" unless resp.success?

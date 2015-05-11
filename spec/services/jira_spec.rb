@@ -62,7 +62,7 @@ describe Service::Jira do
       expect(client.options[:context_path]).to eq("")
     end
 
-    it 'handles urls with non-empty context paths' do 
+    it 'handles urls with non-empty context paths' do
       client = @service.jira_client(:project_url => 'https://example.com/non/empty/path/browse/project_key')
       expect(client.options[:context_path]).to eq("/non/empty/path")
     end
@@ -110,8 +110,8 @@ describe Service::Jira do
          with(:headers => {'Accept'=>'application/json', 'Content-Type'=>'application/json', 'User-Agent'=>'Ruby'}).
          to_return(:status => 500, :body => "{\"id\":\"foo\"}", :headers => {})
 
-      lambda { 
-        @service.receive_issue_impact_change(@config, @payload) 
+      lambda {
+        @service.receive_issue_impact_change(@config, @payload)
       }.should raise_error(/Status: 500, Body: {\"id\":\"foo\"}/)
     end
 

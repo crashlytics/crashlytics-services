@@ -17,7 +17,7 @@ class Service::Bitbucket < Service::Base
   title "Bitbucket"
 
   string :username, :placeholder => 'username',
-    :label => 
+    :label =>
       'Your credentials will be encrypted. ' \
       'However, we strongly recommend that you create a separate ' \
       'Bitbucket account for integration with Crashlytics. ' \
@@ -35,11 +35,11 @@ class Service::Bitbucket < Service::Base
   password :password, :placeholder => 'password',
      :label => 'Your Bitbucket password:'
   string :repo_owner, :placeholder => 'example-owner',
-    :label => 
+    :label =>
       'The owner of your repo (enter your username again if you are the repo owner):'
 
   string :repo, :placeholder => "example-repo",
-    :label => 
+    :label =>
       'The name of your repo:'
 
 

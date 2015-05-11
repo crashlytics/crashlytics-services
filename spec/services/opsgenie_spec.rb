@@ -4,18 +4,18 @@ describe Service::OpsGenie do
   it 'has a title' do
     Service::OpsGenie.title.should == 'OpsGenie'
   end
-  
+
   describe 'receive_verification' do
     before do
       @config = { :api_key => 'OpsGenie API key' }
       @service = Service::OpsGenie.new('verification', {})
       @payload = 'does not matter'
     end
-    
+
     it 'responds to receive_verification' do
       @service.respond_to?(:receive_verification)
     end
-    
+
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -30,7 +30,7 @@ describe Service::OpsGenie do
       resp = @service.receive_verification(@config, @payload)
       resp.should == [true,  'Successfully verified OpsGenie settings']
     end
-    
+
     it 'fails upon unsuccessful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -46,7 +46,7 @@ describe Service::OpsGenie do
       resp.should == [false, "Couldn't verify OpsGenie settings; please check your API key."]
     end
   end
-  
+
   describe 'receive_issue_impact_change' do
     before do
       @config = {}
@@ -57,7 +57,7 @@ describe Service::OpsGenie do
     it 'responds to receive_issue_impact_change' do
       @service.respond_to?(:receive_issue_impact_change)
     end
-    
+
     it 'succeeds upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|

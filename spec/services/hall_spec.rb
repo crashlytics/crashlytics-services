@@ -3,7 +3,7 @@ require 'ostruct'
 
 describe Service::Hall do
 
-  before do 
+  before do
     @config = { :group_token => 'sometoken' }
     @payload = {}
     @success = OpenStruct.new(:status => 200)
@@ -55,7 +55,7 @@ describe Service::Hall do
     it 'should fail upon unsuccessful api response' do
       @service.stub(:send_hall_message).with(@config, @payload) {@failure}
       lambda {
-        @service.receive_issue_impact_change(@config, @payload) 
+        @service.receive_issue_impact_change(@config, @payload)
       }.should raise_error(/Failed to send Hall message. HTTP status code: 404, body: fakebody/)
     end
   end

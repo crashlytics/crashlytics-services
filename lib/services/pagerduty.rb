@@ -35,8 +35,8 @@ class Service::Pagerduty < Service::Base
       issue_description = '[Crashlytics] Pagerduty settings verified!'
     elsif event == 'issue_impact_change'
       issue_description = "[Crashlytics] Impact level #{payload[:impact_level]} issue in #{payload[:app][:name]} (#{payload[:app][:bundle_identifier]})\r\n#{payload[:url]}"
-      issue_details = { 
-        'impacted devices' => payload[:impacted_devices_count], 
+      issue_details = {
+        'impacted devices' => payload[:impacted_devices_count],
         'crashes' => payload[:crashes_count],
       }
     end
