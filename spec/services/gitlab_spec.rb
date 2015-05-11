@@ -10,33 +10,33 @@ describe Service::GitLab do
   end
 
   it 'should have a title' do
-    Service::GitLab.title.should == 'GitLab'
+    expect(Service::GitLab.title).to eq('GitLab')
   end
 
   it 'should require three pages of information' do
-    Service::GitLab.pages.should == [
+    expect(Service::GitLab.pages).to eq([
       { :title => 'URL', :attrs => [:url] },
       { :title => 'Project', :attrs => [:project] },
       { :title => 'Private Token', :attrs => [:private_token] }
-    ]
+    ])
   end
 
   describe :receive_verification do
     it :success do
       service = Service::GitLab.new('verification', {})
-      service.should_receive(:http_get).and_return(double(Faraday::Response, :success? => true))
+      expect(service).to receive(:http_get).and_return(double(Faraday::Response, :success? => true))
       success, message = service.receive_verification(config, nil)
-      success.should be true
-      message.should == "Successfully accessed project #{config[:project]}."
+      expect(success).to be true
+      expect(message).to eq("Successfully accessed project #{config[:project]}.")
     end
 
     it :failure do
       service = Service::GitLab.new('verification', {})
-      service.should_receive(:http_get).and_return(double(Faraday::Response, :success? => false))
+      expect(service).to receive(:http_get).and_return(double(Faraday::Response, :success? => false))
 
       success, message = service.receive_verification(config, nil)
-      success.should be false
-      message.should == "Could not access project #{config[:project]}."
+      expect(success).to be false
+      expect(message).to eq("Could not access project #{config[:project]}.")
     end
   end
 
@@ -64,20 +64,20 @@ describe Service::GitLab do
     it 'should create a new GitLab issue' do
       service = Service::GitLab.new('issue_impact_change', {})
       gitlab_issue = { 'id' => 42 }
-      service.should_receive(:create_gitlab_issue).with(
+      expect(service).to receive(:create_gitlab_issue).with(
         config[:project],
         config[:private_token],
         'foo_issue_title',
         expected_issue_body
       ).and_return [gitlab_issue, 201]
 
-      service.receive_issue_impact_change(config, crashlytics_issue).should == { :gitlab_issue_number => 42 }
+      expect(service.receive_issue_impact_change(config, crashlytics_issue)).to eq(:gitlab_issue_number => 42)
     end
 
     it 'should raise if creating a new GitLab issue fails' do
       service = Service::GitLab.new('issue_impact_change', {})
       failed_gitlab_issue = { 'message' => '"title" not given' }
-      service.should_receive(:create_gitlab_issue) { [failed_gitlab_issue, 400] }
+      expect(service).to receive(:create_gitlab_issue) { [failed_gitlab_issue, 400] }
       expect { service.receive_issue_impact_change config, crashlytics_issue }.to raise_error 'GitLab issue creation failed: 400 - "title" not given'
     end
   end

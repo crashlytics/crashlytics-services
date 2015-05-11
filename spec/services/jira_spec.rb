@@ -7,7 +7,7 @@ end
 
 describe Service::Jira do
   it 'should have a title' do
-    Service::Jira.title.should == 'Jira'
+    expect(Service::Jira.title).to eq('Jira')
   end
 
   describe 'receive_verification' do
@@ -15,10 +15,6 @@ describe Service::Jira do
       @config = { :project_url => 'https://example.com/browse/project_key' }
       @service = Service::Jira.new('verification', {})
       @payload = {}
-    end
-
-    it 'should respond' do
-      expect(@service.respond_to?(:receive_verification)).to be true
     end
 
     it 'should succeed upon successful api response' do
@@ -62,7 +58,7 @@ describe Service::Jira do
       expect(client.options[:context_path]).to eq("")
     end
 
-    it 'handles urls with non-empty context paths' do 
+    it 'handles urls with non-empty context paths' do
       client = @service.jira_client(:project_url => 'https://example.com/non/empty/path/browse/project_key')
       expect(client.options[:context_path]).to eq("/non/empty/path")
     end
@@ -82,10 +78,6 @@ describe Service::Jira do
           :bundle_identifier => 'foo.bar.baz'
         }
       }
-    end
-
-    it 'should respond to receive_issue_impact_change' do
-      expect(@service.respond_to?(:receive_issue_impact_change)).to be true
     end
 
     it 'should succeed upon successful api response' do
@@ -110,19 +102,19 @@ describe Service::Jira do
          with(:headers => {'Accept'=>'application/json', 'Content-Type'=>'application/json', 'User-Agent'=>'Ruby'}).
          to_return(:status => 500, :body => "{\"id\":\"foo\"}", :headers => {})
 
-      lambda { 
-        @service.receive_issue_impact_change(@config, @payload) 
-      }.should raise_error(/Status: 500, Body: {\"id\":\"foo\"}/)
+      expect {
+        @service.receive_issue_impact_change(@config, @payload)
+      }.to raise_error(/Status: 500, Body: {\"id\":\"foo\"}/)
     end
 
     it 'should handle and re-raise any non-HTTP errors' do
       mock_client = double("Client")
-      mock_client.stub(:Project) {raise "Some Other Error"}
-      @service.stub(:jira_client).and_return(mock_client)
+      allow(mock_client).to receive(:Project) {raise "Some Other Error"}
+      allow(@service).to receive(:jira_client).and_return(mock_client)
 
-      lambda {
+      expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.should raise_error(/Jira Issue Create Failed: Some Other Error/)
+      }.to raise_error(/Jira Issue Create Failed: Some Other Error/)
     end
   end
 
@@ -138,10 +130,6 @@ describe Service::Jira do
         }
       }
       @jira_issue = File.read(File.join(File.dirname(__FILE__), '../', 'fixtures', 'jira_issue.json'))
-    end
-
-    it 'should respond' do
-      expect(@service.respond_to?(:receive_issue_integration_request)).to be true
     end
 
     it 'should succeed upon successful api response' do
@@ -175,10 +163,6 @@ describe Service::Jira do
         }
       }
       @jira_issue = File.read(File.join(File.dirname(__FILE__), '../', 'fixtures', 'jira_issue.json'))
-    end
-
-    it 'should respond' do
-      expect(@service.respond_to?(:receive_issue_resolution_change)).to be true
     end
 
     it 'should succeed upon successful api response (resolved)' do

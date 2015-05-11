@@ -2,20 +2,16 @@ require 'spec_helper'
 
 describe Service::OpsGenie do
   it 'has a title' do
-    Service::OpsGenie.title.should == 'OpsGenie'
+    expect(Service::OpsGenie.title).to eq('OpsGenie')
   end
-  
+
   describe 'receive_verification' do
     before do
       @config = { :api_key => 'OpsGenie API key' }
       @service = Service::OpsGenie.new('verification', {})
       @payload = 'does not matter'
     end
-    
-    it 'responds to receive_verification' do
-      @service.respond_to?(:receive_verification)
-    end
-    
+
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -23,14 +19,14 @@ describe Service::OpsGenie do
         end
       end
 
-      @service.should_receive(:http_post)
+      allow(@service).to receive(:http_post)
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [true,  'Successfully verified OpsGenie settings']
+      expect(resp).to eq([true,  'Successfully verified OpsGenie settings'])
     end
-    
+
     it 'fails upon unsuccessful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -38,15 +34,15 @@ describe Service::OpsGenie do
         end
       end
 
-      @service.should_receive(:http_post)
+      allow(@service).to receive(:http_post)
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [false, "Couldn't verify OpsGenie settings; please check your API key."]
+      expect(resp).to eq([false, "Couldn't verify OpsGenie settings; please check your API key."])
     end
   end
-  
+
   describe 'receive_issue_impact_change' do
     before do
       @config = {}
@@ -54,10 +50,6 @@ describe Service::OpsGenie do
       @payload = 'does not matter'
     end
 
-    it 'responds to receive_issue_impact_change' do
-      @service.respond_to?(:receive_issue_impact_change)
-    end
-    
     it 'succeeds upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -65,12 +57,12 @@ describe Service::OpsGenie do
         end
       end
 
-      @service.should_receive(:http_post)
+      allow(@service).to receive(:http_post)
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/v1/json/crashlytics'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      resp.should == :no_resource
+      expect(resp).to eq(:no_resource)
     end
 
     it 'fails upon unsuccessful api response' do
@@ -80,7 +72,7 @@ describe Service::OpsGenie do
         end
       end
 
-      @service.should_receive(:http_post)
+      allow(@service).to receive(:http_post)
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/v1/json/crashlytics'))
 

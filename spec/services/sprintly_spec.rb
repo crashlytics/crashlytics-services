@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Service::Sprintly do
   it 'should have a title' do
-    Service::Sprintly.title.should == 'Sprint.ly'
+    expect(Service::Sprintly.title).to eq('Sprint.ly')
   end
 
   describe :receive_verification do
@@ -14,10 +14,6 @@ describe Service::Sprintly do
     end
     let(:payload) { {} }
 
-    it 'should respond' do
-      service.respond_to?(:receive_verification)
-    end
-
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -25,12 +21,12 @@ describe Service::Sprintly do
         end
       end
 
-      service.should_receive(:http_get)
+      expect(service).to receive(:http_get)
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.get('/api/products/1/items.json'))
 
       resp = service.receive_verification(config, payload)
-      resp.should == [true, 'Successfully verified Sprint.ly settings!']
+      expect(resp).to eq([true, 'Successfully verified Sprint.ly settings!'])
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -40,12 +36,12 @@ describe Service::Sprintly do
         end
       end
 
-      service.should_receive(:http_get)
+      expect(service).to receive(:http_get)
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.get('/api/products/1/items.json'))
 
       resp = service.receive_verification(config, payload)
-      resp.should == [false, 'Oops! Please check your settings again.']
+      expect(resp).to eq([false, 'Oops! Please check your settings again.'])
     end
   end
 
@@ -69,10 +65,6 @@ describe Service::Sprintly do
       }
     end
 
-    it 'should respond to receive_issue_impact_change' do
-      service.respond_to?(:receive_issue_impact_change)
-    end
-
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -81,12 +73,12 @@ describe Service::Sprintly do
         end
       end
 
-      service.should_receive(:http_post)
+      expect(service).to receive(:http_post)
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.post('/api/products/1/items.json'))
 
       resp = service.receive_issue_impact_change(config, payload)
-      resp.should == { :sprintly_item_number => '42' }
+      expect(resp).to eq(:sprintly_item_number => '42')
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -97,11 +89,11 @@ describe Service::Sprintly do
         end
       end
 
-      service.should_receive(:http_post)
+      expect(service).to receive(:http_post)
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.post('/api/products/1/items.json'))
 
-      lambda { service.receive_issue_impact_change(config, payload) }.should raise_error
+      expect { service.receive_issue_impact_change(config, payload) }.to raise_error
     end
   end
 end

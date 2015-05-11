@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Service::WebHook do
   it 'should have a title' do
-    Service::WebHook.title.should == 'Web Hook'
+    expect(Service::WebHook.title).to eq('Web Hook')
   end
 
   describe 'receive_verification' do
@@ -12,10 +12,6 @@ describe Service::WebHook do
       @payload = {}
     end
 
-    it 'should respond' do
-      @service.respond_to?(:receive_verification)
-    end
-
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -23,12 +19,12 @@ describe Service::WebHook do
         end
       end
 
-      @service.should_receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with('https://example.org')
         .and_return(test.post('/'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [true,  'Successfully verified Web Hook settings']
+      expect(resp).to eq([true,  'Successfully verified Web Hook settings'])
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -38,12 +34,12 @@ describe Service::WebHook do
         end
       end
 
-      @service.should_receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with('https://example.org')
         .and_return(test.post('/'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [false, "Oops! Please check your settings again."]
+      expect(resp).to eq([false, "Oops! Please check your settings again."])
     end
   end
 
@@ -63,10 +59,6 @@ describe Service::WebHook do
       }
     end
 
-    it 'should respond to receive_issue_impact_change' do
-      @service.respond_to?(:receive_issue_impact_change)
-    end
-
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -74,12 +66,12 @@ describe Service::WebHook do
         end
       end
 
-      @service.should_receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with('https://example.org')
         .and_return(test.post('/'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      resp.should == :no_resource
+      expect(resp).to eq(:no_resource)
     end
 
     it 'should fail with extra information upon unsuccessful api response' do
@@ -89,13 +81,13 @@ describe Service::WebHook do
         end
       end
 
-      @service.should_receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with('https://example.org')
         .and_return(test.post('/'))
 
-      lambda {
+      expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.should raise_error(/WebHook issue create failed: HTTP status code: 500, body: fake_body/)
+      }.to raise_error(/WebHook issue create failed: HTTP status code: 500, body: fake_body/)
     end
   end
 end

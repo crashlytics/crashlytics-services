@@ -3,16 +3,16 @@ require 'spec_helper'
 describe Service::Bitbucket do
 
   before do
-    @config = { 
-      :username => 'user_name', 
-      :repo => 'project_name', 
-      :repo_owner => 'repo_owner' 
+    @config = {
+      :username => 'user_name',
+      :repo => 'project_name',
+      :repo_owner => 'repo_owner'
     }
     @invalid_repo_owners = [nil, " \t\n",  ""]
   end
 
   it 'should have a title' do
-    Service::Bitbucket.title.should == 'Bitbucket'
+    expect(Service::Bitbucket.title).to eq('Bitbucket')
   end
 
   describe 'receive_verification' do
@@ -23,10 +23,6 @@ describe Service::Bitbucket do
       @good_response = [true, 'Successfully verified Bitbucket settings']
     end
 
-    it 'should respond' do
-      @service.respond_to?(:receive_verification)
-    end
-
     it 'should use the username field in the repo url when the repo owner is missing' do
       @invalid_repo_owners.each do |empty_value|
         test = Faraday.new do |builder|
@@ -35,14 +31,14 @@ describe Service::Bitbucket do
           end
         end
 
-        @service.should_receive(:http_get)
+        expect(@service).to receive(:http_get)
           .with('https://bitbucket.org/api/1.0/repositories/user_name/project_name/issues')
           .and_return(test.get('/api/1.0/repositories/user_name/project_name/issues'))
 
         @config[:repo_owner] = empty_value
 
         resp = @service.receive_verification(@config, @payload)
-        resp.should == @good_response
+        expect(resp).to eq(@good_response)
       end
     end
 
@@ -53,12 +49,12 @@ describe Service::Bitbucket do
         end
       end
 
-      @service.should_receive(:http_get)
+      expect(@service).to receive(:http_get)
         .with('https://bitbucket.org/api/1.0/repositories/repo_owner/project_name/issues')
         .and_return(test.get('/api/1.0/repositories/repo_owner/project_name/issues'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == @good_response
+      expect(resp).to eq(@good_response)
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -68,12 +64,12 @@ describe Service::Bitbucket do
         end
       end
 
-      @service.should_receive(:http_get)
+      expect(@service).to receive(:http_get)
         .with('https://bitbucket.org/api/1.0/repositories/repo_owner/project_name/issues')
         .and_return(test.get('/api/1.0/repositories/repo_owner/project_name/issues'))
 
       resp = @service.receive_verification(@config, @payload)
-      resp.should == [false, 'Oops! Please check your settings again.']
+      expect(resp).to eq([false, 'Oops! Please check your settings again.'])
     end
   end
 
@@ -94,10 +90,6 @@ describe Service::Bitbucket do
       @good_response = { :bitbucket_issue_id => 12345 }
     end
 
-    it 'should respond to receive_issue_impact_change' do
-      @service.respond_to?(:receive_issue_impact_change)
-    end
-
     it 'should use the username field in the repo url when the repo owner is missing' do
       @invalid_repo_owners.each do |empty_value|
         test = Faraday.new do |builder|
@@ -106,14 +98,14 @@ describe Service::Bitbucket do
           end
         end
 
-        @service.should_receive(:http_post)
+        expect(@service).to receive(:http_post)
           .with('https://bitbucket.org/api/1.0/repositories/user_name/project_name/issues')
           .and_return(test.post('/api/1.0/repositories/user_name/project_name/issues'))
 
         @config[:repo_owner] = empty_value
 
         resp = @service.receive_issue_impact_change(@config, @payload)
-        resp.should == @good_response
+        expect(resp).to eq(@good_response)
       end
     end
 
@@ -124,12 +116,12 @@ describe Service::Bitbucket do
         end
       end
 
-      @service.should_receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with('https://bitbucket.org/api/1.0/repositories/repo_owner/project_name/issues')
         .and_return(test.post('/api/1.0/repositories/repo_owner/project_name/issues'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      resp.should == @good_response
+      expect(resp).to eq(@good_response)
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -139,13 +131,13 @@ describe Service::Bitbucket do
         end
       end
 
-      @service.should_receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with('https://bitbucket.org/api/1.0/repositories/repo_owner/project_name/issues')
         .and_return(test.post('/api/1.0/repositories/repo_owner/project_name/issues'))
 
-      lambda { 
-        @service.receive_issue_impact_change(@config, @payload) 
-      }.should raise_error(/Bitbucket issue creation failed: 500, body: fakebody/)
+      expect {
+        @service.receive_issue_impact_change(@config, @payload)
+      }.to raise_error(/Bitbucket issue creation failed: 500, body: fakebody/)
     end
   end
 end

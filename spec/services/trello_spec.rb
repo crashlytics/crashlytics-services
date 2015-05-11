@@ -14,9 +14,9 @@ describe Service::Trello do
   let(:service) { described_class.new('verification', {}) }
   let(:client) { double 'Trello::Client' }
 
-  before do 
-    Trello::Client.stub(:new).with(developer_public_key: 'trello_key', member_token: 'trello_token').and_return client
-    client.stub(:find).with(:boards, 'aWXeu09f').and_return board
+  before do
+    allow(Trello::Client).to receive(:new).with(:developer_public_key => 'trello_key', :member_token => 'trello_token').and_return client
+    allow(client).to receive(:find).with(:boards, 'aWXeu09f').and_return board
   end
 
   it 'has title' do
@@ -43,7 +43,7 @@ describe Service::Trello do
     subject(:receive_verification) { service.receive_verification(config, nil) }
 
     before do
-      client.should_receive(:find).with(:boards, 'aWXeu09f') do
+      expect(client).to receive(:find).with(:boards, 'aWXeu09f') do
         case find_result
         when :board_with_list
           board
@@ -150,7 +150,7 @@ EOT
     context 'success' do
       let(:card) { double 'Trello::Card', id: 'card123' }
 
-      before { client.should_receive(:create).with(:card, card_params).and_return card }
+      before { expect(client).to receive(:create).with(:card, card_params).and_return card }
 
       it 'returns a hash containing created card id' do
         expect(subject).to eq({ trello_card_id: 'card123' })
@@ -158,7 +158,7 @@ EOT
     end
 
     context 'failure' do
-      before { client.should_receive(:create).with(:card, card_params).and_raise Trello::Error }
+      before { expect(client).to receive(:create).with(:card, card_params).and_raise Trello::Error }
 
       it 'raises an error' do
         expect { subject }.to raise_error Trello::Error

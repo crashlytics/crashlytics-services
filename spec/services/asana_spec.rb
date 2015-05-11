@@ -3,7 +3,7 @@ require 'spec_helper'
 
 describe Service::Asana do
   it 'should have a title' do
-    Service::Asana.title.should == 'Asana'
+    expect(Service::Asana.title).to eq('Asana')
   end
 
   context 'with service' do
@@ -32,26 +32,28 @@ describe Service::Asana do
     describe :create_notes do
       it 'should create well formatted notes for asana' do
         notes = service.send :create_notes, issue
-        notes.should include issue[:url]
-        notes.should include issue[:method]
-        notes.should include issue[:crashes_count].to_s
-        notes.should include issue[:impacted_devices_count].to_s
+        expect(notes).to include issue[:url]
+        expect(notes).to include issue[:method]
+        expect(notes).to include issue[:crashes_count].to_s
+        expect(notes).to include issue[:impacted_devices_count].to_s
         line_count = notes.split('/').length
-        line_count.should eq 4
+        expect(line_count).to eq 4
       end
     end
 
     describe :receive_verification do
       it 'should succeed if API can authenticate and find product' do
-        service.should_receive(:find_project).with(config[:api_key], 'project_id_foo').and_return(double(:id => 'project_id_foo'))
+        expect(service).to receive(:find_project).
+          with(config[:api_key], 'project_id_foo').
+          and_return(double(:id => 'project_id_foo'))
         response = service.receive_verification(config, nil)
-        response.should == [true, 'Successfully verified Asana settings!']
+        expect(response).to eq([true, 'Successfully verified Asana settings!'])
       end
 
       it 'should fail if API call raises an exception' do
-        service.should_receive(:find_project).and_raise
+        expect(service).to receive(:find_project).and_raise
         response = service.receive_verification(config, nil)
-        response.first.should == false
+        expect(response.first).to eq(false)
       end
     end
 
@@ -70,18 +72,18 @@ describe Service::Asana do
       let(:task) { double(:id => 'new_task_id') }
 
       it 'should create a new Asana task' do
-        service.should_receive(:find_project).with(config[:api_key], project_id).and_return project
-        project.should_receive(:workspace).and_return workspace
-        workspace.should_receive(:create_task).with(expected_task_options).and_return task
+        expect(service).to receive(:find_project).with(config[:api_key], project_id).and_return project
+        expect(project).to receive(:workspace).and_return workspace
+        expect(workspace).to receive(:create_task).with(expected_task_options).and_return task
 
         response = service.receive_issue_impact_change config, issue
-        response.should == { :asana_task_id => task.id }
+        expect(response).to eq({ :asana_task_id => task.id })
       end
 
       it 'should raise if creating a new Asana task fails' do
-        service.should_receive(:find_project).with(config[:api_key], project_id).and_return project
-        project.should_receive(:workspace).and_return workspace
-        workspace.should_receive(:create_task).with(expected_task_options).and_raise
+        expect(service).to receive(:find_project).with(config[:api_key], project_id).and_return project
+        expect(project).to receive(:workspace).and_return workspace
+        expect(workspace).to receive(:create_task).with(expected_task_options).and_raise
 
         expect { service.receive_issue_impact_change config, issue }.to raise_error
       end
