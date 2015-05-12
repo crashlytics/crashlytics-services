@@ -1,0 +1,55 @@
+class Service::ZohoProjects < Service::Base
+  title 'Zoho Projects'
+
+  string :project_id,
+    :label => "Note: You need a ZohoProjects enterprise account to enable this integration. " \
+    "To get your Project ID and Auth Token, head to your ZohoProject's dashboard and look under \"Service Hooks\". " \
+    "If you don't see \"Service Hooks\" on your dashboard, you can enable this panel under \"Project Customization\"." \
+    "<br /><br />" \
+    "Project ID"
+
+  string :authtoken, :label => 'Auth Token'
+
+  page 'Project Information', [:project_id, :authtoken]
+
+  def receive_issue_impact_change(config, issue)
+    payload = JSON.generate(:event => 'issue_impact_change', :payload => issue)
+
+    response = send_request_to_projects config, payload
+    if response.status != 200
+      raise "Problem while sending request to Zoho Projects, Status: #{response.status}, Body: #{response.body}"
+    end
+
+    return { :zohoprojects_bug_id => response.body }
+  end
+
+  def receive_verification(config, _)
+    payload = JSON.generate(:event => 'verification')
+
+    response = send_request_to_projects config, payload
+    if response.status == 400
+      return [false, 'Invalid Auth Token/Project ID']
+    end
+
+    [true, 'Verification successfully completed']
+  end
+
+  private
+
+  def service_hook_url
+    'https://projectsapi.zoho.com/serviceHook'
+  end
+
+  def send_request_to_projects config, payload
+    http.ssl[:verify] = true
+
+    response = http_post(service_hook_url) do |req|
+      req.params[:authtoken] = config[:authtoken]
+      req.params[:pId] = config[:project_id]
+      req.params[:pltype] = 'chook'
+      req.params[:payload] = payload
+    end
+
+    return response
+  end
+end
