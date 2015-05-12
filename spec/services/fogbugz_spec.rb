@@ -2,8 +2,18 @@ require 'asana'
 require 'spec_helper'
 
 describe Service::FogBugz do
-  it 'should have a title' do
+
+  it 'has a title' do
     expect(Service::FogBugz.title).to eq('FogBugz')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::FogBugz }
+
+    it { is_expected.to include_string_field :project_url }
+    it { is_expected.to include_string_field :api_token }
+
+    it { is_expected.to include_page 'API Token', [:project_url, :api_token] }
   end
 
   context 'with service' do

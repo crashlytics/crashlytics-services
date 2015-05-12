@@ -2,8 +2,19 @@ require 'asana'
 require 'spec_helper'
 
 describe Service::Asana do
-  it 'should have a title' do
+
+  it 'has a title' do
     expect(Service::Asana.title).to eq('Asana')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Asana }
+
+    it { is_expected.to include_page 'API Key', [:api_key] }
+    it { is_expected.to include_string_field :api_key }
+
+    it { is_expected.to include_page 'Project ID', [:project_id] }
+    it { is_expected.to include_string_field :project_id }
   end
 
   context 'with service' do

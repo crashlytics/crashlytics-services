@@ -1,8 +1,20 @@
 require 'spec_helper'
 
 describe Service::Sprintly do
-  it 'should have a title' do
+
+  it 'has a title' do
     expect(Service::Sprintly.title).to eq('Sprint.ly')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Sprintly }
+
+    it { is_expected.to include_string_field :dashboard_url }
+    it { is_expected.to include_string_field :email }
+    it { is_expected.to include_password_field :api_key}
+
+    it { is_expected.to include_page 'Product', [:dashboard_url] }
+    it { is_expected.to include_page 'Login Information', [:email, :api_key] }
   end
 
   describe :receive_verification do

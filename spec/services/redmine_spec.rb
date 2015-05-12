@@ -1,6 +1,21 @@
 require 'spec_helper'
 
 describe Service::Redmine do
+
+  it 'has a title' do
+    expect(Service::Redmine.title).to eq('Redmine')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Redmine }
+
+    it { is_expected.to include_string_field :project_url }
+    it { is_expected.to include_string_field :api_key }
+
+    it { is_expected.to include_page 'Project', [:project_url] }
+    it { is_expected.to include_page 'API Key', [:api_key] }
+  end
+
   describe 'receive_verification' do
     before do
       @config = { :project_url => 'http://redmine.acme.com/projects/foo_project' }

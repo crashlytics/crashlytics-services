@@ -10,8 +10,20 @@ describe Service::Slack do
     }
   end
 
-  it 'should have a title' do
+  it 'has a title' do
     expect(Service::Slack.title).to eq('Slack')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Slack }
+
+    it { is_expected.to include_string_field :url }
+    it { is_expected.to include_string_field :channel }
+    it { is_expected.to include_string_field :username}
+
+    it { is_expected.to include_page 'URL', [:url] }
+    it { is_expected.to include_page 'Channel', [:channel] }
+    it { is_expected.to include_page 'Username', [:username] }
   end
 
   describe '#receive_verification' do

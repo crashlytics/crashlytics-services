@@ -10,9 +10,16 @@ describe Service::Hall do
     @failure = OpenStruct.new(:status => 404, :body => "fakebody")
   end
 
-
-  it 'should have a title' do
+  it 'has a title' do
     expect(Service::Hall.title).to eq('Hall')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Hall }
+
+    it { is_expected.to include_string_field :group_token }
+
+    it { is_expected.to include_page 'Group API Token', [:group_token] }
   end
 
   describe 'receive_verification' do

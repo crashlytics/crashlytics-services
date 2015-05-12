@@ -1,8 +1,17 @@
 require 'spec_helper'
 
 describe Service::WebHook do
-  it 'should have a title' do
+
+  it 'has a title' do
     expect(Service::WebHook.title).to eq('Web Hook')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::WebHook }
+
+    it { is_expected.to include_string_field :url }
+
+    it { is_expected.to include_page 'One-Step Setup', [:url] }
   end
 
   describe 'receive_verification' do

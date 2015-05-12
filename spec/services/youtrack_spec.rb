@@ -2,8 +2,20 @@ require 'spec_helper'
 require 'webmock/rspec'
 
 describe Service::YouTrack do
-  it 'should have a title' do
+
+  it 'has a title' do
     expect(Service::YouTrack.title).to eq('YouTrack')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::YouTrack }
+
+    it { is_expected.to include_string_field :base_url }
+    it { is_expected.to include_string_field :project_id }
+    it { is_expected.to include_string_field :username }
+
+    it { is_expected.to include_page 'YouTrack Project', [:base_url, :project_id] }
+    it { is_expected.to include_page 'Login Information', [:username, :password] }
   end
 
   def stub_successful_login_for(config)

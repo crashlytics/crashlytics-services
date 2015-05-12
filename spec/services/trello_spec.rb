@@ -19,8 +19,20 @@ describe Service::Trello do
     allow(client).to receive(:find).with(:boards, 'aWXeu09f').and_return board
   end
 
-  it 'has title' do
-    expect(described_class.title).to eq 'Trello'
+  it 'has a title' do
+    expect(described_class.title).to eq('Trello')
+  end
+
+  describe 'schema and display configuration' do
+    subject { Service::Trello }
+
+    it { is_expected.to include_string_field :board }
+    it { is_expected.to include_string_field :list }
+    it { is_expected.to include_string_field :key }
+    it { is_expected.to include_string_field :token }
+
+    it { is_expected.to include_page 'Board', [:board, :list] }
+    it { is_expected.to include_page 'Credentials', [:key, :token] }
   end
 
   describe '.pages' do
