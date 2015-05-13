@@ -2,9 +2,8 @@ class Service::ZohoProjects < Service::Base
   title 'Zoho Projects'
 
   string :project_id,
-    :label => "Note: You need a ZohoProjects enterprise account to enable this integration. " \
-    "To get your Project ID and Auth Token, head to your ZohoProject's dashboard and look under \"Service Hooks\". " \
-    "If you don't see \"Service Hooks\" on your dashboard, you can enable this panel under \"Project Customization\"." \
+    :label => "You need a Zoho Projects Premium or Enterprise plan along with the bug add-on to enable this integration. " \
+    "To get your Project ID and Auth Token, head on over to your Zoho Projects Dashboard and look under \"Service Hooks\"" \
     "<br /><br />" \
     "Project ID"
 
