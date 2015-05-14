@@ -27,8 +27,6 @@ class Service::HipChat < Service::Base
   def receive_issue_impact_change(config, payload)
     send_message(config, format_issue_impact_change_message(payload))
     :no_resource
-  rescue => e
-    log "Rescued an issue_impact_change error in HipChat: #{ e }"
   end
 
   private

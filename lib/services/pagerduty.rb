@@ -11,7 +11,7 @@ class Service::Pagerduty < Service::Base
     if resp.success?
       { :pagerduty_incident_key => JSON.parse(resp.body)['incident_key'] }
     else
-      log "Pagerduty issue impact change failed: #{resp[:status]}, payload: #{payload}"
+      raise "Pagerduty issue impact change failed: #{resp.status} - #{resp.body}"
     end
   end
 

@@ -25,6 +25,7 @@ class Service::Slack < Service::Base
   def receive_issue_impact_change(config, payload)
     message, options = format_issue_impact_change_message(payload)
     send_message(config, message, options)
+    :no_resource
   end
 
   private

@@ -58,6 +58,18 @@ describe Service::HipChat do
 
       expect(service.receive_issue_impact_change(config, payload)).to eq(:no_resource)
     end
+
+    it 'surfaces exceptions as runtime errors' do
+      payload = { :url => 'url', :app => { :name => 'name' },
+            :title => 'title', :method => 'method' }
+      service = Service::HipChat.new('issue_impact_change', {})
+
+      expect(service).to receive(:send_message).and_raise('Unhandled error')
+
+      expect {
+        service.receive_issue_impact_change(config, payload)
+      }.to raise_error(/Unhandled error/)
+    end
   end
 
   describe :send_message do

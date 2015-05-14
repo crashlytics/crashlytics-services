@@ -60,12 +60,12 @@ describe Service::Slack do
           {:title=>"Bundle identifier", :value=>nil, :short=>"true"}]
       }
 
-      expect(service).to receive(:send_message).with(config,
-                                                 '<url|name> crashed 1 times in method!',
-                                                  :attachments=>[expected_attachment])
-                                            .and_return(true)
+      fake_response = double('response', :code => '200', :body => 'Unused')
+      expect_any_instance_of(Slack::Notifier).to receive(:ping).
+        with('<url|name> crashed 1 times in method!',
+          :attachments => [expected_attachment]).and_return(fake_response)
 
-      expect(service.receive_issue_impact_change(config, payload)).to be true
+      expect(service.receive_issue_impact_change(config, payload)).to be :no_resource
     end
 
     it 'bubbles up errors from Slack' do
