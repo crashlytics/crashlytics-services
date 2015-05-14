@@ -74,6 +74,11 @@ describe Service::Jira do
       client = @service.jira_client(:project_url => 'https://example.com/non/empty/path/browse/project_key')
       expect(client.options[:context_path]).to eq("/non/empty/path")
     end
+
+    it 'handles new style urls with non-empty context paths' do
+      client = @service.jira_client(:project_url => 'https://example.com/non/empty/path/projects/project_key')
+      expect(client.options[:context_path]).to eq("/non/empty/path")
+    end
   end
 
   describe 'receive_issue_impact_change' do
@@ -235,6 +240,28 @@ describe Service::Jira do
 
       resp = @service.receive_issue_resolution_change(@config, @payload)
       expect(resp).to be true
+    end
+  end
+
+  describe '#parse_url' do
+    let(:service) { Service::Jira.new('issue_resolution_change', {}) }
+
+    it 'parses old versions of JIRA URLs' do
+      parsed = service.parse_url('https://mycompany.atlassian.net/jira/browse/PROJECT-KEY')
+      expect(parsed[:url_prefix]).to eq('https://mycompany.atlassian.net')
+      expect(parsed[:project_key]).to eq('PROJECT-KEY')
+    end
+
+    it 'parses new versions of JIRA URLs' do
+      parsed = service.parse_url('https://mycompany.atlassian.net/projects/PROJECT-KEY')
+      expect(parsed[:url_prefix]).to eq('https://mycompany.atlassian.net')
+      expect(parsed[:project_key]).to eq('PROJECT-KEY')
+    end
+
+    it 'parses URLs with context paths' do
+      parsed = service.parse_url('http://mycompany.atlassian.net/context/path/projects/PROJECT-KEY')
+      expect(parsed[:url_prefix]).to eq('http://mycompany.atlassian.net')
+      expect(parsed[:project_key]).to eq('PROJECT-KEY')
     end
   end
 end

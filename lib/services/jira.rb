@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'pp'
 require 'jira'
+require 'uri'
 
 class Service::Jira < Service::Base
   title "Jira"
@@ -162,17 +163,17 @@ class Service::Jira < Service::Base
     )
   end
 
-  private
-  require 'uri'
   def parse_url(url)
     uri = URI(url)
-    result = { :url_prefix => url.match(/(https?:\/\/.*?)\/browse\//)[1],
-      :project_key => uri.path.match(/\/browse\/(.+?)(\/|$)/)[1]}
+    result = { :url_prefix => url.match(/(https?:\/\/.*?)\/.+\//)[1],
+      :project_key => uri.path.match(/\/.+\/(.+?)(\/|$)/)[1]}
     result
   end
 
+  private
+
   def get_context_path(url)
-    m = url.match(/https?:\/\/.*?..+?((?:\/.+)+)\/browse\//)
+    m = url.match(/https?:\/\/.*?..+?((?:\/.+)+)\/.+\//)
     m ? m[1] : ''
   end
 
