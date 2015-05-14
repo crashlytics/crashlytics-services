@@ -93,8 +93,7 @@ describe Service::Pagerduty do
         .with('https://events.pagerduty.com/generic/2010-04-15/create_event.json')
         .and_return(test.post('/generic/2010-04-15/create_event.json'))
 
-      resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to be_nil
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/500 - {\"incident_key\":\"foo\"}/)
     end
   end
 end
