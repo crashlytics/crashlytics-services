@@ -4,7 +4,7 @@ require 'spec_helper'
 describe Service::Slack do
   let(:config) do
     {
-      :url => 'https://slack_team.slack.com/services/hooks/incoming-webhook?token=token',
+      :url => 'https://crashtest.slack.com/services/hooks/incoming-webhook?token=token',
       :username => 'crashuser',
       :channel => 'mychannel'
     }
@@ -66,6 +66,19 @@ describe Service::Slack do
                                             .and_return(true)
 
       expect(service.receive_issue_impact_change(config, payload)).to be true
+    end
+
+    it 'bubbles up errors from Slack' do
+      payload = { :url => 'url', :app => { :name => 'name' },
+            :title => 'title', :method => 'method', :crashes_count => 1}
+      service = Service::Slack.new('issue_impact_change', {})
+
+      fake_error_response = double('response', :code => '404', :body => 'No service')
+      allow_any_instance_of(Slack::Notifier).to receive(:ping).and_return(fake_error_response)
+
+      expect {
+        service.receive_issue_impact_change(config, payload)
+      }.to raise_error(/Unexpected response from Slack: 404, No service/)
     end
   end
 
