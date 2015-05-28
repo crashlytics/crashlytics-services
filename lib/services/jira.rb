@@ -42,7 +42,7 @@ class Service::Jira < Service::Base
       "at least #{ payload[:crashes_count] } times.\n\n"
     end
 
-    issue_description = 'Crashlytics detected a new issue.\n' + \
+    issue_description = "Crashlytics detected a new issue.\n" + \
                  "#{ payload[:title] } in #{ payload[:method] }\n\n" + \
                  users_text + \
                  crashes_text + \
