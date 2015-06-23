@@ -2,7 +2,7 @@
 
 Simple, powerful, declarative integrations for popular third-party services.
 
-![Screenshot](http://public.crashlytics.com.s3.amazonaws.com/crashlytics-services-readme-image.png)
+![Screenshot](http://public.crashlytics.com.s3.amazonaws.com/fabric-services-readme-image.png)
 
 ### Rationale ###
 
@@ -28,12 +28,13 @@ class Service::Foo < Service::Base
   title "Display Title"
 
   # input type methods take an identifier and optional options hash
-  string   :email [, :label => "label text", :placeholder => "jane@doe.com" ]
-  password :password [, :label => "label text", :hint => "8 characters or longer" ]
-  checkbox  :checkbox_1 [, :label => "" ]
+  string   :url # [, :label => "label text", :placeholder => "https://example.com/foo/bar" ]
+  password :api_key # [, :label => "label text"]
+  checkbox  :checkbox_1 # [, :label => "" ]
 
-  page "Title", [ :array, :of, :input, :identifiers, :to, :show, :on, :this, :page ]
-  page "Two",   [ :other, :identifiers ]
+  # construct your pages and make use of inputs defined above
+  page "Title", [:url, :api_key]
+  page "Two", [:checkbox_1]
 
   # Receives a config hash containing :identifier => value pairs for each input field
   # and a payload which for impact change events is a hash of data about the issue.
@@ -46,7 +47,7 @@ class Service::Foo < Service::Base
   # descriptive exception, and on success without any data to return it is preferred
   # to return :no_resource
   def receive_issue_impact_change(config, issue)
-    { :service_name_resource_id => id } # or :no_resource
+    { :service_name_resource_id => 12345 } # or :no_resource
   end
 
   # Receives a config hash containing :identifier => value pairs for each input field.
@@ -58,7 +59,8 @@ class Service::Foo < Service::Base
   # by rescuing from an exception and returning an appropriate [false, '<explanation>']
   # that will be played back to the user trying to set up an integration.
   def receive_verification(config, _)
-    [ true/false, "Success or Error message" ]
+    # on success
+    [true, "Successfully integrated!"]
   end
 end
 ```
@@ -67,7 +69,7 @@ end
 
 The schema is defined in a declarative manner with Ruby class methods for each input type. Specify the unique identifer for the field and an optional options Hash. If no pages are declared, all the inputs will be put on one page.
 
-For a better, friendlier UI, you can spearate these fields into pages. If one or more pages are declared, each input identifier must be included on one page or it will be ignored. Pages will be shown in the order they are declared in the schema. Labels can include span, p, br, and anchor html tags.
+For a better, friendlier UI, you can separate these fields into pages. If one or more pages are declared, each input identifier must be included on one page or it will be ignored. Pages will be shown in the order they are declared in the schema. Labels can include span, p, br, and anchor html tags.
 
 The settings UI will automatically put a Next button on all pages except for the last. On the last page there will be a Verify button which will take the user to a page showing more options for the service or back to the first page if the verification failed.
 
@@ -102,4 +104,4 @@ In a service, use `http_get` and `http_put` to make http requests. See `lib/serv
 
 ### Environment ###
 
-Services run on sand-boxed servers under Ruby 1.9. All configuration data entered by users is encrypted at rest using AES-256.
+Services run on sandboxed servers under Ruby2.1.4. All configuration data entered by users is encrypted at rest using AES-256.
