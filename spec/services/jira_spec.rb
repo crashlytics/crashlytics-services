@@ -54,30 +54,15 @@ describe Service::Jira do
     end
 
     it 'disables SSL checking when the project_url is http' do
-      client = @service.jira_client(:project_url => 'http://example.com/browse/project_key')
+      client = @service.jira_client({ :project_url => 'http://example.com/browse/project_key' }, '')
       expect(client.options[:use_ssl]).to be false
       expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_NONE)
     end
 
     it 'enables SSL checking and peer verification when the project_url is https' do
-      client = @service.jira_client(:project_url => 'https://example.com/browse/project_key')
+      client = @service.jira_client({ :project_url => 'https://example.com/browse/project_key'}, '')
       expect(client.options[:use_ssl]).to be true
       expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_PEER)
-    end
-
-    it 'handles urls with empty context paths' do
-      client = @service.jira_client(:project_url => 'https://example.com/browse/project_key')
-      expect(client.options[:context_path]).to eq("")
-    end
-
-    it 'handles urls with non-empty context paths' do
-      client = @service.jira_client(:project_url => 'https://example.com/non/empty/path/browse/project_key')
-      expect(client.options[:context_path]).to eq("/non/empty/path")
-    end
-
-    it 'handles new style urls with non-empty context paths' do
-      client = @service.jira_client(:project_url => 'https://example.com/non/empty/path/projects/project_key')
-      expect(client.options[:context_path]).to eq("/non/empty/path")
     end
   end
 
@@ -250,18 +235,20 @@ describe Service::Jira do
       parsed = service.parse_url('https://mycompany.atlassian.net/jira/browse/PROJECT-KEY')
       expect(parsed[:url_prefix]).to eq('https://mycompany.atlassian.net')
       expect(parsed[:project_key]).to eq('PROJECT-KEY')
+      expect(parsed[:context_path]).to eq('/jira')
     end
 
     it 'parses new versions of JIRA URLs' do
       parsed = service.parse_url('https://mycompany.atlassian.net/projects/PROJECT-KEY')
       expect(parsed[:url_prefix]).to eq('https://mycompany.atlassian.net')
       expect(parsed[:project_key]).to eq('PROJECT-KEY')
+      expect(parsed[:context_path]).to eq('')
     end
 
-    it 'parses URLs with context paths' do
-      parsed = service.parse_url('http://mycompany.atlassian.net/context/path/projects/PROJECT-KEY')
-      expect(parsed[:url_prefix]).to eq('http://mycompany.atlassian.net')
-      expect(parsed[:project_key]).to eq('PROJECT-KEY')
+    it 'gracefully handles a bogus URL' do
+      expect {
+        service.parse_url('http://http://http://.com')
+      }.to raise_error('Unexpected URL format')
     end
   end
 end
