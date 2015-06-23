@@ -16,19 +16,15 @@ class Service::Jira < Service::Base
   password :password, :placeholder => 'password',
          :label => 'Your Jira password:'
 
-  # TODO - This should not be on the master branch. This enables syncing
-  #        of issue status between Jira and Crashlytics. This feature is a WIP.
-  # checkbox :sync_issues, :label => 'Would you like to sync issue status with Jira?'
-
   page "Project", [ :project_url ]
   page "Login Information", [ :username, :password ] # TODO - See comment above, :sync_issues ]
 
   # Create an issue on Jira
   def receive_issue_impact_change(config, payload)
-    client = jira_client(config)
+    url_components = parse_url(config[:project_url])
+    client = jira_client(config, url_components[:context_path])
 
-    parsed = parse_url config[:project_url]
-    project = client.Project.find(parsed[:project_key])
+    project = client.Project.find(url_components[:project_key])
 
     users_text = if payload[:impacted_devices_count] == 1
       'This issue is affecting at least 1 user who has crashed '
@@ -55,7 +51,7 @@ class Service::Jira < Service::Base
       'issuetype' => {'id' => '1'} } }
 
     # The Jira client raises an HTTPError if the response is not of the type Net::HTTPSuccess
-    resp = client.post("#{parsed[:url_prefix]}/rest/api/2/issue", post_body.to_json)
+    resp = client.post("#{url_components[:url_prefix]}/rest/api/2/issue", post_body.to_json)
 
     body = JSON.parse(resp.body)
     { :jira_story_id => body['id'], :jira_story_key => body['key'] }
@@ -67,11 +63,10 @@ class Service::Jira < Service::Base
   end
 
   def receive_verification(config, payload)
-    client = jira_client(config)
+    url_components = parse_url(config[:project_url])
+    client = jira_client(config, url_components[:context_path])
 
-    parsed = parse_url config[:project_url]
-
-    resp = client.Project.find(parsed[:project_key])
+    resp = client.Project.find(url_components[:project_key])
     verification_response = [true,  'Successfully verified Jira settings']
 
     if config[:sync_issues]
@@ -91,64 +86,7 @@ class Service::Jira < Service::Base
     [false, 'Oops! Is your project url correct?']
   end
 
-  # TODO - This should not be on master. The commented out methods
-  #        support the incomplete issue syncing feature. 
-  # def receive_issue_integration_request(config, payload)
-  #   client = jira_client(config)
-
-  #   jira_id = payload[:service_hook][:issue_impact_change][:jira_story_id]
-  #   jira_issue = client.Issue.find(jira_id)
-
-  #   format_jira_issue jira_issue
-  # rescue => e
-  #   log "Rescued a service hook request error in jira: (url=#{config[:project_url]}) #{e}"
-  #   false
-  # end
-
-  # def receive_issue_resolution_change(config, payload)
-  #   client = jira_client(config)
-
-  #   jira_id = payload[:service_hook][:issue_impact_change][:jira_story_id]
-  #   jira_issue = client.Issue.find(jira_id)
-
-  #   if jira_issue.resolution.nil? && !payload[:resolved_at]
-  #     log "Jira ticket #{jira_id} is open, no need to call API."
-  #     return true
-  #   elsif jira_issue.resolution.present? && payload[:resolved_at]
-  #     log "Jira ticket #{jira_id} is resolved already."
-  #     return true
-  #   end
-
-  #   transition_request = {
-  #     :update => {
-  #       :comment => [{
-  #         :add => {
-  #           :body => nil
-  #         }
-  #       }]
-  #     },
-  #     :transition => {
-  #       :id => nil
-  #     }
-  #   }
-
-  #   if payload[:resolved_at]
-  #     transition_request[:update][:comment][0][:add][:body] = 'This CR has been marked as resolved in Crashlytics'
-  #     transition_request[:transition][:id] = '2'
-  #   else
-  #     transition_request[:update][:comment][0][:add][:body] = 'This CR has been reopened in Crashlytics'
-  #     transition_request[:transition][:id] = '3'
-  #   end
-
-  #   client.post("#{ jira_issue.self }/transitions?expand=transitions.fields", transition_request.to_json)
-
-  #   format_jira_issue client.Issue.find(jira_id) # fetch updated issue and return it
-  # rescue => e
-  #  log "Rescued a service hook request error in jira: (url=#{config[:project_url]}) #{e.message}"
-  #  false
-  # end
-
-  def jira_client(config)
+  def jira_client(config, context_path)
     url = config[:project_url]
     ssl_enabled = (URI(url).scheme == 'https')
     ssl_verify_mode = ssl_enabled ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
@@ -156,7 +94,7 @@ class Service::Jira < Service::Base
       :username =>     config[:username],
       :password =>     config[:password],
       :site =>         config[:project_url],
-      :context_path => get_context_path(url),
+      :context_path => context_path,
       :auth_type =>    :basic,
       :use_ssl =>      ssl_enabled,
       :ssl_verify_mode => ssl_verify_mode
@@ -164,18 +102,14 @@ class Service::Jira < Service::Base
   end
 
   def parse_url(url)
-    uri = URI(url)
-    result = { :url_prefix => url.match(/(https?:\/\/.*?)\/.+\//)[1],
-      :project_key => uri.path.match(/\/.+\/(.+?)(\/|$)/)[1]}
-    result
+    matches = url.match(/(https?:\/\/.+?)(\/.+)?\/(projects|browse)\/([\w\-]+)/)
+    if matches.nil?
+      raise "Unexpected URL format"
+    end
+    { :url_prefix => matches[1], :context_path => matches[2] || '', :project_key => matches[4] }
   end
 
   private
-
-  def get_context_path(url)
-    m = url.match(/https?:\/\/.*?..+?((?:\/.+)+)\/.+\//)
-    m ? m[1] : ''
-  end
 
   def callback_webhook_url(payload)
     "https://www.crashlytics.com/api/v3/projects/#{ payload[:app][:id] }/service_hooks/jira/responses"
