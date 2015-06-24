@@ -15,7 +15,7 @@
   * If possible, we recommend you implement your integration using only the built-in HTTP functions instead of using gems.
   * Gems _can_ make integration with our backend infrastructure complex, so the more dependencies you bring in, the longer it may take us to finalize and deploy your integration.
   * Certain gems are not compatible with our backend (most notably, those that cannot be used within EventMachine), so please choose your dependencies sparingly.
-1. Add an RSpec tests in `spec/services/<service-name>_spec.rb` so we know your code works! We recommend using WebMock to verify edge cases.  See this [real live example](https://github.com/crashlytics/crashlytics-services/blob/master/spec/services/zohoprojects_spec.rb) for inspiration.  You can run the entire suite by doing `bundle install` and `bundle exec rake`. Please cover at _minimum_ the following four scenarios:
+1. Add RSpec tests in `spec/services/<service-name>_spec.rb` so we know your code works! We recommend using WebMock to verify edge cases.  See this [real live example](https://github.com/crashlytics/crashlytics-services/blob/master/spec/services/zohoprojects_spec.rb) for inspiration.  You can run the entire suite by doing `bundle install` and `bundle exec rake`. Please cover at _minimum_ the following four scenarios:
   * `receive_verification` success
   * `receive_verification` failure
   * `receive_issue_impact_change` success
@@ -30,5 +30,7 @@
   * Please also include your Twitter handle and a headshot we can use to credit you [here](https://try.crashlytics.com/integrations/).
 
 ### Phase 3: Verification
-1. Your tests must cover the minimum scenarios above, and must be passing.
-1. We'll review the pull request and send feedback or just merge it in!
+1. For us to test and ship your integration, your tests must cover the minimum scenarios above, actually exercise your code, and be passing.
+1. We will need to be able to use a live account to verify your integration from our test environment.
+1. When we get started working on your integration, we will close your original PR and open a new internal one for any final changes (helptext changes, style tweaks, etc.).
+1. Once we are able to successfully confirm the integration works, we will merge our internal PR and ship it.
