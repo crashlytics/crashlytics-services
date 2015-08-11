@@ -51,15 +51,15 @@ class Service::Jira < Service::Base
       'issuetype' => {'id' => '1'} } }
 
     # The Jira client raises an HTTPError if the response is not of the type Net::HTTPSuccess
-    resp = client.post("#{url_components[:url_prefix]}/rest/api/2/issue", post_body.to_json)
-
-    body = JSON.parse(resp.body)
-    { :jira_story_id => body['id'], :jira_story_key => body['key'] }
+    issue = client.Issue.build
+    if issue.save(post_body)
+      { :jira_story_id => issue.id, :jira_story_key => issue.key }
+    else
+      raise "Jira Issue Create Failed: #{issue.respond_to?(:errors) ? issue.errors : {}}"
+    end
 
   rescue JIRA::HTTPError => e
     raise "Jira Issue Create Failed. Message: #{ e.message }, Status: #{ e.code }, Body: #{ e.response.body }"
-  rescue => e
-    raise "Jira Issue Create Failed: #{ e.message }"
   end
 
   def receive_verification(config, payload)
