@@ -106,17 +106,7 @@ describe Service::Jira do
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error(/Status: 500, Body: {\"id\":\"foo\"}/)
-    end
-
-    it 'should handle and re-raise any non-HTTP errors' do
-      mock_client = double("Client")
-      allow(mock_client).to receive(:Project) {raise "Some Other Error"}
-      allow(@service).to receive(:jira_client).and_return(mock_client)
-
-      expect {
-        @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error(/Jira Issue Create Failed: Some Other Error/)
+      }.to raise_error(/Jira Issue Create Failed/)
     end
   end
 
