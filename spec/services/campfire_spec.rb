@@ -88,8 +88,8 @@ describe Service::Campfire do
     end
 
     it 'should fail upon unsuccessful api response' do
-      expect(@room).to receive(:speak).and_return(nil)
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error
+      expect(@room).to receive(:speak).and_return(Hashie::Mash.new)
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Campfire Message Post Failed/)
     end
   end
 end

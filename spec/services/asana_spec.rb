@@ -94,9 +94,9 @@ describe Service::Asana do
       it 'should raise if creating a new Asana task fails' do
         expect(service).to receive(:find_project).with(config[:api_key], project_id).and_return project
         expect(project).to receive(:workspace).and_return workspace
-        expect(workspace).to receive(:create_task).with(expected_task_options).and_raise
+        expect(workspace).to receive(:create_task).with(expected_task_options).and_raise('fake')
 
-        expect { service.receive_issue_impact_change config, issue }.to raise_error
+        expect { service.receive_issue_impact_change config, issue }.to raise_error(RuntimeError, /fake/)
       end
     end
   end

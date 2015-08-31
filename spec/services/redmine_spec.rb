@@ -96,7 +96,7 @@ describe Service::Redmine do
         .with('http://redmine.acme.com/issues.json')
         .and_return(test.post('/issues.json'))
 
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Redmine Issue Create Failed/)
     end
   end
 end
