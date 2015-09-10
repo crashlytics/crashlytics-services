@@ -105,7 +105,7 @@ describe Service::Sprintly do
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.post('/api/products/1/items.json'))
 
-      expect { service.receive_issue_impact_change(config, payload) }.to raise_error
+      expect { service.receive_issue_impact_change(config, payload) }.to raise_error(/Adding defect to backlog failed/)
     end
   end
 end

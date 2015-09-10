@@ -128,12 +128,12 @@ describe Service::YouTrack do
           }
         }).to_return(:status => 500, :body => {}.to_json)
 
-      expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception
+      expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception(/issue creation failed/)
     end
 
     it 'should fail if login fails' do
       stub_failed_login_for(config)
-      expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception
+      expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception(/Invalid login/)
     end
   end
 

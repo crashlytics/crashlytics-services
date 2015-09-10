@@ -97,7 +97,7 @@ describe Service::Pivotal do
         .with('https://www.pivotaltracker.com/services/v3/projects/foo_project/stories')
         .and_return(test.post('/services/v3/projects/foo_project/stories'))
 
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Pivotal Issue Create/)
     end
   end
 

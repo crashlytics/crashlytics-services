@@ -86,7 +86,7 @@ describe Service::ChatWork do
         .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
         .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
 
-      expect { @service.receive_issue_impact_change(config, @payload) }.to raise_error
+      expect { @service.receive_issue_impact_change(config, @payload) }.to raise_error(/Could not send a message to room/)
     end
   end
 end

@@ -75,12 +75,12 @@ describe Service::FogBugz do
 
       it 'raises an exception given an error response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => error_response))
-        expect { service.receive_issue_impact_change(config, payload) }.to raise_error
+        expect { service.receive_issue_impact_change(config, payload) }.to raise_error(/Could not create FogBugz/)
       end
 
       it 'raises an exception given an invalid response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => invalid_response))
-        expect { service.receive_issue_impact_change(config, payload) }.to raise_error
+        expect { service.receive_issue_impact_change(config, payload) }.to raise_error(/Could not create FogBugz/)
       end
     end
   end
