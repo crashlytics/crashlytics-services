@@ -22,19 +22,21 @@ describe Service::GitHub do
     it { is_expected.to include_page 'Access token', [:access_token] }
   end
 
-  describe :receive_verification do
-    it :success do
+  describe '#receive_verification' do
+    it 'returns true and a confirmation message on success' do
       service = Service::GitHub.new('verification', {})
-      expect(service).to receive(:github_repo).with('foo_access_token', 'crashlytics/sample-project')
+      stub_request(:get, 'https://api.github.com/repos/crashlytics/sample-project').
+         to_return(:status => 200, :body => '', :headers => {})
 
       success, message = service.receive_verification(config, nil)
       expect(success).to be true
       expect(message).to eq('Successfully accessed repo crashlytics/sample-project.')
     end
 
-    it :failure do
+    it 'returns false and an error message on failure' do
       service = Service::GitHub.new('verification', {})
-      expect(service).to receive(:github_repo).with('foo_access_token', 'crashlytics/sample-project') { raise }
+      stub_request(:get, 'https://api.github.com/repos/crashlytics/sample-project').
+         to_return(:status => 404, :body => '', :headers => {})
 
       success, message = service.receive_verification(config, nil)
       expect(success).to be false
@@ -42,7 +44,7 @@ describe Service::GitHub do
     end
   end
 
-  describe :receive_issue_impact_change do
+  describe '#receive_issue_impact_change' do
     let(:crashlytics_issue) do
       {
         :url => 'foo_issue_url',
@@ -63,24 +65,30 @@ describe Service::GitHub do
       "[foo_issue_url](foo_issue_url)"
     end
 
-    it 'should create a new GitHub issue' do
+    it 'create a new GitHub issue' do
       service = Service::GitHub.new('issue_impact_change', {})
-      github_issue = double(:id => 743, :number => 42)
-      expect(service).to receive(:create_github_issue).with(
-        'foo_access_token',
-        'crashlytics/sample-project',
-        'foo_issue_title',
-        expected_issue_body
-      ).and_return [github_issue, 201]
+      successful_response_json = '{"id":743,"number":42}'
+      stub_request(:post, 'https://api.github.com/repos/crashlytics/sample-project/issues').
+        to_return(
+          :status => 201,
+          :headers => { 'content-type' => 'application/json'},
+          :body => successful_response_json)
 
-      expect(service.receive_issue_impact_change(config, crashlytics_issue)).to eq(:github_issue_number => 42)
+      result = service.receive_issue_impact_change(config, crashlytics_issue)
+      expect(result).to eq(:github_issue_number => 42)
     end
 
     it 'should raise if creating a new GitHub issue fails' do
       service = Service::GitHub.new('issue_impact_change', {})
-      failed_github_issue = double(:message => 'GitHub error message')
-      expect(service).to receive(:create_github_issue) { [failed_github_issue, 401] }
-      expect { service.receive_issue_impact_change config, crashlytics_issue }.to raise_error 'GitHub issue creation failed: 401 - GitHub error message'
+      failed_response_json = '{"message":"GitHub error message"}'
+      stub_request(:post, 'https://api.github.com/repos/crashlytics/sample-project/issues').
+        to_return(
+          :status => 401,
+          :headers => { 'content-type' => 'application/json'},
+          :body => failed_response_json)
+
+      expect { service.receive_issue_impact_change config, crashlytics_issue }.
+        to raise_error(Octokit::Unauthorized)
     end
   end
 end
