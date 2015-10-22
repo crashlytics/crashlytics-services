@@ -15,34 +15,48 @@ describe Service::GitHub do
   describe 'schema and display configuration' do
     subject { Service::GitHub }
 
+    it { is_expected.to include_string_field :api_endpoint }
     it { is_expected.to include_string_field :repo }
     it { is_expected.to include_string_field :access_token }
 
-    it { is_expected.to include_page 'Repository', [:repo] }
-    it { is_expected.to include_page 'Access token', [:access_token] }
+    it { is_expected.to include_page 'Repository', [:repo, :access_token] }
+    it { is_expected.to include_page 'GitHub Enterprise', [:api_endpoint] }
   end
 
-  describe :receive_verification do
-    it :success do
+  describe '#receive_verification' do
+    it 'returns true and a confirmation message on success' do
       service = Service::GitHub.new('verification', {})
-      expect(service).to receive(:github_repo).with('foo_access_token', 'crashlytics/sample-project')
+      stub_request(:get, 'https://api.github.com/repos/crashlytics/sample-project').
+         to_return(:status => 200, :body => '')
 
       success, message = service.receive_verification(config, nil)
       expect(success).to be true
       expect(message).to eq('Successfully accessed repo crashlytics/sample-project.')
     end
 
-    it :failure do
+    it 'returns false and an error message on failure' do
       service = Service::GitHub.new('verification', {})
-      expect(service).to receive(:github_repo).with('foo_access_token', 'crashlytics/sample-project') { raise }
+      stub_request(:get, 'https://api.github.com/repos/crashlytics/sample-project').
+         to_return(:status => 404, :body => '')
 
       success, message = service.receive_verification(config, nil)
       expect(success).to be false
       expect(message).to eq('Could not access repository for crashlytics/sample-project.')
     end
+
+    it 'uses the api_endpoint if provided' do
+      service = Service::GitHub.new('verification', {})
+      stub_request(:get, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project').
+        to_return(:status => 200, :body => '')
+
+      success, message = service.receive_verification(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'), nil)
+      expect(success).to be true
+      expect(message).to eq('Successfully accessed repo crashlytics/sample-project.')
+    end
   end
 
-  describe :receive_issue_impact_change do
+  describe '#receive_issue_impact_change' do
+    let(:service) { Service::GitHub.new('issue_impact_change', {}) }
     let(:crashlytics_issue) do
       {
         :url => 'foo_issue_url',
@@ -63,24 +77,44 @@ describe Service::GitHub do
       "[foo_issue_url](foo_issue_url)"
     end
 
-    it 'should create a new GitHub issue' do
-      service = Service::GitHub.new('issue_impact_change', {})
-      github_issue = double(:id => 743, :number => 42)
-      expect(service).to receive(:create_github_issue).with(
-        'foo_access_token',
-        'crashlytics/sample-project',
-        'foo_issue_title',
-        expected_issue_body
-      ).and_return [github_issue, 201]
-
-      expect(service.receive_issue_impact_change(config, crashlytics_issue)).to eq(:github_issue_number => 42)
+    let(:successful_creation_response) do
+      {
+        :status => 201,
+        :headers => { 'content-type' => 'application/json' },
+        :body => { :id => 743, :number => 42 }.to_json
+      }
     end
 
-    it 'should raise if creating a new GitHub issue fails' do
-      service = Service::GitHub.new('issue_impact_change', {})
-      failed_github_issue = double(:message => 'GitHub error message')
-      expect(service).to receive(:create_github_issue) { [failed_github_issue, 401] }
-      expect { service.receive_issue_impact_change config, crashlytics_issue }.to raise_error 'GitHub issue creation failed: 401 - GitHub error message'
+    let(:failed_creation_response) do
+      {
+        :status => 401,
+        :headers => { 'content-type' => 'application/json'},
+        :body => { :message => 'GitHub error message' }.to_json
+      }
+    end
+
+    it 'creates a new GitHub issue' do
+      stub_request(:post, 'https://api.github.com/repos/crashlytics/sample-project/issues').
+        to_return(successful_creation_response)
+
+      result = service.receive_issue_impact_change(config, crashlytics_issue)
+      expect(result).to eq(:github_issue_number => 42)
+    end
+
+    it 'creates a new Github issue on an enterprise account if api_endpoint is provided' do
+      stub_request(:post, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project').
+        to_return(successful_creation_response)
+
+      result = service.receive_issue_impact_change(config, crashlytics_issue)
+      expect(result).to eq(:github_issue_number => 42)
+    end
+
+    it 'raises if creating a new GitHub issue fails' do
+      stub_request(:post, 'https://api.github.com/repos/crashlytics/sample-project/issues').
+        to_return(failed_creation_response)
+
+      expect { service.receive_issue_impact_change config, crashlytics_issue }.
+        to raise_error(Octokit::Unauthorized)
     end
   end
 end
