@@ -10,7 +10,6 @@ describe Service::WebHook do
     subject { Service::WebHook }
 
     it { is_expected.to include_string_field :url }
-
     it { is_expected.to include_page 'One-Step Setup', [:url] }
   end
 
@@ -22,30 +21,16 @@ describe Service::WebHook do
     end
 
     it 'should succeed upon successful api response' do
-      test = Faraday.new do |builder|
-        builder.adapter :test do |stub|
-          stub.post('/') { [200, {}, ''] }
-        end
-      end
-
-      expect(@service).to receive(:http_post)
-        .with('https://example.org')
-        .and_return(test.post('/'))
+      stub_request(:post, 'https://example.org?verification=1').
+        to_return(:status => 200, :body => 'fake_body')
 
       resp = @service.receive_verification(@config, @payload)
       expect(resp).to eq([true,  'Successfully verified Web Hook settings'])
     end
 
     it 'should fail upon unsuccessful api response' do
-      test = Faraday.new do |builder|
-        builder.adapter :test do |stub|
-          stub.post('/') { [500, {}, ''] }
-        end
-      end
-
-      expect(@service).to receive(:http_post)
-        .with('https://example.org')
-        .and_return(test.post('/'))
+      stub_request(:post, 'https://example.org?verification=1').
+        to_return(:status => 500, :body => 'fake_body')
 
       resp = @service.receive_verification(@config, @payload)
       expect(resp).to eq([false, "Oops! Please check your settings again."])
@@ -69,34 +54,29 @@ describe Service::WebHook do
     end
 
     it 'should succeed upon successful api response' do
-      test = Faraday.new do |builder|
-        builder.adapter :test do |stub|
-          stub.post('/') { [201, {}, ''] }
-        end
-      end
-
-      expect(@service).to receive(:http_post)
-        .with('https://example.org')
-        .and_return(test.post('/'))
+      stub_request(:post, 'https://example.org').
+        to_return(:status => 201, :body => 'fake_body')
 
       resp = @service.receive_issue_impact_change(@config, @payload)
       expect(resp).to eq(:no_resource)
     end
 
     it 'should fail with extra information upon unsuccessful api response' do
-      test = Faraday.new do |builder|
-        builder.adapter :test do |stub|
-          stub.post('/') { [500, {}, 'fake_body'] }
-        end
-      end
-
-      expect(@service).to receive(:http_post)
-        .with('https://example.org')
-        .and_return(test.post('/'))
+      stub_request(:post, 'https://example.org').
+        to_return(:status => 500, :body => 'fake_body')
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error(/WebHook issue create failed: HTTP status code: 500, body: fake_body/)
+      }.to raise_error('WebHook issue create failed - HTTP status code: 500, body: fake_body')
+    end
+
+    it 'suppresses the body of a failed api response if it appears to be an HTML document' do
+      stub_request(:post, 'https://example.org').
+        to_return(:status => 500, :body => '<!DOCTYPE html><html><body>Stuff</body></html>')
+
+      expect {
+        @service.receive_issue_impact_change(@config, @payload)
+      }.to raise_error('WebHook issue create failed - HTTP status code: 500')
     end
   end
 end

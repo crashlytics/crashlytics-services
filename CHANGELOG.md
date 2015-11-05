@@ -1,3 +1,7 @@
+3.22.0
+------
+- Simplify WebHook error reporting to ensure proper display when resurfacing in the UI.
+
 3.21.0
 ------
 - Remove unused Jira sync_issues logic, to be reimplemented in the future.
