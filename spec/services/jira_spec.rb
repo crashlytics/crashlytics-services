@@ -31,20 +31,20 @@ describe Service::Jira do
 
     it 'should succeed upon successful api response' do
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
-         with(:headers => {'Accept'=>'application/json', 'User-Agent'=>'Ruby'}).
-         to_return(:status => 200, :body => "", :headers => {})
+         to_return(:status => 200)
 
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([true, 'Successfully verified Jira settings'])
+      success, message = @service.receive_verification(@config, @payload)
+      expect(success).to be true
+      expect(message).to match(/Successfully verified Jira settings/)
     end
 
     it 'should fail upon unsuccessful api response' do
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
-         with(:headers => {'Accept'=>'application/json', 'User-Agent'=>'Ruby'}).
-         to_return(:status => 500, :body => "", :headers => {})
+         to_return(:status => 500)
 
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([false, 'Oops! Please check your settings again.'])
+      success, message = @service.receive_verification(@config, @payload)
+      expect(success).to be false
+      expect(message).to match(/Unexpected HTTP response/)
     end
   end
 
@@ -84,25 +84,33 @@ describe Service::Jira do
 
     it 'should succeed upon successful api response' do
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
-         with(:headers => {'Accept'=>'application/json', 'User-Agent'=>'Ruby'}).
-         to_return(:status => 200, :body => "{\"id\":12345}", :headers => {})
+         to_return(:status => 200, :body => '{"id":12345}')
 
       stub_request(:post, "https://example.com/rest/api/2/issue").
-         with(:headers => {'Accept'=>'application/json', 'Content-Type'=>'application/json', 'User-Agent'=>'Ruby'}).
-         to_return(:status => 201, :body => "{\"id\":\"foo\",\"key\":\"bar\"}", :headers => {})
+         to_return(:status => 201, :body => '{"id":"foo","key":"bar"}')
 
       resp = @service.receive_issue_impact_change(@config, @payload)
       expect(resp).to eq({ :jira_story_id => 'foo', :jira_story_key => 'bar' })
     end
 
-    it 'should fail upon unsuccessful api response' do
+    it 'escalates error details if they are provided in the response body' do
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
-         with(:headers => {'Accept'=>'application/json', 'User-Agent'=>'Ruby'}).
-         to_return(:status => 200, :body => "{\"id\":12345}", :headers => {})
+         to_return(:status => 200, :body => '{"id":12345}')
 
       stub_request(:post, "https://example.com/rest/api/2/issue").
-         with(:headers => {'Accept'=>'application/json', 'Content-Type'=>'application/json', 'User-Agent'=>'Ruby'}).
-         to_return(:status => 500, :body => "{\"id\":\"foo\"}", :headers => {})
+         to_return(:status =>  400, :body => '{"errors":{"key":"error_details"}}')
+
+      expect {
+        @service.receive_issue_impact_change(@config, @payload)
+      }.to raise_error(/error_details/)
+    end
+
+    it 'should fail upon unsuccessful api response' do
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         to_return(:status => 200, :body => '{"id":12345}')
+
+      stub_request(:post, "https://example.com/rest/api/2/issue").
+         to_return(:status => 500, :body => '{"id":"foo","key":"bar"}')
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)

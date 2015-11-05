@@ -55,11 +55,10 @@ class Service::Jira < Service::Base
     if issue.save(post_body)
       { :jira_story_id => issue.id, :jira_story_key => issue.key }
     else
-      raise "Jira Issue Create Failed: #{issue.respond_to?(:errors) ? issue.errors : {}}"
+      raise "Jira Issue Create Failed - Errors are: #{issue.respond_to?(:errors) ? issue.errors : {}}"
     end
-
   rescue JIRA::HTTPError => e
-    raise "Jira Issue Create Failed. Message: #{ e.message }, Status: #{ e.code }, Body: #{ e.response.body }"
+    raise "Jira Issue Create Failed - #{error_details(e)}"
   end
 
   def receive_verification(config, payload)
@@ -69,11 +68,13 @@ class Service::Jira < Service::Base
     resp = client.Project.find(url_components[:project_key])
     [true,  'Successfully verified Jira settings']
   rescue JIRA::HTTPError => e
-    log "HTTP Error: status code: #{ e.code }, body: #{ e.response.body }"
-    [false, 'Oops! Please check your settings again.']
-  rescue => e
-    log "Rescued a verification error in jira: (url=#{config[:project_url]}) #{e}"
-    [false, 'Oops! Is your project url correct?']
+    error_message = "Unexpected HTTP response from Jira - #{error_details(e)}"
+    log error_message
+    [false, error_message]
+  end
+
+  def error_details(error)
+    "Message: #{error.message}, Status: #{error.code}"
   end
 
   def jira_client(config, context_path)
