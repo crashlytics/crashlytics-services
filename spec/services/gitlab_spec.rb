@@ -26,21 +26,25 @@ describe Service::GitLab do
   end
 
   describe :receive_verification do
-    it :success do
-      service = Service::GitLab.new('verification', {})
-      expect(service).to receive(:http_get).and_return(double(Faraday::Response, :success? => true))
+    let(:service) { Service::GitLab.new('verification', config) }
+    it 'reports success' do
+      stub_request(:get, 'https://www.gitlabhq.com/api/v3/projects/root%2Fexample-project').
+        with(:headers => { 'Private-Token' => 'foo_access_token' }).
+        to_return(:status => 200, :body => '{"message":"Awesome"}')
+
       success, message = service.receive_verification(config, nil)
       expect(success).to be true
       expect(message).to eq("Successfully accessed project #{config[:project]}.")
     end
 
-    it :failure do
-      service = Service::GitLab.new('verification', {})
-      expect(service).to receive(:http_get).and_return(double(Faraday::Response, :success? => false))
+    it 'reports failure details on an unsuccessful attempt' do
+      stub_request(:get, 'https://www.gitlabhq.com/api/v3/projects/root%2Fexample-project').
+        with(:headers => { 'Private-Token' => 'foo_access_token' }).
+        to_return(:status => 401, :body => '{"message":"401 Unauthorized"}')
 
       success, message = service.receive_verification(config, nil)
       expect(success).to be false
-      expect(message).to eq("Could not access project #{config[:project]}.")
+      expect(message).to eq("Could not access project #{config[:project]} - HTTP response code: 401")
     end
   end
 
