@@ -1,3 +1,7 @@
+3.23.0
+------
+- Improve GitLab verification error message to display HTTP response code.
+
 3.22.0
 ------
 - Simplify WebHook error reporting to ensure proper display when resurfacing in the UI.

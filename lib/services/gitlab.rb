@@ -20,7 +20,7 @@ class Service::GitLab < Service::Base
     if resp.success?
       [true, "Successfully accessed project #{config[:project]}."]
     else
-      [false, "Could not access project #{config[:project]}."]
+      [false, "Could not access project #{config[:project]} - HTTP response code: #{resp.status}"]
     end
   end
 
