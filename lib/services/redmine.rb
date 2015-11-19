@@ -46,7 +46,7 @@ class Service::Redmine < Service::Base
       req.body                    = post_body.to_json
     end
     unless resp.status == 201 # created
-      raise "Redmine Issue Create Failed for issue url: #{payload[:url]}, status: #{resp.status }, body: #{resp.body}"
+      raise "Redmine Issue Create Failed for issue url: #{payload[:url]}, status: #{resp.status}"
     end
     { :redmine_issue_id => JSON.parse(resp.body)['issue']['id'] }
   end
@@ -61,8 +61,8 @@ class Service::Redmine < Service::Base
     if resp.status == 200
       [true,  "Successfully verified Redmine settings"]
     else
-      log "HTTP Error: status code: #{ resp.status }, body: #{ resp.body }"
-      [false, "Oops! Please check your settings again."]
+      log "HTTP Error: status code: #{resp.status}"
+      [false, "Unexpected HTTP response from Redmine: #{resp.status}"]
     end
   rescue => e
     log "Rescued a verification error in redmine: (url=#{config[:project_url]}) #{e}"

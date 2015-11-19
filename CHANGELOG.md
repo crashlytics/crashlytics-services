@@ -1,3 +1,7 @@
+3.24.0
+------
+- Simplify Redmine error reporting to ensure proper display when resurfacing in the UI.
+
 3.23.0
 ------
 - Improve GitLab verification error message to display HTTP response code.
