@@ -24,33 +24,21 @@ describe Service::Redmine do
     end
 
     it 'should succeed upon successful api response' do
-      test = Faraday.new do |builder|
-        builder.adapter :test do |stub|
-          stub.get('/issues.json') { [200, {}, ''] }
-        end
-      end
-
-      expect(@service).to receive(:http_get)
-        .with('http://redmine.acme.com/issues.json', { :key => nil, :project_id => "foo_project", :limit => 1 })
-        .and_return(test.get('/issues.json'))
+      stub_request(:get, "http://redmine.acme.com/issues.json?key&limit=1&project_id=foo_project").
+        to_return(:status => 200, :body => "", :headers => {})
 
       resp = @service.receive_verification(@config, @payload)
       expect(resp).to eq([true,  "Successfully verified Redmine settings"])
     end
 
     it 'should fail upon unsuccessful api response' do
-      test = Faraday.new do |builder|
-        builder.adapter :test do |stub|
-          stub.get('/issues.json') { [500, {}, ''] }
-        end
-      end
+      stub_request(:get, 'http://redmine.acme.com/issues.json?key&limit=1&project_id=foo_project').
+        to_return(:status => 500, :body => 'body-text')
 
-      expect(@service).to receive(:http_get)
-        .with('http://redmine.acme.com/issues.json', { :key => nil, :project_id => "foo_project", :limit => 1 })
-        .and_return(test.get('/issues.json'))
-
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([false, "Oops! Please check your settings again."])
+      success, msg = @service.receive_verification(@config, @payload)
+      expect(success).to eq(false)
+      expect(msg).to match(/Unexpected HTTP response from Redmine: 500/)
+      expect(msg).not_to include('body-text')
     end
   end
 
@@ -71,32 +59,19 @@ describe Service::Redmine do
     end
 
     it 'should succeed upon successful api response' do
-      test = Faraday.new do |builder|
-        builder.adapter :test do |stub|
-          stub.post('/issues.json') { [201, {}, "{\"issue\":{\"id\":\"foo_id\"}}"] }
-        end
-      end
-
-      expect(@service).to receive(:http_post)
-        .with('http://redmine.acme.com/issues.json')
-        .and_return(test.post('/issues.json'))
+      stub_body = { :issue => { :id => 'foo_id' }}
+      stub_request(:post, "http://redmine.acme.com/issues.json?key").
+        to_return(:status => 201, :body => stub_body.to_json)
 
       resp = @service.receive_issue_impact_change(@config, @payload)
       expect(resp).to eq(:redmine_issue_id => 'foo_id')
     end
 
     it 'should fail upon unsuccessful api response' do
-      test = Faraday.new do |builder|
-        builder.adapter :test do |stub|
-          stub.post('/issues.json') { [500, {}, "{\"issue\":{\"id\":\"foo_id\"}}"] }
-        end
-      end
+      stub_request(:post, "http://redmine.acme.com/issues.json?key").
+        to_return(:status => 500, :body => "", :headers => {})
 
-      expect(@service).to receive(:http_post)
-        .with('http://redmine.acme.com/issues.json')
-        .and_return(test.post('/issues.json'))
-
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Redmine Issue Create Failed/)
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Redmine Issue Create Failed for issue .* status: 500/)
     end
   end
 end
