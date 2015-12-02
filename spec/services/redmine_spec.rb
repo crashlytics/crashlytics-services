@@ -71,7 +71,7 @@ describe Service::Redmine do
       stub_request(:post, "http://redmine.acme.com/issues.json?key").
         to_return(:status => 500, :body => "", :headers => {})
 
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Redmine Issue Create Failed for issue .* status: 500/)
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Redmine Issue Create Failed, status: 500/)
     end
   end
 end

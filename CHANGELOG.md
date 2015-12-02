@@ -1,3 +1,7 @@
+3.25.0
+------
+- Simplify Redmine error reporting to demystify the test payload content that was confusing the UI.
+
 3.24.0
 ------
 - Simplify Redmine error reporting to ensure proper display when resurfacing in the UI.

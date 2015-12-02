@@ -46,7 +46,7 @@ class Service::Redmine < Service::Base
       req.body                    = post_body.to_json
     end
     unless resp.status == 201 # created
-      raise "Redmine Issue Create Failed for issue url: #{payload[:url]}, status: #{resp.status}"
+      raise "Redmine Issue Create Failed, status: #{resp.status}"
     end
     { :redmine_issue_id => JSON.parse(resp.body)['issue']['id'] }
   end
