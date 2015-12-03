@@ -17,6 +17,7 @@ describe Service::Jira do
     it { is_expected.to include_string_field :project_url }
     it { is_expected.to include_string_field :username }
     it { is_expected.to include_password_field :password }
+    it { is_expected.to include_string_field :issue_type }
 
     it { is_expected.to include_page 'Project', [:project_url] }
     it { is_expected.to include_page 'Login Information', [:username, :password] }
@@ -80,6 +81,30 @@ describe Service::Jira do
           :bundle_identifier => 'foo.bar.baz'
         }
       }
+    end
+
+    it 'sends issuetype name of Bug by default' do
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         to_return(:status => 200, :body => '{"id":12345}')
+
+      stub_request(:post, "https://example.com/rest/api/2/issue").
+         with(:body => /\"issuetype\":{\"name\":\"Bug\"}}/).
+         to_return(:status => 201, :body => '{"id":"foo"}')
+
+      resp = @service.receive_issue_impact_change(@config, @payload)
+      expect(resp).to eq({ :jira_story_id => 'foo' })
+    end
+
+    it 'sends custom issuetype name if provided' do
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         to_return(:status => 200, :body => '{"id":12345}')
+
+      stub_request(:post, "https://example.com/rest/api/2/issue").
+         with(:body => /\"issuetype\":{\"name\":\"Crash\"}}/).
+         to_return(:status => 201, :body => '{"id":"foo"}')
+
+      resp = @service.receive_issue_impact_change(@config.merge(:issue_type => 'Crash'), @payload)
+      expect(resp).to eq({ :jira_story_id => 'foo' })
     end
 
     it 'should succeed upon successful api response' do

@@ -1,3 +1,7 @@
+3.29.0
+------
+- Use Jira issueType name instead of ID, and allow it to be overridden
+
 3.28.0
 ------
 - Generally reduce our use of response.body in describing errors.

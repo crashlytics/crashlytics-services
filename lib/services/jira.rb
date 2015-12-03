@@ -15,6 +15,9 @@ class Service::Jira < Service::Base
                    'Your Jira username:'
   password :password, :placeholder => 'password',
          :label => 'Your Jira password:'
+  string :issue_type, :placeholder => 'Bug', :required => false,
+         :label => 'Issue Type: <br />' \
+                   'This should be the name of an issue type in your Jira project.'
 
   page "Project", [ :project_url ]
   page "Login Information", [ :username, :password ]
@@ -45,10 +48,12 @@ class Service::Jira < Service::Base
                  "More information: #{ payload[:url] }"
 
     post_body = { 'fields' => {
-      'project' => {'id' => project.id},
-      'summary'     => payload[:title] + ' [Crashlytics]',
-      'description' => issue_description,
-      'issuetype' => {'id' => '1'} } }
+        'project' => { 'id' => project.id },
+        'summary'     => payload[:title] + ' [Crashlytics]',
+        'description' => issue_description,
+        'issuetype' => { 'name' => config[:issue_type] || 'Bug' }
+      }
+    }
 
     # The Jira client raises an HTTPError if the response is not of the type Net::HTTPSuccess
     issue = client.Issue.build
