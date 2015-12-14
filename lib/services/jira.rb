@@ -53,7 +53,7 @@ class Service::Jira < Service::Base
     # The Jira client raises an HTTPError if the response is not of the type Net::HTTPSuccess
     issue = client.Issue.build
     if issue.save(post_body)
-      { :jira_story_id => issue.id, :jira_story_key => issue.key }
+      { :jira_story_id => issue.id }
     else
       raise "Jira Issue Create Failed - Errors are: #{issue.respond_to?(:errors) ? issue.errors : {}}"
     end
