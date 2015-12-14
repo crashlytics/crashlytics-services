@@ -87,10 +87,10 @@ describe Service::Jira do
          to_return(:status => 200, :body => '{"id":12345}')
 
       stub_request(:post, "https://example.com/rest/api/2/issue").
-         to_return(:status => 201, :body => '{"id":"foo","key":"bar"}')
+         to_return(:status => 201, :body => '{"id":"foo"}')
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq({ :jira_story_id => 'foo', :jira_story_key => 'bar' })
+      expect(resp).to eq({ :jira_story_id => 'foo' })
     end
 
     it 'escalates error details if they are provided in the response body' do
