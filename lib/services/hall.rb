@@ -14,7 +14,7 @@ class Service::Hall < Service::Base
     if successful_response?(response)
       :no_resource
     else
-      raise "Failed to send Hall message. HTTP status code: #{response.status}, body: #{response.body}"
+      raise "Failed to send Hall message - #{error_response_details(response)}"
     end
   end
 
@@ -48,10 +48,6 @@ class Service::Hall < Service::Base
       req.body                    = body.to_json
       req.params['verification']  = 1 if event == 'verification'
     end
-  end
-
-  def successful_response?(response)
-    (200..299).include?(response.status)
   end
 
   def verify_hall_service(config)

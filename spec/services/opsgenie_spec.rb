@@ -84,7 +84,7 @@ describe Service::OpsGenie do
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/v1/json/crashlytics'))
 
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error 'OpsGenie issue creation failed: 500 - title not given'
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error 'OpsGenie issue creation failed - HTTP status code: 500, body: title not given'
     end
   end
 end

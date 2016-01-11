@@ -96,7 +96,7 @@ describe Service::Moxtra do
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error(/Moxtra WebHook issue create failed: HTTP status code: 500, body: fake_body/)
+      }.to raise_error(/Moxtra WebHook issue create failed - HTTP status code: 500, body: fake_body/)
     end
   end
 end

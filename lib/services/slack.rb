@@ -61,7 +61,7 @@ class Service::Slack < Service::Base
     response = client.ping(message, options)
 
     unless response.code == '200'
-      raise "Unexpected response from Slack: #{response.code}, #{response.body}"
+      raise "Unexpected response from Slack: #{response.code}"
     end
   end
 end

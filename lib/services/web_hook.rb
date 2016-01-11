@@ -30,10 +30,6 @@ class Service::WebHook < Service::Base
     failure
   end
 
-  def successful_response?(response)
-    (200..299).include?(response.status)
-  end
-
   private
 
   # Post an event string to a url with a payload hash
@@ -49,18 +45,5 @@ class Service::WebHook < Service::Base
       req.body                    = body.to_json
       req.params['verification']  = 1 if event == 'verification'
     end
-  end
-
-  def error_response_details(response)
-    status_code_info = "HTTP status code: #{response.status}"
-    if discard_body?(response.body)
-      status_code_info
-    else
-      "#{status_code_info}, body: #{response.body}"
-    end
-  end
-
-  def discard_body?(body)
-    body =~ /!DOCTYPE/
   end
 end
