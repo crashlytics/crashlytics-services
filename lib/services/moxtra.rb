@@ -12,7 +12,7 @@ class Service::Moxtra < Service::Base
       # return :no_resource if we don't have a resource identifier to save
       :no_resource
     else
-      raise "Moxtra WebHook issue create failed: HTTP status code: #{response.status}, body: #{response.body}"
+      raise "Moxtra WebHook issue create failed - #{error_response_details(response)}"
     end
   end
 
@@ -28,10 +28,6 @@ class Service::Moxtra < Service::Base
   rescue => e
     log "Received a verification error in Moxtra: (url=#{config[:url]}) #{e}"
     failure
-  end
-
-  def successful_response?(response)
-    (200..299).include?(response.status)
   end
 
   private

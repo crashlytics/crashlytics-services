@@ -11,9 +11,12 @@ class Service::OpsGenie < Service::Base
       :event          => 'issue_impact_change'
     }
     resp = post_to_opsgenie(config, body)
-    raise "OpsGenie issue creation failed: #{resp.status} - #{resp.body}" unless resp.success?
-    log "Issue impact change successfully submitted to OpsGenie: #{resp[:status]}, payload: #{payload}"
-    :no_resource
+    if resp.success?
+      log "Issue impact change successfully submitted to OpsGenie"
+      :no_resource
+    else
+      raise "OpsGenie issue creation failed - #{error_response_details(resp)}"
+    end
   end
 
   def receive_verification(config, _)

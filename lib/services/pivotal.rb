@@ -44,10 +44,11 @@ class Service::Pivotal < Service::Base
       req.params[:token] = config[:api_key]
       req.body = post_to_xml(post_body)
     end
-    if resp.status < 200 || resp.status > 299
-      raise "Pivotal Issue Create Failed: #{ resp[:status] }, #{ resp.body }"
+    if successful_response?(resp)
+      { :pivotal_story_id => ::Nokogiri::XML::Document.parse(resp.body).xpath('/story/id').children().first().content() }
+    else
+      raise "Pivotal Issue Create Failed - #{error_response_details(resp)}"
     end
-    { :pivotal_story_id => ::Nokogiri::XML::Document.parse(resp.body).xpath('/story/id').children().first().content() }
   end
 
   def receive_verification(config, _)
@@ -62,7 +63,7 @@ class Service::Pivotal < Service::Base
     if resp.status == 200
       [true,  "Successfully verified Pivotal settings"]
     else
-      log "HTTP Error: status code: #{ resp.status }, body: #{ resp.body }"
+      log "HTTP Error: status code: #{error_response_details(resp)}"
       [false, "Oops! Please check your settings again."]
     end
   rescue => e

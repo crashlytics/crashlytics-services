@@ -22,7 +22,7 @@ class Service::Sprintly < Service::Base
       if resp.status == 200
         [true,  'Successfully verified Sprint.ly settings!']
       else
-        log "Sprint.ly HTTP Error, status code: #{ resp.status }, body: #{ resp.body }"
+        log "Sprint.ly error: #{error_response_details(resp)}"
         [false, "Oops! Please check your settings again."]
       end
     rescue => e
@@ -46,8 +46,12 @@ class Service::Sprintly < Service::Base
     resp = http_post url do |req|
       req.body = post_body
     end
-    raise "[Sprint.ly] Adding defect to backlog failed: #{ resp[:status] }, body: #{ resp.body }" unless resp.status == 200
-    { :sprintly_item_number => JSON.parse(resp.body)['number'] }
+
+    if resp.status == 200
+      { :sprintly_item_number => JSON.parse(resp.body)['number'] }
+    else
+      raise "[Sprint.ly] Adding defect to backlog failed - #{error_response_details(resp)}"
+    end
   end
 
   private

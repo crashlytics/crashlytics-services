@@ -1,3 +1,7 @@
+3.28.0
+------
+- Generally reduce our use of response.body in describing errors.
+
 3.25.0
 ------
 - Simplify Redmine error reporting to demystify the test payload content that was confusing the UI.

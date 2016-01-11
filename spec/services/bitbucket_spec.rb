@@ -151,7 +151,7 @@ describe Service::Bitbucket do
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error(/Bitbucket issue creation failed: 500, body: fakebody/)
+      }.to raise_error('Bitbucket issue creation failed -  HTTP status code: 500, body: fakebody')
     end
   end
 end

@@ -78,7 +78,7 @@ describe Service::Slack do
 
       expect {
         service.receive_issue_impact_change(config, payload)
-      }.to raise_error(/Unexpected response from Slack: 404, No service/)
+      }.to raise_error(/Unexpected response from Slack: 404/)
     end
   end
 
@@ -113,7 +113,7 @@ describe Service::Slack do
       success, message = Service::Slack.new('verification', {}).receive_verification(config, {})
 
       expect(success).to be false
-      expect(message).to eq('Could not send a message to channel mychannel. Unexpected response from Slack: 404, foo')
+      expect(message).to eq('Could not send a message to channel mychannel. Unexpected response from Slack: 404')
     end
   end
 end

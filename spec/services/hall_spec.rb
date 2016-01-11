@@ -55,7 +55,7 @@ describe Service::Hall do
       allow(@service).to receive(:send_hall_message).with(@config, @payload) {@failure}
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error(/Failed to send Hall message. HTTP status code: 404, body: fakebody/)
+      }.to raise_error(/Failed to send Hall message - HTTP status code: 404, body: fakebody/)
     end
   end
 end

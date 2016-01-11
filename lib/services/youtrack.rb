@@ -40,16 +40,19 @@ class Service::YouTrack < Service::Base
       })
     end
 
-    raise "YouTrack issue creation failed, status: #{ resp.status }, body: #{ resp.body }" unless resp.status == 201
-    { :youtrack_issue_url => resp.headers['location'] }
+    if resp.status == 201
+      { :youtrack_issue_url => resp.headers['location'] }
+    else
+      raise "YouTrack issue creation failed - #{error_response_details(resp)}"
+    end
   end
 
   private
+
   def project_exists?(youtrack_server_url, project_id, cookie_header)
     resp = http_get "#{youtrack_server_url}/rest/admin/project/#{project_id}" do |req|
       req.headers['cookie'] = cookie_header
     end
-    log "YouTrack project_exists? url: #{youtrack_server_url}/rest/admin/project/#{project_id}, response: #{resp.status} #{resp.body}"
     resp.status == 200
   end
 
@@ -86,7 +89,7 @@ class Service::YouTrack < Service::Base
     if resp.status == 200
       resp.headers['set-cookie']
     else
-      log "Failure response from YouTrack login: #{resp.status}, body: #{resp.body}"
+      log "Failure response from YouTrack login: #{error_response_details(resp)}"
       false
     end
   rescue => e

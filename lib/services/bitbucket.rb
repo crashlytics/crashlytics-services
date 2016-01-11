@@ -59,7 +59,7 @@ class Service::Bitbucket < Service::Base
     if resp.status == 200
       [true, "Successfully verified Bitbucket settings"]
     else
-      log "HTTP Error: status code: #{ resp.status }, body: #{ resp.body }"
+      log "Verification error - #{error_response_details(resp)}"
       [false, "Oops! Please check your settings again."]
     end
   rescue => e
@@ -102,7 +102,7 @@ class Service::Bitbucket < Service::Base
     end
 
     if resp.status != 200
-      raise "Bitbucket issue creation failed: #{ resp.status }, body: #{ resp.body }"
+      raise "Bitbucket issue creation failed - #{error_response_details(resp)}"
     end
 
     { :bitbucket_issue_id => JSON.parse(resp.body)['local_id'] }

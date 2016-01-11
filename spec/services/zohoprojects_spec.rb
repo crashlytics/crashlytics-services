@@ -96,8 +96,7 @@ describe Service::ZohoProjects do
 
       expect {
         service.receive_issue_impact_change(config, payload)
-      }.to raise_error(
-        RuntimeError, 'Problem while sending request to Zoho Projects, Status: 400, Body: fake-error-body')
+      }.to raise_error('Problem while sending request to Zoho Projects - HTTP status code: 400, body: fake-error-body')
     end
   end
 end

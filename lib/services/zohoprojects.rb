@@ -16,7 +16,7 @@ class Service::ZohoProjects < Service::Base
 
     response = send_request_to_projects config, payload
     if response.status != 200
-      raise "Problem while sending request to Zoho Projects, Status: #{response.status}, Body: #{response.body}"
+      raise "Problem while sending request to Zoho Projects - #{error_response_details(response)}"
     end
 
     return { :zohoprojects_bug_id => response.body }

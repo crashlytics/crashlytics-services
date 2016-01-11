@@ -140,5 +140,32 @@ module Service
     rescue TimeoutError
       url
     end
+
+    # Public: Returns true for a 200-level response, false otherwise
+    #
+    # response - HTTP response to check for success
+    def successful_response?(response)
+      (200..299).include?(response.status)
+    end
+
+    # Public: produces an error detail message based on the HTTP response
+    #
+    # Note: it won't attempt to print out an entire HTML doc
+    #
+    # response - HTTP response to check for status code info
+    def error_response_details(response)
+      status_code_info = "HTTP status code: #{response.status}"
+      if discard_body?(response.body)
+        status_code_info
+      else
+        "#{status_code_info}, body: #{response.body}"
+      end
+    end
+
+    private
+
+    def discard_body?(body)
+      body =~ /!DOCTYPE/
+    end
   end
 end
