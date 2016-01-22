@@ -21,6 +21,7 @@ describe Service::Jira do
 
     it { is_expected.to include_page 'Project', [:project_url] }
     it { is_expected.to include_page 'Login Information', [:username, :password] }
+    it { is_expected.to include_page 'Customizations', [:issue_type] }
   end
 
   describe 'receive_verification' do

@@ -6,21 +6,19 @@ require 'uri'
 class Service::Jira < Service::Base
   title "Jira"
 
-  string :project_url, :placeholder => "https://domain.atlassian.net/browse/projectkey",
-         :label => 'URL to your Jira project: <br />' \
-                   'This should be your URL after you select your project ' \
-                   'under the "Projects" tab.'
+  string :project_url, :placeholder => "https://yourdomain.atlassian.net/projects/XX",
+         :label => 'Your Jira project URL:'
   string :username, :placeholder => 'username',
          :label => "These values are encrypted to ensure your security. <br /><br />" \
                    'Your Jira username:'
   password :password, :placeholder => 'password',
          :label => 'Your Jira password:'
   string :issue_type, :placeholder => 'Bug', :required => false,
-         :label => 'Issue Type: <br />' \
-                   'This should be the name of an issue type in your Jira project.'
+         :label => '(Optional) Issue Type:'
 
   page "Project", [ :project_url ]
   page "Login Information", [ :username, :password ]
+  page "Customizations", [ :issue_type ]
 
   # Create an issue on Jira
   def receive_issue_impact_change(config, payload)
