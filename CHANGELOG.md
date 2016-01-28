@@ -1,6 +1,10 @@
+3.30.0
+------
+- Demystify errors coming from YouTrack.
+
 3.29.0
 ------
-- Use Jira issueType name instead of ID, and allow it to be overridden
+- Use Jira issueType name instead of ID, and allow it to be overridden.
 
 3.28.0
 ------

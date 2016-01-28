@@ -1,7 +1,7 @@
 class Service::YouTrack < Service::Base
   title 'YouTrack'
 
-  string :base_url, :label => 'URL to YouTrack server:', :placeholder => 'https://myname.jetbrains.com/youtrack/'
+  string :base_url, :label => 'URL to YouTrack server:', :placeholder => 'https://myname.jetbrains.com/youtrack'
   string :project_id, :label => 'YouTrack Project ID:', :placeholder => 'PROJ'
   string :username, :label => 'Email address:', :placeholder => 'user@domain.com'
   password :password, :label => 'Password:'
@@ -10,21 +10,19 @@ class Service::YouTrack < Service::Base
   page 'Login Information', [:username, :password]
 
   def receive_verification(config, _)
-    cookie_header =  login_from_config(config)
-    unless cookie_header
-      log "YouTrack login returned failure"
-      return [false, 'Oops! Please check your settings again.']
+    begin
+      cookie_header = login_from_config(config)
+    rescue => e
+      return [false, e.message]
     end
 
     if project_exists?(config[:base_url], config[:project_id], cookie_header)
       [true, 'Successfully connected to your YouTrack project!']
     else
-      log "Failed to access YouTrack project: #{config[:project_id]}"
-      [false, 'Oops! Please check your YouTrack settings again.']
+      [false, "Oops! We couldn't access YouTrack project: #{config[:project_id]}"]
     end
   rescue => e
-    log "Rescued a verification error in YouTrack integration: (base_url=#{config[:base_url]}, project=#{config[:project_id]}) #{e}"
-    [false, 'Oops! Please check your settings again.']
+    [false, "Oops! We couldn't access YouTrack project: #{config[:project_id]}"]
   end
 
   def receive_issue_impact_change(config, payload)
@@ -82,18 +80,19 @@ class Service::YouTrack < Service::Base
   end
 
   # Returns a string that can be used as a cookie header for authentication
-  # with subsequent requests.  Logs exceptions and returns false on any kind
-  # of error.
+  # with subsequent requests.  Logs exceptions and raises with a message on
+  # any kind of error.
   def login(youtrack_base_url, username, password)
-    resp = http_post "#{youtrack_base_url}/rest/user/login", :login => username, :password => password
+    begin
+      resp = http_post "#{youtrack_base_url}/rest/user/login", :login => username, :password => password
+    rescue => e
+      raise "YouTrack login had an unexpected error."
+    end
+
     if resp.status == 200
       resp.headers['set-cookie']
     else
-      log "Failure response from YouTrack login: #{error_response_details(resp)}"
-      false
+      raise "YouTrack login failed - #{error_response_details(resp)}"
     end
-  rescue => e
-    log "YouTrack login failed for user: #{username}, baseurl: #{youtrack_base_url}, #{e}"
-    false
   end
 end

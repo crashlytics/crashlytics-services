@@ -30,6 +30,18 @@ describe Service::YouTrack do
       .to_return(:status => 500, :body => {}.to_json)
   end
 
+  def stub_successful_project_check_for(config)
+    stub_request(:get, "#{config[:base_url]}/rest/admin/project/#{config[:project_id]}")
+        .with({:headers => { 'Cookie' => 'cookie-string' }})
+        .to_return(:status => 200, :body => {}.to_json)
+  end
+
+  def stub_failed_project_check_for(config)
+    stub_request(:get, "#{config[:base_url]}/rest/admin/project/#{config[:project_id]}")
+        .with({:headers => { 'Cookie' => 'cookie-string' }})
+        .to_return(:status => 500, :body => {}.to_json)
+  end
+
   let(:service) { described_class.new('event_name', {}, {}) }
   let(:config) do
     {
@@ -62,10 +74,10 @@ describe Service::YouTrack do
       expect(resp).to eq('cookie-string')
     end
 
-    it 'should return false on failure' do
+    it 'should raise on failure' do
       stub_failed_login_for(config)
-      resp = service.send :login, config[:base_url], config[:username], config[:password]
-      expect(resp).to eq(false)
+      expect { service.send :login, config[:base_url], config[:username], config[:password] }.
+        to raise_error('YouTrack login failed - HTTP status code: 500, body: {}')
     end
   end
 
@@ -73,9 +85,7 @@ describe Service::YouTrack do
   describe '#receive_verification' do
     it 'should succeed if login is successful and project exists' do
       stub_successful_login_for(config)
-      stub_request(:get, "#{config[:base_url]}/rest/admin/project/foo_project_id")
-        .with({:headers => { 'Cookie' => 'cookie-string' }})
-        .to_return(:status => 200, :body => {}.to_json)
+      stub_successful_project_check_for(config)
 
       response = service.receive_verification(config, nil)
       expect(response).to eq([true, 'Successfully connected to your YouTrack project!'])
@@ -83,17 +93,26 @@ describe Service::YouTrack do
 
     it 'should fail if login is successful but project does not exist' do
       stub_successful_login_for(config)
-      stub_request(:get, "#{config[:base_url]}/rest/admin/project/foo_project_id")
-        .with({:headers => { 'Cookie' => 'cookie-string' }})
-        .to_return(:status => 500, :body => {}.to_json)
+      stub_failed_project_check_for(config)
 
       response = service.receive_verification(config, nil)
-      expect(response).to eq([false, 'Oops! Please check your YouTrack settings again.'])
+      expect(response).to eq([false, "Oops! We couldn't access YouTrack project: foo_project_id"])
     end
 
-    it 'should fail on unhandled exception' do
-      response = service.receive_verification({}, nil)
-      expect(response).to eq([false, 'Oops! Please check your settings again.'])
+    it 'should fail if login fails' do
+      stub_failed_login_for(config)
+
+      response = service.receive_verification(config, nil)
+      expect(response).to eq([false, 'YouTrack login failed - HTTP status code: 500, body: {}'])
+    end
+
+    it 'should fail on unhandled exception checking for project existence' do
+      stub_successful_login_for(config)
+
+      allow(service).to receive(:project_exists?).and_raise("unhandled error")
+
+      response = service.receive_verification(config, nil)
+      expect(response).to eq([false, "Oops! We couldn't access YouTrack project: foo_project_id"])
     end
   end
 
@@ -133,7 +152,7 @@ describe Service::YouTrack do
 
     it 'should fail if login fails' do
       stub_failed_login_for(config)
-      expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception(/Invalid login/)
+      expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception(/YouTrack login failed - HTTP status code: 500, body: {}/)
     end
   end
 
