@@ -3,10 +3,9 @@ class Service::Appaloosa < Service::Base
   string :url, :placeholder => 'Incoming Webhook URL',
          :label => 'Your Appaloosa Incoming Webhook URL. <br />' \
                    'You can find your incoming webhook url under the issues section in application details.'
-  page "URL", [ :url ]
 
   # Create an issue
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
     if successful_response?(response)
       # return :no_resource if we don't have a resource identifier to save
@@ -16,7 +15,7 @@ class Service::Appaloosa < Service::Base
     end
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     success = [true,  "Successfully sent a message to Appaloosa"]
     failure = [false, "Could not send a message to Appaloosa"]
     response = post_event(config[:url], 'verification', 'none', nil)

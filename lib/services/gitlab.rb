@@ -7,11 +7,7 @@ class Service::GitLab < Service::Base
   string :project, :placeholder => 'Namespace/Project Name', :label => 'Your GitLab Namespace/Project:'
   string :private_token, :placeholder => 'GitLab Private Token', :label => 'Your GitLab Private Token:'
 
-  page 'URL', [:url]
-  page 'Project', [:project]
-  page 'Private Token', [:private_token]
-
-  def receive_verification(config, _)
+  def receive_verification
     http.ssl[:verify] = true
     resp = http_get(project_url(config[:project])) do |req|
       req.headers['PRIVATE-TOKEN'] = config[:private_token]
@@ -24,7 +20,7 @@ class Service::GitLab < Service::Base
     end
   end
 
-  def receive_issue_impact_change(config, issue)
+  def receive_issue_impact_change(issue)
     gitlab_issue, status_code = create_gitlab_issue(
       config[:project],
       config[:private_token],

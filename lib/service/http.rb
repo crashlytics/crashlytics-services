@@ -1,3 +1,5 @@
+require 'faraday'
+
 module Service
   module HTTP
     # Public: Makes an HTTP GET call.

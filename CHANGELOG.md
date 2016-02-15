@@ -1,3 +1,8 @@
+4.0.0
+------
+- Simplify signatures that need to be implemented by service subclasses.
+- Remove 'pages' annotation, which is no longer in use.
+
 3.30.0
 ------
 - Demystify errors coming from YouTrack.

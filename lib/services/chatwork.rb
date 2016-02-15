@@ -13,24 +13,21 @@ class Service::ChatWork < Service::Base
                    'For example: if the URL of the group chat where you want to send messages ' \
                    'is chatwork.com/#!rid00000, copy "00000", and paste it here.'
 
-  page 'API Token', [:api_token]
-  page 'Room ID', [:room]
-
-  def receive_verification(config, _)
-    send_message(config, receive_verification_message)
+  def receive_verification
+    send_message(config, verification_message)
     [true, "Successfully sent a message to room #{config[:room]}"]
   rescue => e
     log "Rescued a verification error in ChatWork: #{e}"
     [false, "Could not send a message to room #{config[:room]}. #{e.message}"]
   end
 
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     send_message(config, format_issue_impact_change_message(payload))
   end
 
   private
 
-  def receive_verification_message
+  def verification_message
     'Boom! Crashlytics issue change notifications have been added. For more info: ' \
     'http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly'
   end
