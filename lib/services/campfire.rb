@@ -7,11 +7,8 @@ class Service::Campfire < Service::Base
   string :room, :label => 'Your Campfire chatroom:'
   string :api_token, :label => "Get it from Campfire's \"My Info\" screen."
 
-  page 'Chatroom', [:subdomain, :room]
-  page 'API Token', [:api_token]
-
   # Post an issue to Campfire room
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     room = find_campfire_room(config)
 
     users_text = if payload[:impacted_devices_count] == 1
@@ -38,7 +35,7 @@ class Service::Campfire < Service::Base
     true
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     room = find_campfire_room(config)
     if room.nil?
       [false, "Oops! Can not find #{config[:room]} room. Please check your settings."]

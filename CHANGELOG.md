@@ -1,4 +1,9 @@
 =======
+4.0.0
+------
+- Simplify signatures that need to be implemented by service subclasses.
+- Remove 'pages' annotation, which is no longer in use.
+
 3.32.0
 ------
 - Further reduce use of response body in error messages

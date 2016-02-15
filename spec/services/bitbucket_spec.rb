@@ -9,6 +9,8 @@ describe Service::Bitbucket do
       :repo_owner => 'repo_owner'
     }
     @invalid_repo_owners = [nil, " \t\n",  ""]
+
+    @service = Service::Bitbucket.new(@config)
   end
 
   it 'has a title' do
@@ -22,17 +24,10 @@ describe Service::Bitbucket do
     it { is_expected.to include_password_field :password }
     it { is_expected.to include_string_field :repo_owner }
     it { is_expected.to include_string_field :repo }
-
-    it { is_expected.to include_page 'Username', [:username] }
-    it { is_expected.to include_page 'Password', [:password] }
-    it { is_expected.to include_page 'Repository Owner', [:repo_owner] }
-    it { is_expected.to include_page 'Repository', [:repo] }
   end
 
   describe 'receive_verification' do
     before do
-      @service = Service::Bitbucket.new('verification', {})
-      @payload = {}
       @good_request_body = [200, {}, '']
       @good_response = [true, 'Successfully verified Bitbucket settings']
     end
@@ -51,7 +46,7 @@ describe Service::Bitbucket do
 
         @config[:repo_owner] = empty_value
 
-        resp = @service.receive_verification(@config, @payload)
+        resp = @service.receive_verification
         expect(resp).to eq(@good_response)
       end
     end
@@ -67,7 +62,7 @@ describe Service::Bitbucket do
         .with('https://bitbucket.org/api/1.0/repositories/repo_owner/project_name/issues')
         .and_return(test.get('/api/1.0/repositories/repo_owner/project_name/issues'))
 
-      resp = @service.receive_verification(@config, @payload)
+      resp = @service.receive_verification
       expect(resp).to eq(@good_response)
     end
 
@@ -82,14 +77,13 @@ describe Service::Bitbucket do
         .with('https://bitbucket.org/api/1.0/repositories/repo_owner/project_name/issues')
         .and_return(test.get('/api/1.0/repositories/repo_owner/project_name/issues'))
 
-      resp = @service.receive_verification(@config, @payload)
+      resp = @service.receive_verification
       expect(resp).to eq([false, 'Oops! Please check your settings again.'])
     end
   end
 
   describe 'receive_issue_impact_change' do
     before do
-      @service = Service::Bitbucket.new('issue_impact_change', {})
       @payload = {
         :title => 'foo title',
         :impact_level => 1,
@@ -118,7 +112,7 @@ describe Service::Bitbucket do
 
         @config[:repo_owner] = empty_value
 
-        resp = @service.receive_issue_impact_change(@config, @payload)
+        resp = @service.receive_issue_impact_change(@payload)
         expect(resp).to eq(@good_response)
       end
     end
@@ -134,7 +128,7 @@ describe Service::Bitbucket do
         .with('https://bitbucket.org/api/1.0/repositories/repo_owner/project_name/issues')
         .and_return(test.post('/api/1.0/repositories/repo_owner/project_name/issues'))
 
-      resp = @service.receive_issue_impact_change(@config, @payload)
+      resp = @service.receive_issue_impact_change(@payload)
       expect(resp).to eq(@good_response)
     end
 
@@ -150,7 +144,7 @@ describe Service::Bitbucket do
         .and_return(test.post('/api/1.0/repositories/repo_owner/project_name/issues'))
 
       expect {
-        @service.receive_issue_impact_change(@config, @payload)
+        @service.receive_issue_impact_change(@payload)
       }.to raise_error('Bitbucket issue creation failed - HTTP status code: 500')
     end
   end

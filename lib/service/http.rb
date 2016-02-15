@@ -1,3 +1,4 @@
+require 'faraday'
 require 'restrict_ip_addresses'
 
 module Service

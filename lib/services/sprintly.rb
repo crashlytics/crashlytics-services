@@ -9,10 +9,7 @@ class Service::Sprintly < Service::Base
   password :api_key, :placeholder => 'Sprint.ly API key',
            :label => 'Your Sprint.ly API key:'
 
-  page 'Product', [:dashboard_url]
-  page 'Login Information', [:email, :api_key]
-
-  def receive_verification(config, _)
+  def receive_verification
     begin
       url = items_api_url_from_dashboard_url(config[:dashboard_url])
       http.ssl[:verify] = true
@@ -32,7 +29,7 @@ class Service::Sprintly < Service::Base
   end
 
   # Create a defect on Sprint.ly
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     url = items_api_url_from_dashboard_url(config[:dashboard_url])
     http.ssl[:verify] = true
     http.basic_auth config[:email], config[:api_key]
