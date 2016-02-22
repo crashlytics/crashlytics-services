@@ -3,10 +3,9 @@ class Service::Pagerduty < Service::Base
 
   string :api_key, :label => 'Create a new Pagerduty service using the Generic API, then paste the API key here.',
     :placeholder => 'Pagerduty API key'
-  page "API Key", [:api_key]
 
   # Create an issue on Pagerduty
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     resp = post_event('issue_impact_change', 'issue', payload)
     if resp.success?
       { :pagerduty_incident_key => JSON.parse(resp.body)['incident_key'] }
@@ -15,7 +14,7 @@ class Service::Pagerduty < Service::Base
     end
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     resp = post_event('verification', 'none', nil)
     if resp.success?
       [true,  'Successfully verified Pagerduty settings']

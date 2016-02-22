@@ -9,9 +9,7 @@ class Service::ZohoProjects < Service::Base
 
   string :authtoken, :label => 'Auth Token'
 
-  page 'Project Information', [:project_id, :authtoken]
-
-  def receive_issue_impact_change(config, issue)
+  def receive_issue_impact_change(issue)
     payload = JSON.generate(:event => 'issue_impact_change', :payload => issue)
 
     response = send_request_to_projects config, payload
@@ -22,7 +20,7 @@ class Service::ZohoProjects < Service::Base
     return { :zohoprojects_bug_id => response.body }
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     payload = JSON.generate(:event => 'verification')
 
     response = send_request_to_projects config, payload

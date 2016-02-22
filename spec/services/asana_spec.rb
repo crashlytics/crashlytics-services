@@ -10,21 +10,18 @@ describe Service::Asana do
   describe 'schema and display configuration' do
     subject { Service::Asana }
 
-    it { is_expected.to include_page 'API Key', [:api_key] }
     it { is_expected.to include_string_field :api_key }
-
-    it { is_expected.to include_page 'Project ID', [:project_id] }
     it { is_expected.to include_string_field :project_id }
   end
 
   context 'with service' do
-    let(:service) { Service::Asana.new('event_name', {}) }
     let(:config) do
       {
         :api_key => 'key',
         :project_id => 'project_id_foo'
       }
     end
+    let(:service) { Service::Asana.new(config) }
     let(:issue) do
       {
         :title => 'foo title',
@@ -57,13 +54,13 @@ describe Service::Asana do
         expect(service).to receive(:find_project).
           with(config[:api_key], 'project_id_foo').
           and_return(double(:id => 'project_id_foo'))
-        response = service.receive_verification(config, nil)
+        response = service.receive_verification
         expect(response).to eq([true, 'Successfully verified Asana settings!'])
       end
 
       it 'should fail if API call raises an exception' do
         expect(service).to receive(:find_project).and_raise
-        response = service.receive_verification(config, nil)
+        response = service.receive_verification
         expect(response.first).to eq(false)
       end
     end
@@ -87,7 +84,7 @@ describe Service::Asana do
         expect(project).to receive(:workspace).and_return workspace
         expect(workspace).to receive(:create_task).with(expected_task_options).and_return task
 
-        response = service.receive_issue_impact_change config, issue
+        response = service.receive_issue_impact_change issue
         expect(response).to eq({ :asana_task_id => task.id })
       end
 
@@ -96,7 +93,7 @@ describe Service::Asana do
         expect(project).to receive(:workspace).and_return workspace
         expect(workspace).to receive(:create_task).with(expected_task_options).and_raise('fake')
 
-        expect { service.receive_issue_impact_change config, issue }.to raise_error(RuntimeError, /fake/)
+        expect { service.receive_issue_impact_change issue }.to raise_error(RuntimeError, /fake/)
       end
     end
   end

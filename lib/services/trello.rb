@@ -24,17 +24,14 @@ https://trello.com/1/authorize?key=DEVELOPER_PUBLIC_KEY&name=Crashlytics&respons
 Grant access to your account by pressing the Allow button. Paste the returned token into this field.
 EOT
 
-  page 'Board',       [:board, :list]
-  page 'Credentials', [:key, :token]
-
-  def receive_verification(config, _)
+  def receive_verification
     find_list config
     [true, "Successfully found board #{config[:board]} with list #{config[:list]}"]
   rescue Trello::Error => e
     [false, failure_message(config, e)]
   end
 
-  def receive_issue_impact_change(config, issue)
+  def receive_issue_impact_change(issue)
     list = find_list config
     client = trello_client(config[:key], config[:token])
     card = client.create :card, card_params(issue).merge('idList' => list.id)
