@@ -100,7 +100,7 @@ module Service
     # Returns a Faraday::Response instance.
     def http_method(method, url = nil, body = nil, headers = nil)
       uri = URI(url)
-      raise 'Invalid Protocol' if uri.scheme !~ /https?/i
+      raise 'Invalid Protocol' if uri.scheme !~ /^https?$/i
 
       block = Proc.new if block_given?
 
