@@ -11,7 +11,7 @@ describe Service::Trello do
   let(:board) { double('Trello::Board', lists: lists) }
   let(:list) { double('Trello::List', id: 'abc123', name: 'Crashes') }
   let(:lists) { [list] }
-  let(:service) { described_class.new(config) }
+  let(:service) { described_class.new('verification', {}) }
   let(:client) { double 'Trello::Client' }
 
   before do
@@ -30,10 +30,29 @@ describe Service::Trello do
     it { is_expected.to include_string_field :list }
     it { is_expected.to include_string_field :key }
     it { is_expected.to include_string_field :token }
+
+    it { is_expected.to include_page 'Board', [:board, :list] }
+    it { is_expected.to include_page 'Credentials', [:key, :token] }
+  end
+
+  describe '.pages' do
+    describe 'first' do
+      subject { described_class.pages[0] }
+
+      specify { expect(subject[:title]).to eq 'Board' }
+      specify { expect(subject[:attrs]).to eq [:board, :list] }
+    end
+
+    describe 'second' do
+      subject { described_class.pages[1] }
+
+      specify { expect(subject[:title]).to eq 'Credentials' }
+      specify { expect(subject[:attrs]).to eq [:key, :token] }
+    end
   end
 
   describe '#receive_verification' do
-    subject(:receive_verification) { service.receive_verification }
+    subject(:receive_verification) { service.receive_verification(config, nil) }
 
     before do
       expect(client).to receive(:find).with(:boards, 'aWXeu09f') do
@@ -138,7 +157,7 @@ EOT
         'desc'   => expected_card_description }
     end
 
-    subject { service.receive_issue_impact_change(crashlytics_issue) }
+    subject { service.receive_issue_impact_change(config, crashlytics_issue) }
 
     context 'success' do
       let(:card) { double 'Trello::Card', id: 'card123' }

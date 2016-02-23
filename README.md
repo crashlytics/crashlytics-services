@@ -32,6 +32,10 @@ class Service::Foo < Service::Base
   password :api_key # [, :label => "label text"]
   checkbox  :checkbox_1 # [, :label => "" ]
 
+  # construct your pages and make use of inputs defined above
+  page "Title", [:url, :api_key]
+  page "Two", [:checkbox_1]
+
   # Receives a config hash containing :identifier => value pairs for each input field
   # and a payload which for impact change events is a hash of data about the issue.
   # Returns a hash with data in it needed to later accesses any resources created
@@ -42,7 +46,7 @@ class Service::Foo < Service::Base
   # just handled as a very generic error.  On failure, it is preferable to raise a
   # descriptive exception, and on success without any data to return it is preferred
   # to return :no_resource
-  def receive_issue_impact_change(issue)
+  def receive_issue_impact_change(config, issue)
     { :service_name_resource_id => 12345 } # or :no_resource
   end
 
@@ -54,7 +58,7 @@ class Service::Foo < Service::Base
   # will be very generic.  You should make every effort to handle known error scenarios
   # by rescuing from an exception and returning an appropriate [false, '<explanation>']
   # that will be played back to the user trying to set up an integration.
-  def receive_verification
+  def receive_verification(config, _)
     # on success
     [true, "Successfully integrated!"]
   end
@@ -63,9 +67,11 @@ end
 
 ### Schema ###
 
-The schema is defined in a declarative manner with Ruby class methods for each input type. Specify the unique identifer for the field and an optional options Hash.
+The schema is defined in a declarative manner with Ruby class methods for each input type. Specify the unique identifer for the field and an optional options Hash. If no pages are declared, all the inputs will be put on one page.
 
-Labels can include span, p, br, and anchor html tags.
+For a better, friendlier UI, you can separate these fields into pages. If one or more pages are declared, each input identifier must be included on one page or it will be ignored. Pages will be shown in the order they are declared in the schema. Labels can include span, p, br, and anchor html tags.
+
+The settings UI will automatically put a Next button on all pages except for the last. On the last page there will be a Verify button which will take the user to a page showing more options for the service or back to the first page if the verification failed.
 
 ### Functionality ###
 

@@ -6,8 +6,11 @@ class Service::Redmine < Service::Base
                              'Admin > Settings > Auth.<br><br>' \
                              'Tip: Create a Crashlytics user for easier sorting.'
 
+  page "Project", [ :project_url ]
+  page "API Key", [ :api_key ]
+
   # Create an issue on Redmine
-  def receive_issue_impact_change(payload)
+  def receive_issue_impact_change(config, payload)
     parsed = parse_url config[:project_url]
     project_id      = parsed[:project_id]
     http.basic_auth   parsed[:user], parsed[:password] if parsed[:user] || parsed[:password]
@@ -48,7 +51,7 @@ class Service::Redmine < Service::Base
     { :redmine_issue_id => JSON.parse(resp.body)['issue']['id'] }
   end
 
-  def receive_verification
+  def receive_verification(config, _)
     parsed = parse_url config[:project_url]
     http.basic_auth   parsed[:user], parsed[:password] if parsed[:user] || parsed[:password]
 

@@ -10,8 +10,6 @@ describe Service::HipChat do
     }
   end
 
-  let(:service) { Service::HipChat.new(config) }
-
   it 'has a title' do
     expect(Service::HipChat.title).to eq('HipChat')
   end
@@ -24,44 +22,52 @@ describe Service::HipChat do
     it { is_expected.to include_string_field :room }
     it { is_expected.to include_checkbox_field :notify }
     it { is_expected.to include_string_field :url }
+
+    it { is_expected.to include_page 'API Token', [:api_token, :v2] }
+    it { is_expected.to include_page 'Room', [:room, :notify] }
+    it { is_expected.to include_page 'URL', [:url] }
   end
 
   describe :receive_verification do
     it :success do
-      expect(service).to receive(:verification_message)
+      service = Service::HipChat.new('verification', {})
+      expect(service).to receive(:receive_verification_message)
       expect(service).to receive(:send_message)
 
-      success, message = service.receive_verification
+      success, message = service.receive_verification(config, nil)
       expect(success).to be true
     end
 
     it :failure do
-      expect(service).to receive(:verification_message)
+      service = Service::HipChat.new('verification', {})
+      expect(service).to receive(:receive_verification_message)
       expect(service).to receive(:send_message).and_raise
 
-      success, message = service.receive_verification
+      success, message = service.receive_verification(config, nil)
       expect(success).to be false
     end
   end
 
   describe :receive_issue_impact_change do
     it do
-      payload = { :url => 'url', :app => { :name => 'name' },
+      payload = { :url => 'url', :app => { :name => 'name' }, 
                   :title => 'title', :method => 'method' }
+      service = Service::HipChat.new('issue_impact_change', {})
       expect(service).to receive(:format_issue_impact_change_message).with(payload)
       expect(service).to receive(:send_message)
 
-      expect(service.receive_issue_impact_change(payload)).to eq(:no_resource)
+      expect(service.receive_issue_impact_change(config, payload)).to eq(:no_resource)
     end
 
     it 'surfaces exceptions as runtime errors' do
       payload = { :url => 'url', :app => { :name => 'name' },
             :title => 'title', :method => 'method' }
+      service = Service::HipChat.new('issue_impact_change', {})
 
       expect(service).to receive(:send_message).and_raise('Unhandled error')
 
       expect {
-        service.receive_issue_impact_change(payload)
+        service.receive_issue_impact_change(config, payload)
       }.to raise_error(/Unhandled error/)
     end
   end

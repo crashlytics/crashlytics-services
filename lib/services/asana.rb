@@ -3,17 +3,19 @@ require 'asana'
 class Service::Asana < Service::Base
   title 'Asana'
 
+  page 'API Key', [:api_key]
   string :api_key, :placeholder => 'Asana API key',
          :label => 'Your Asana API key can be found in Asana by ' \
          'clicking on your name in the lower lefthand pane, ' \
          'clicking \'Account Settings\' and selecting the \'APPS\' tab.'
 
+  page 'Project ID', [:project_id]
   string :project_id, :placeholder => 'Asana project ID',
          :label => 'You can find this using the Asana API or ' \
          'by using the web UI.  In the Asana web UI, click on ' \
          'a project in the left pane, and then take the first long number in the URL.'
 
-  def receive_verification
+  def receive_verification(config, _)
     begin
       project = find_project config[:api_key], config[:project_id]
       [true,  'Successfully verified Asana settings!']
@@ -23,7 +25,7 @@ class Service::Asana < Service::Base
     end
   end
 
-  def receive_issue_impact_change(issue)
+  def receive_issue_impact_change(config, issue)
     task_options = {
       :name => issue[:title],
       :notes => create_notes(issue),

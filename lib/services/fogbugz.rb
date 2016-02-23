@@ -6,8 +6,10 @@ class Service::FogBugz < Service::Base
   string :api_token, :placeholder => 'API Token',
          :label => 'Your FogBugz API Token.'
 
+  page 'API Token', [:project_url, :api_token]
+
   # Create an issue
-  def receive_issue_impact_change(payload)
+  def receive_issue_impact_change(config, payload)
     http.ssl[:verify] = true
 
     post_body = {
@@ -28,7 +30,7 @@ class Service::FogBugz < Service::Base
     end
   end
 
-  def receive_verification
+  def receive_verification(config, _)
     http.ssl[:verify] = true
 
     response = http_get fogbugz_url(:cmd => 'listProjects')

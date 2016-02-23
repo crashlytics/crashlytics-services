@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 describe Service::Sprintly do
-  let(:service) { Service::Sprintly.new(:dashboard_url => 'https://sprint.ly/product/1/') }
 
   it 'has a title' do
     expect(Service::Sprintly.title).to eq('Sprint.ly')
@@ -13,9 +12,20 @@ describe Service::Sprintly do
     it { is_expected.to include_string_field :dashboard_url }
     it { is_expected.to include_string_field :email }
     it { is_expected.to include_password_field :api_key}
+
+    it { is_expected.to include_page 'Product', [:dashboard_url] }
+    it { is_expected.to include_page 'Login Information', [:email, :api_key] }
   end
 
   describe :receive_verification do
+    let(:service) { Service::Sprintly.new('event_name', {}) }
+    let(:config) do
+      {
+        :dashboard_url => 'https://sprint.ly/product/1/'
+      }
+    end
+    let(:payload) { {} }
+
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -27,7 +37,7 @@ describe Service::Sprintly do
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.get('/api/products/1/items.json'))
 
-      resp = service.receive_verification
+      resp = service.receive_verification(config, payload)
       expect(resp).to eq([true, 'Successfully verified Sprint.ly settings!'])
     end
 
@@ -42,12 +52,18 @@ describe Service::Sprintly do
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.get('/api/products/1/items.json'))
 
-      resp = service.receive_verification
+      resp = service.receive_verification(config, payload)
       expect(resp).to eq([false, 'Oops! Please check your settings again.'])
     end
   end
 
   describe :receive_issue_impact_change do
+    let(:service) { Service::Sprintly.new('event_name', {}) }
+    let(:config) do
+      {
+        :dashboard_url => 'https://sprint.ly/product/1/'
+      }
+    end
     let(:payload) do
       {
           :title => 'foo title',
@@ -73,7 +89,7 @@ describe Service::Sprintly do
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.post('/api/products/1/items.json'))
 
-      resp = service.receive_issue_impact_change(payload)
+      resp = service.receive_issue_impact_change(config, payload)
       expect(resp).to eq(:sprintly_item_number => '42')
     end
 
@@ -89,7 +105,7 @@ describe Service::Sprintly do
         .with('https://sprint.ly/api/products/1/items.json')
         .and_return(test.post('/api/products/1/items.json'))
 
-      expect { service.receive_issue_impact_change(payload) }.to raise_error(/Adding defect to backlog failed/)
+      expect { service.receive_issue_impact_change(config, payload) }.to raise_error(/Adding defect to backlog failed/)
     end
   end
 end
