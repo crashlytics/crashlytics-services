@@ -45,7 +45,7 @@ class Service::Pivotal < Service::Base
       req.body = post_to_xml(post_body)
     end
     if successful_response?(resp)
-      { :pivotal_story_id => ::Nokogiri::XML::Document.parse(resp.body).xpath('/story/id').children().first().content() }
+      true
     else
       raise "Pivotal Issue Create Failed - #{error_response_details(resp)}"
     end

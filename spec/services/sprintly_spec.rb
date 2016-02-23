@@ -90,7 +90,7 @@ describe Service::Sprintly do
         .and_return(test.post('/api/products/1/items.json'))
 
       resp = service.receive_issue_impact_change(config, payload)
-      expect(resp).to eq(:sprintly_item_number => '42')
+      expect(resp).to be true
     end
 
     it 'should fail upon unsuccessful api response' do

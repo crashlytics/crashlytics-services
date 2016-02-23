@@ -70,7 +70,7 @@ describe Service::FogBugz do
       it 'creates a new case given a valid response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => success_response))
         response = service.receive_issue_impact_change(config, payload)
-        expect(response).to eq({ :fogbugz_case_number => case_id })
+        expect(response).to be true
       end
 
       it 'raises an exception given an error response' do

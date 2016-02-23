@@ -20,20 +20,23 @@ class Service::GitLab < Service::Base
     if resp.success?
       [true, "Successfully accessed project #{config[:project]}."]
     else
-      [false, "Could not access project #{config[:project]} - HTTP response code: #{resp.status}"]
+      [false, "Could not access project #{config[:project]} - #{error_response_details(resp)}"]
     end
   end
 
   def receive_issue_impact_change(config, issue)
-    gitlab_issue, status_code = create_gitlab_issue(
+    response = create_gitlab_issue(
       config[:project],
       config[:private_token],
       issue[:title],
       format_issue_impact_change_payload(issue)
     )
 
-    raise "GitLab issue creation failed: #{status_code} - #{gitlab_issue['message']}" unless status_code == 201
-    { :gitlab_issue_number => gitlab_issue['id'] }
+    if response.status != 201
+      raise "GitLab issue creation failed - #{error_response_details(response)}"
+    end
+
+    true
   end
 
   private
@@ -55,13 +58,11 @@ class Service::GitLab < Service::Base
     }
 
     http.ssl[:verify] = true
-    resp = http_post project_issues_url(project), project do |req|
+    http_post project_issues_url(project), project do |req|
       req.headers['PRIVATE-TOKEN'] = token
       req.headers['Content-Type'] = 'application/json'
       req.body                    = post_body.to_json
     end
-
-    [JSON.parse(resp.body), resp.status]
   end
 
   def project_url(project)

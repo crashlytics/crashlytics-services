@@ -72,7 +72,7 @@ describe Service::ChatWork do
         .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
 
       resp = @service.receive_issue_impact_change(config, @payload)
-      expect(resp).to eq('message_id' => 12345)
+      expect(resp).to be true
     end
 
     it 'should fail upon unsuccessful api response' do

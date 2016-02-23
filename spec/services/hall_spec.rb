@@ -48,14 +48,14 @@ describe Service::Hall do
     it 'should succeed upon successful api response' do
       allow(@service).to receive(:send_hall_message).with(@config, @payload) {@success}
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:no_resource)
+      expect(resp).to be true
     end
 
     it 'should fail upon unsuccessful api response' do
       allow(@service).to receive(:send_hall_message).with(@config, @payload) {@failure}
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error(/Failed to send Hall message - HTTP status code: 404, body: fakebody/)
+      }.to raise_error(/Failed to send Hall message - HTTP status code: 404/)
     end
   end
 end

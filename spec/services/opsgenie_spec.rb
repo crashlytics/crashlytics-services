@@ -70,7 +70,7 @@ describe Service::OpsGenie do
         .and_return(test.post('/v1/json/crashlytics'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:no_resource)
+      expect(resp).to be true
     end
 
     it 'fails upon unsuccessful api response' do
@@ -84,7 +84,7 @@ describe Service::OpsGenie do
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/v1/json/crashlytics'))
 
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error 'OpsGenie issue creation failed - HTTP status code: 500, body: title not given'
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error 'OpsGenie issue creation failed - HTTP status code: 500'
     end
   end
 end

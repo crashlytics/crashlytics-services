@@ -27,12 +27,12 @@ class Service::GitHub < Service::Base
   end
 
   def receive_issue_impact_change(config, issue)
-    github_issue, status_code = create_github_issue(config, issue)
+    response = create_github_issue(config, issue)
 
-    if status_code == STATUS_CODE_CREATED
-      { :github_issue_number => github_issue.number }
+    if response.status == STATUS_CODE_CREATED
+      true
     else
-      raise "GitHub issue creation failed: #{status_code} - #{github_issue.message}"
+      raise "GitHub issue creation failed - #{error_response_details(response)}"
     end
   end
 
@@ -47,8 +47,8 @@ class Service::GitHub < Service::Base
     issue_title = issue[:title]
     issue_body = format_issue_impact_change_payload(issue)
 
-    github_issue = client.create_issue(repo, issue_title, issue_body)
-    [github_issue, client.last_response.status]
+    client.create_issue(repo, issue_title, issue_body)
+    client.last_response
   end
 
   # Returns GitHub repo, raising an exception if the access_token doesn't work.

@@ -1,3 +1,5 @@
+require 'restrict_ip_addresses'
+
 module Service
   module HTTP
     # Public: Makes an HTTP GET call.
@@ -97,6 +99,9 @@ module Service
     # Yields a Faraday::Request instance.
     # Returns a Faraday::Response instance.
     def http_method(method, url = nil, body = nil, headers = nil)
+      uri = URI(url)
+      raise 'Invalid Protocol' if uri.scheme !~ /^https?$/i
+
       block = Proc.new if block_given?
 
       # Set url_prefix for basic auth
@@ -119,26 +124,11 @@ module Service
     def http(options = {})
       @http ||= begin
         Faraday.new(options) do |b|
+          b.use ::Faraday::RestrictIPAddressesMiddleware
           b.request :url_encoded
           b.adapter :net_http
         end
       end
-    end
-
-    # Public: Shortens the given URL with bit.ly.
-    #
-    # url - String URL to be shortened.
-    #
-    # Returns the String URL response from bit.ly.
-    def shorten_url(url)
-      res = http_post("http://crash.io", :url => url)
-      if res.status == 201
-        res.headers['location']
-      else
-        url
-      end
-    rescue TimeoutError
-      url
     end
 
     # Public: Returns true for a 200-level response, false otherwise
@@ -149,23 +139,10 @@ module Service
     end
 
     # Public: produces an error detail message based on the HTTP response
-    #
-    # Note: it won't attempt to print out an entire HTML doc
-    #
-    # response - HTTP response to check for status code info
+    # here to provide some consistency for the various error reporting
+    # in individual services
     def error_response_details(response)
-      status_code_info = "HTTP status code: #{response.status}"
-      if discard_body?(response.body)
-        status_code_info
-      else
-        "#{status_code_info}, body: #{response.body}"
-      end
-    end
-
-    private
-
-    def discard_body?(body)
-      body =~ /!DOCTYPE/
+      "HTTP status code: #{response.status}"
     end
   end
 end

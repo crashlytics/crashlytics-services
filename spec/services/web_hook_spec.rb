@@ -1,6 +1,9 @@
 require 'spec_helper'
 
 describe Service::WebHook do
+  before do
+    allow_any_instance_of(Faraday::RestrictIPAddressesMiddleware).to receive(:denied?).and_return(false)
+  end
 
   it 'has a title' do
     expect(Service::WebHook.title).to eq('Web Hook')
@@ -58,7 +61,7 @@ describe Service::WebHook do
         to_return(:status => 201, :body => 'fake_body')
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:no_resource)
+      expect(resp).to be true
     end
 
     it 'should fail with extra information upon unsuccessful api response' do
@@ -67,7 +70,7 @@ describe Service::WebHook do
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error('WebHook issue create failed - HTTP status code: 500, body: fake_body')
+      }.to raise_error('WebHook issue create failed - HTTP status code: 500')
     end
 
     it 'suppresses the body of a failed api response if it appears to be an HTML document' do

@@ -2,6 +2,9 @@ require 'spec_helper'
 require 'webmock/rspec'
 
 describe Service::YouTrack do
+  before do
+    allow_any_instance_of(Faraday::RestrictIPAddressesMiddleware).to receive(:denied?).and_return(false)
+  end
 
   it 'has a title' do
     expect(Service::YouTrack.title).to eq('YouTrack')
@@ -77,7 +80,7 @@ describe Service::YouTrack do
     it 'should raise on failure' do
       stub_failed_login_for(config)
       expect { service.send :login, config[:base_url], config[:username], config[:password] }.
-        to raise_error('YouTrack login failed - HTTP status code: 500, body: {}')
+        to raise_error('YouTrack login failed - HTTP status code: 500')
     end
   end
 
@@ -103,7 +106,7 @@ describe Service::YouTrack do
       stub_failed_login_for(config)
 
       response = service.receive_verification(config, nil)
-      expect(response).to eq([false, 'YouTrack login failed - HTTP status code: 500, body: {}'])
+      expect(response).to eq([false, 'YouTrack login failed - HTTP status code: 500'])
     end
 
     it 'should fail on unhandled exception checking for project existence' do
@@ -131,7 +134,7 @@ describe Service::YouTrack do
         }).to_return(:status => 201, :body => {}.to_json, :headers => { 'Location' => 'foo_youtrack_issue_url' })
 
       response = service.receive_issue_impact_change(config, issue_payload)
-      expect(response).to eq(:youtrack_issue_url => 'foo_youtrack_issue_url')
+      expect(response).to be true
     end
 
     it 'should fail if login is successful but PUT fails' do
@@ -152,7 +155,7 @@ describe Service::YouTrack do
 
     it 'should fail if login fails' do
       stub_failed_login_for(config)
-      expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception(/YouTrack login failed - HTTP status code: 500, body: {}/)
+      expect { service.receive_issue_impact_change(config, issue_payload) }.to raise_exception(/YouTrack login failed - HTTP status code: 500/)
     end
   end
 
