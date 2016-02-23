@@ -26,7 +26,7 @@ class Service::HipChat < Service::Base
 
   def receive_issue_impact_change(config, payload)
     send_message(config, format_issue_impact_change_message(payload))
-    :no_resource
+    true
   end
 
   private

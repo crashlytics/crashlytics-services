@@ -12,7 +12,7 @@ class Service::Hall < Service::Base
   def receive_issue_impact_change(config, payload)
     response = send_hall_message(config, payload)
     if successful_response?(response)
-      :no_resource
+      true
     else
       raise "Failed to send Hall message - #{error_response_details(response)}"
     end

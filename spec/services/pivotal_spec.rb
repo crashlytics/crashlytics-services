@@ -83,7 +83,7 @@ describe Service::Pivotal do
         .and_return(test.post('/services/v3/projects/foo_project/stories'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:pivotal_story_id => 'foo_id')
+      expect(resp).to be true
     end
 
     it 'should fail upon unsuccessful api response' do

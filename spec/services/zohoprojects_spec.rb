@@ -82,13 +82,13 @@ describe Service::ZohoProjects do
 
     let(:service) { Service::ZohoProjects.new('issue_impact_change', config) }
 
-    it 'creates a new issue and return its bug id on success' do
+    it 'creates a new issue and return its true on success' do
       stub_api_call(expected_query).to_return(:status => 200, :body => 'fake-zoho-bug-id')
 
       response = service.receive_issue_impact_change(config, payload)
 
       expect(service.http.ssl[:verify]).to be true # mark ssl for verification
-      expect(response).to eq(:zohoprojects_bug_id => 'fake-zoho-bug-id')
+      expect(response).to be true
     end
 
     it 'escalates non-200 response codes as an error' do
@@ -96,7 +96,7 @@ describe Service::ZohoProjects do
 
       expect {
         service.receive_issue_impact_change(config, payload)
-      }.to raise_error('Problem while sending request to Zoho Projects - HTTP status code: 400, body: fake-error-body')
+      }.to raise_error('Problem while sending request to Zoho Projects - HTTP status code: 400')
     end
   end
 end

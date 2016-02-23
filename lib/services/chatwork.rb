@@ -49,8 +49,8 @@ class Service::ChatWork < Service::Base
       req.params['body'] = message
     end
     if res.status < 200 || res.status > 299
-      raise "Could not send a message to room. HTTP Error: #{res.status}. #{res.body}"
+      raise "Could not send a message to room - #{error_response_details(res)}"
     end
-    JSON.parse(res.body)
+    true
   end
 end

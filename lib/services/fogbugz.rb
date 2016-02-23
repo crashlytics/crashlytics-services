@@ -24,7 +24,7 @@ class Service::FogBugz < Service::Base
     fogbugz_case, error = parse_response(response, 'response/case')
 
     if fogbugz_case && !error
-      { :fogbugz_case_number => fogbugz_case.attr('ixBug') }
+      true
     else
       raise "Could not create FogBugz case: Response: #{error}"
     end

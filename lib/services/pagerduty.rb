@@ -9,7 +9,7 @@ class Service::Pagerduty < Service::Base
   def receive_issue_impact_change(config, payload)
     resp = post_event('issue_impact_change', 'issue', payload)
     if resp.success?
-      { :pagerduty_incident_key => JSON.parse(resp.body)['incident_key'] }
+      true
     else
       raise "Pagerduty issue impact change failed - #{error_response_details(resp)}"
     end
@@ -20,7 +20,7 @@ class Service::Pagerduty < Service::Base
     if resp.success?
       [true,  'Successfully verified Pagerduty settings']
     else
-      log "Receive verification failed, most likely due to a bad API key: #{config[:api_key]}, API response: #{resp[:status]}"
+      log "Receive verification failed - #{error_response_details(resp)}"
       [false, 'Oops! Please check your API key again.']
     end
   end

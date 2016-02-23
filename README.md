@@ -38,16 +38,14 @@ class Service::Foo < Service::Base
 
   # Receives a config hash containing :identifier => value pairs for each input field
   # and a payload which for impact change events is a hash of data about the issue.
-  # Returns a hash with data in it needed to later accesses any resources created
-  # on the service or :no_resource if there wasn't a resource created.
   #
-  # For unexpected errors, it's recommended to raise here and let the integration
+  # Return true to indicate success.
+  #
+  # For failure or unexpected errors, it's recommended to raise here and let the integration
   # harness handle the error.  `nil` is not a recommended return value here as it is
-  # just handled as a very generic error.  On failure, it is preferable to raise a
-  # descriptive exception, and on success without any data to return it is preferred
-  # to return :no_resource
+  # just handled as a very generic error.
   def receive_issue_impact_change(config, issue)
-    { :service_name_resource_id => 12345 } # or :no_resource
+    true
   end
 
   # Receives a config hash containing :identifier => value pairs for each input field.

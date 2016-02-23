@@ -80,7 +80,7 @@ describe Service::Moxtra do
         .and_return(test.post('/'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:no_resource)
+      expect(resp).to be true
     end
 
     it 'should fail with extra information upon unsuccessful api response' do
@@ -96,7 +96,7 @@ describe Service::Moxtra do
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error(/Moxtra WebHook issue create failed - HTTP status code: 500, body: fake_body/)
+      }.to raise_error(/Moxtra WebHook issue create failed - HTTP status code: 500/)
     end
   end
 end

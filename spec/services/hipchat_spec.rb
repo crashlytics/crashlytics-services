@@ -56,7 +56,7 @@ describe Service::HipChat do
       expect(service).to receive(:format_issue_impact_change_message).with(payload)
       expect(service).to receive(:send_message)
 
-      expect(service.receive_issue_impact_change(config, payload)).to eq(:no_resource)
+      expect(service.receive_issue_impact_change(config, payload)).to be true
     end
 
     it 'surfaces exceptions as runtime errors' do

@@ -9,8 +9,7 @@ class Service::Moxtra < Service::Base
   def receive_issue_impact_change(config, payload)
     response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
     if successful_response?(response)
-      # return :no_resource if we don't have a resource identifier to save
-      :no_resource
+      true
     else
       raise "Moxtra WebHook issue create failed - #{error_response_details(response)}"
     end

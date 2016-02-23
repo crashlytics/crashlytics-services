@@ -101,7 +101,7 @@ describe Service::Bitbucket do
         }
       }
       @good_request_body = [200, {}, "{\"local_id\":12345}"]
-      @good_response = { :bitbucket_issue_id => 12345 }
+      @good_response = true
     end
 
     it 'should use the username field in the repo url when the repo owner is missing' do
@@ -151,7 +151,7 @@ describe Service::Bitbucket do
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error('Bitbucket issue creation failed - HTTP status code: 500, body: fakebody')
+      }.to raise_error('Bitbucket issue creation failed - HTTP status code: 500')
     end
   end
 end

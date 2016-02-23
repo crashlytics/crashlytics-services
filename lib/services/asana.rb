@@ -35,7 +35,7 @@ class Service::Asana < Service::Base
     project = find_project config[:api_key], config[:project_id]
     task = project.workspace.create_task task_options
     raise "Asana Task creation failed: #{task}" unless task.id
-    { :asana_task_id => task.id }
+    true
   end
 
   private

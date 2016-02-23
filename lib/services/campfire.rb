@@ -35,7 +35,7 @@ class Service::Campfire < Service::Base
     unless resp.is_a?(Hash) && resp.message
       raise "Campfire Message Post Failed: #{(resp.map {|e| e.join(' ') }).join(', ')}"
     end
-    { :campfire_message_id => resp.message.id }
+    true
   end
 
   def receive_verification(config, _)

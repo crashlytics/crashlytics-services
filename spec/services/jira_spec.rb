@@ -93,7 +93,7 @@ describe Service::Jira do
          to_return(:status => 201, :body => '{"id":"foo"}')
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq({ :jira_story_id => 'foo' })
+      expect(resp).to be true
     end
 
     it 'sends custom issuetype name if provided' do
@@ -105,7 +105,7 @@ describe Service::Jira do
          to_return(:status => 201, :body => '{"id":"foo"}')
 
       resp = @service.receive_issue_impact_change(@config.merge(:issue_type => 'Crash'), @payload)
-      expect(resp).to eq({ :jira_story_id => 'foo' })
+      expect(resp).to be true
     end
 
     it 'should succeed upon successful api response' do
@@ -116,7 +116,7 @@ describe Service::Jira do
          to_return(:status => 201, :body => '{"id":"foo"}')
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq({ :jira_story_id => 'foo' })
+      expect(resp).to be true
     end
 
     it 'escalates error details if they are provided in the response body' do
