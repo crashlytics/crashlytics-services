@@ -1,3 +1,7 @@
+3.31.1
+------
+- Fix a broken test. Check URI schemes more pedantically.
+
 3.31.0
 ------
 - Prevent requests from going to internal or restricted IP addresses. Should reduce the error rate.

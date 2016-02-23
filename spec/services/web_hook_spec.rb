@@ -1,6 +1,9 @@
 require 'spec_helper'
 
 describe Service::WebHook do
+  before do
+    allow_any_instance_of(Faraday::RestrictIPAddressesMiddleware).to receive(:denied?).and_return(false)
+  end
 
   it 'has a title' do
     expect(Service::WebHook.title).to eq('Web Hook')
