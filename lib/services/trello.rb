@@ -37,8 +37,8 @@ EOT
   def receive_issue_impact_change(config, issue)
     list = find_list config
     client = trello_client(config[:key], config[:token])
-    card = client.create :card, card_params(issue).merge('idList' => list.id)
-    { trello_card_id: card.id }
+    client.create :card, card_params(issue).merge('idList' => list.id)
+    true
   end
 
   private

@@ -44,7 +44,7 @@ describe Service::GitLab do
 
       success, message = service.receive_verification(config, nil)
       expect(success).to be false
-      expect(message).to eq("Could not access project #{config[:project]} - HTTP response code: 401")
+      expect(message).to eq("Could not access project #{config[:project]} - HTTP status code: 401")
     end
   end
 
@@ -77,16 +77,16 @@ describe Service::GitLab do
         config[:private_token],
         'foo_issue_title',
         expected_issue_body
-      ).and_return [gitlab_issue, 201]
+      ).and_return double(:status => 201)
 
-      expect(service.receive_issue_impact_change(config, crashlytics_issue)).to eq(:gitlab_issue_number => 42)
+      expect(service.receive_issue_impact_change(config, crashlytics_issue)).to be true
     end
 
     it 'should raise if creating a new GitLab issue fails' do
       service = Service::GitLab.new('issue_impact_change', {})
       failed_gitlab_issue = { 'message' => '"title" not given' }
-      expect(service).to receive(:create_gitlab_issue) { [failed_gitlab_issue, 400] }
-      expect { service.receive_issue_impact_change config, crashlytics_issue }.to raise_error 'GitLab issue creation failed: 400 - "title" not given'
+      expect(service).to receive(:create_gitlab_issue) { double(:status => 400) }
+      expect { service.receive_issue_impact_change config, crashlytics_issue }.to raise_error 'GitLab issue creation failed - HTTP status code: 400'
     end
   end
 end

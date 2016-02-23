@@ -1,3 +1,10 @@
+=======
+3.32.0
+------
+- Further reduce use of response body in error messages
+- Stop attempting to parse response.body to produce unique identifiers for third-party hook items
+- Stop using :no_resource as an indicator of success and prefer true
+
 3.31.1
 ------
 - Fix a broken test. Check URI schemes more pedantically.

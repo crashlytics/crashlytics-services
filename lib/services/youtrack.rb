@@ -39,7 +39,7 @@ class Service::YouTrack < Service::Base
     end
 
     if resp.status == 201
-      { :youtrack_issue_url => resp.headers['location'] }
+      true
     else
       raise "YouTrack issue creation failed - #{error_response_details(resp)}"
     end

@@ -15,20 +15,30 @@ class Service::Slack < Service::Base
   page 'Username', [:username]
 
   def receive_verification(config, _)
-    send_message(config, receive_verification_message)
-    [true, "Successfully sent a message to channel #{ config[:channel] }"]
-  rescue => e
-    log "Rescued a verification error in Slack: #{ e.message }"
-    [false, "Could not send a message to channel #{ config[:channel] }. #{e.message}"]
+    response = send_message(config, receive_verification_message)
+
+    if response.code == '200'
+      [true, "Successfully sent a message to channel #{ config[:channel] }"]
+    else
+      [false, error_response_message(response)]
+    end
   end
 
   def receive_issue_impact_change(config, payload)
     message, options = format_issue_impact_change_message(payload)
-    send_message(config, message, options)
-    :no_resource
+    response = send_message(config, message, options)
+    if response.code == '200'
+      true
+    else
+      raise error_response_message(response)
+    end
   end
 
   private
+
+  def error_response_message(response)
+    "Unexpected response from Slack - HTTP status code: #{response.code}"
+  end
 
   def receive_verification_message
     'Boom! Crashlytics issue change notifications have been added.  ' \
@@ -58,10 +68,6 @@ class Service::Slack < Service::Base
 
     client = Slack::Notifier.new url, channel: channel, username: username
 
-    response = client.ping(message, options)
-
-    unless response.code == '200'
-      raise "Unexpected response from Slack: #{response.code}"
-    end
+    client.ping(message, options)
   end
 end

@@ -60,21 +60,12 @@ describe Service::Appaloosa do
         to_return(:status => 201, :body => 'fake_body')
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:no_resource)
+      expect(resp).to be true
     end
 
     it 'should fail with extra information upon unsuccessful api response' do
       stub_request(:post, web_hook_url).
         to_return(:status => 500, :body => 'fake_body')
-
-      expect {
-        @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error('Appaloosa WebHook issue create failed - HTTP status code: 500, body: fake_body')
-    end
-
-    it 'suppresses the body of a failed api response if it appears to be an HTML document' do
-      stub_request(:post, web_hook_url).
-        to_return(:status => 500, :body => '<!DOCTYPE html><html><body>Stuff</body></html>')
 
       expect {
         @service.receive_issue_impact_change(@config, @payload)

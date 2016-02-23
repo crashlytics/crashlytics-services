@@ -79,7 +79,7 @@ describe Service::Pagerduty do
         .and_return(test.post('/generic/2010-04-15/create_event.json'))
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:pagerduty_incident_key => 'foo')
+      expect(resp).to be true
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -93,7 +93,7 @@ describe Service::Pagerduty do
         .with('https://events.pagerduty.com/generic/2010-04-15/create_event.json')
         .and_return(test.post('/generic/2010-04-15/create_event.json'))
 
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/500, body: {\"incident_key\":\"foo\"}/)
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/500/)
     end
   end
 end

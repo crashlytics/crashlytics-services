@@ -40,7 +40,7 @@ describe Service::Redmine do
 
       success, msg = @service.receive_verification(@config, @payload)
       expect(success).to eq(false)
-      expect(msg).to match(/Unexpected HTTP response from Redmine: 500/)
+      expect(msg).to match(/Unexpected response from Redmine - HTTP status code: 500/)
       expect(msg).not_to include('body-text')
     end
   end
@@ -67,14 +67,14 @@ describe Service::Redmine do
         to_return(:status => 201, :body => stub_body.to_json)
 
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:redmine_issue_id => 'foo_id')
+      expect(resp).to be true
     end
 
     it 'should fail upon unsuccessful api response' do
       stub_request(:post, "http://redmine.acme.com/issues.json?key").
         to_return(:status => 500, :body => "", :headers => {})
 
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Redmine Issue Create Failed, status: 500/)
+      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Redmine Issue Create Failed - HTTP status code: 500/)
     end
   end
 end

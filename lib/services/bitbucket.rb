@@ -105,7 +105,7 @@ class Service::Bitbucket < Service::Base
       raise "Bitbucket issue creation failed - #{error_response_details(resp)}"
     end
 
-    { :bitbucket_issue_id => JSON.parse(resp.body)['local_id'] }
+    true
   end
 
   def build_url(repo_owner, repo)

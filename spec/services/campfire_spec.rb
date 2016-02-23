@@ -84,7 +84,7 @@ describe Service::Campfire do
     it 'should succeed upon successful api response' do
       expect(@room).to receive(:speak).and_return(Hashie::Mash.new(:message => { :id => 766665427 }))
       resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to eq(:campfire_message_id => 766665427)
+      expect(resp).to be true
     end
 
     it 'should fail upon unsuccessful api response' do

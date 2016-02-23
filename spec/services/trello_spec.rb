@@ -165,7 +165,7 @@ EOT
       before { expect(client).to receive(:create).with(:card, card_params).and_return card }
 
       it 'returns a hash containing created card id' do
-        expect(subject).to eq({ trello_card_id: 'card123' })
+        expect(subject).to be true
       end
     end
 

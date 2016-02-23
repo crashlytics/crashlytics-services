@@ -98,7 +98,7 @@ describe Service::GitHub do
         to_return(successful_creation_response)
 
       result = service.receive_issue_impact_change(config, crashlytics_issue)
-      expect(result).to eq(:github_issue_number => 42)
+      expect(result).to be true
     end
 
     it 'creates a new Github issue on an enterprise account if api_endpoint is provided' do
@@ -106,7 +106,7 @@ describe Service::GitHub do
         to_return(successful_creation_response)
 
       result = service.receive_issue_impact_change(config, crashlytics_issue)
-      expect(result).to eq(:github_issue_number => 42)
+      expect(result).to be true
     end
 
     it 'raises if creating a new GitHub issue fails' do

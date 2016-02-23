@@ -13,7 +13,7 @@ class Service::OpsGenie < Service::Base
     resp = post_to_opsgenie(config, body)
     if resp.success?
       log "Issue impact change successfully submitted to OpsGenie"
-      :no_resource
+      true
     else
       raise "OpsGenie issue creation failed - #{error_response_details(resp)}"
     end

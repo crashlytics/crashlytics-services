@@ -48,7 +48,7 @@ class Service::Sprintly < Service::Base
     end
 
     if resp.status == 200
-      { :sprintly_item_number => JSON.parse(resp.body)['number'] }
+      true
     else
       raise "[Sprint.ly] Adding defect to backlog failed - #{error_response_details(resp)}"
     end

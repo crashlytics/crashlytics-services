@@ -88,7 +88,7 @@ describe Service::Asana do
         expect(workspace).to receive(:create_task).with(expected_task_options).and_return task
 
         response = service.receive_issue_impact_change config, issue
-        expect(response).to eq({ :asana_task_id => task.id })
+        expect(response).to be true
       end
 
       it 'should raise if creating a new Asana task fails' do
