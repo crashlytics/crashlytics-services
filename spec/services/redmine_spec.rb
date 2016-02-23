@@ -1,6 +1,9 @@
 require 'spec_helper'
 
 describe Service::Redmine do
+  before do
+    allow_any_instance_of(Faraday::RestrictIPAddressesMiddleware).to receive(:denied?).and_return(false)
+  end
 
   it 'has a title' do
     expect(Service::Redmine.title).to eq('Redmine')

@@ -1,3 +1,5 @@
+require 'restrict_ip_addresses'
+
 module Service
   module HTTP
     # Public: Makes an HTTP GET call.
@@ -97,6 +99,9 @@ module Service
     # Yields a Faraday::Request instance.
     # Returns a Faraday::Response instance.
     def http_method(method, url = nil, body = nil, headers = nil)
+      uri = URI(url)
+      raise 'Invalid Protocol' if uri.scheme !~ /https?/i
+
       block = Proc.new if block_given?
 
       # Set url_prefix for basic auth
@@ -119,6 +124,7 @@ module Service
     def http(options = {})
       @http ||= begin
         Faraday.new(options) do |b|
+          b.use ::Faraday::RestrictIPAddressesMiddleware
           b.request :url_encoded
           b.adapter :net_http
         end

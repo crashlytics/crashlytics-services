@@ -1,3 +1,7 @@
+3.31.0
+------
+- Prevent requests from going to internal or restricted IP addresses. Should reduce the error rate.
+
 3.30.0
 ------
 - Demystify errors coming from YouTrack.
