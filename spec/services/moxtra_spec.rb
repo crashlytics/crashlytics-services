@@ -1,10 +1,6 @@
 require 'spec_helper'
 
 describe Service::Moxtra do
-  before do
-    @service = Service::Moxtra.new(
-      :url => 'https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA')
-  end
 
   it 'has a title' do
     expect(Service::Moxtra.title).to eq('Moxtra')
@@ -14,9 +10,17 @@ describe Service::Moxtra do
     subject { Service::Moxtra }
 
     it { is_expected.to include_string_field :url }
+
+    it { is_expected.to include_page 'URL', [:url] }
   end
 
   describe 'receive_verification' do
+    before do
+      @config = { :url => 'https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA' }
+      @service = Service::Moxtra.new('verification', {})
+      @payload = {}
+    end
+
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -28,7 +32,7 @@ describe Service::Moxtra do
         .with('https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA')
         .and_return(test.post('/'))
 
-      resp = @service.receive_verification
+      resp = @service.receive_verification(@config, @payload)
       expect(resp).to eq([true,  "Successfully sent a message to Moxtra binder"])
     end
 
@@ -43,13 +47,15 @@ describe Service::Moxtra do
         .with('https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA')
         .and_return(test.post('/'))
 
-      resp = @service.receive_verification
+      resp = @service.receive_verification(@config, @payload)
       expect(resp).to eq([false, "Could not send a message to Moxtra binder"])
     end
   end
 
   describe 'receive_issue_impact_change' do
     before do
+      @config = { :url => 'https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA' }
+      @service = Service::Moxtra.new('issue_impact_change', {})
       @payload = {
         :title => 'title',
         :impact_level => 1,
@@ -73,7 +79,7 @@ describe Service::Moxtra do
         .with('https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA')
         .and_return(test.post('/'))
 
-      resp = @service.receive_issue_impact_change(@payload)
+      resp = @service.receive_issue_impact_change(@config, @payload)
       expect(resp).to eq(:no_resource)
     end
 
@@ -89,7 +95,7 @@ describe Service::Moxtra do
         .and_return(test.post('/'))
 
       expect {
-        @service.receive_issue_impact_change(@payload)
+        @service.receive_issue_impact_change(@config, @payload)
       }.to raise_error(/Moxtra WebHook issue create failed - HTTP status code: 500, body: fake_body/)
     end
   end

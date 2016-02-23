@@ -8,8 +8,6 @@ describe Service::ChatWork do
     }
   end
 
-  let(:service) { Service::ChatWork.new(config) }
-
   it 'has a title' do
     expect(Service::ChatWork.title).to eq('ChatWork')
   end
@@ -19,26 +17,33 @@ describe Service::ChatWork do
 
     it { is_expected.to include_string_field :api_token }
     it { is_expected.to include_string_field :room }
+    it { is_expected.to include_page 'API Token', [:api_token] }
+    it { is_expected.to include_page 'Room ID', [:room] }
   end
 
   describe :receive_verification do
+    before do
+      @service = Service::ChatWork.new('verification', {})
+    end
+
     it 'should succeed upon successful api response' do
-      expect(service).to receive(:verification_message)
-      expect(service).to receive(:send_message)
-      success, message = service.receive_verification
+      expect(@service).to receive(:receive_verification_message)
+      expect(@service).to receive(:send_message)
+      success, message = @service.receive_verification(config, nil)
       expect(success).to be true
     end
 
     it 'should fail upon unsuccessful api response' do
-      expect(service).to receive(:verification_message)
-      expect(service).to receive(:send_message).and_raise
-      success, message = service.receive_verification
+      expect(@service).to receive(:receive_verification_message)
+      expect(@service).to receive(:send_message).and_raise
+      success, message = @service.receive_verification(config, nil)
       expect(success).to be false
     end
   end
 
   describe :receive_issue_impact_change do
     before do
+      @service = Service::ChatWork.new('issue_impact_change', {})
       @payload = {
         :title => 'issue title',
         :method => 'method name',
@@ -62,11 +67,11 @@ describe Service::ChatWork do
         end
       end
 
-      expect(service).to receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
         .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
 
-      resp = service.receive_issue_impact_change(@payload)
+      resp = @service.receive_issue_impact_change(config, @payload)
       expect(resp).to eq('message_id' => 12345)
     end
 
@@ -77,11 +82,11 @@ describe Service::ChatWork do
         end
       end
 
-      expect(service).to receive(:http_post)
+      expect(@service).to receive(:http_post)
         .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
         .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
 
-      expect { service.receive_issue_impact_change(@payload) }.to raise_error(/Could not send a message to room/)
+      expect { @service.receive_issue_impact_change(config, @payload) }.to raise_error(/Could not send a message to room/)
     end
   end
 end

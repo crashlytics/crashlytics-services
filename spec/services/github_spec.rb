@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'webmock/rspec'
 
 describe Service::GitHub do
   let(:config) do
@@ -8,8 +7,6 @@ describe Service::GitHub do
       :repo => 'crashlytics/sample-project'
     }
   end
-
-  let(:service) { Service::GitHub.new(config) }
 
   it 'has a title' do
     expect(Service::GitHub.title).to eq('GitHub')
@@ -21,40 +18,45 @@ describe Service::GitHub do
     it { is_expected.to include_string_field :api_endpoint }
     it { is_expected.to include_string_field :repo }
     it { is_expected.to include_string_field :access_token }
+
+    it { is_expected.to include_page 'Repository', [:repo, :access_token] }
+    it { is_expected.to include_page 'GitHub Enterprise', [:api_endpoint] }
   end
 
   describe '#receive_verification' do
     it 'returns true and a confirmation message on success' do
+      service = Service::GitHub.new('verification', {})
       stub_request(:get, 'https://api.github.com/repos/crashlytics/sample-project').
          to_return(:status => 200, :body => '')
 
-      success, message = service.receive_verification
+      success, message = service.receive_verification(config, nil)
       expect(success).to be true
       expect(message).to eq('Successfully accessed repo crashlytics/sample-project.')
     end
 
     it 'returns false and an error message on failure' do
+      service = Service::GitHub.new('verification', {})
       stub_request(:get, 'https://api.github.com/repos/crashlytics/sample-project').
          to_return(:status => 404, :body => '')
 
-      success, message = service.receive_verification
+      success, message = service.receive_verification(config, nil)
       expect(success).to be false
       expect(message).to eq('Could not access repository for crashlytics/sample-project.')
     end
 
     it 'uses the api_endpoint if provided' do
-      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'))
-
+      service = Service::GitHub.new('verification', {})
       stub_request(:get, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project').
         to_return(:status => 200, :body => '')
 
-      success, message = service.receive_verification
+      success, message = service.receive_verification(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'), nil)
       expect(success).to be true
       expect(message).to eq('Successfully accessed repo crashlytics/sample-project.')
     end
   end
 
   describe '#receive_issue_impact_change' do
+    let(:service) { Service::GitHub.new('issue_impact_change', {}) }
     let(:crashlytics_issue) do
       {
         :url => 'foo_issue_url',
@@ -95,17 +97,15 @@ describe Service::GitHub do
       stub_request(:post, 'https://api.github.com/repos/crashlytics/sample-project/issues').
         to_return(successful_creation_response)
 
-      result = service.receive_issue_impact_change(crashlytics_issue)
+      result = service.receive_issue_impact_change(config, crashlytics_issue)
       expect(result).to eq(:github_issue_number => 42)
     end
 
     it 'creates a new Github issue on an enterprise account if api_endpoint is provided' do
-      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'))
-
-      stub_request(:post, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project/issues').
+      stub_request(:post, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project').
         to_return(successful_creation_response)
 
-      result = service.receive_issue_impact_change(crashlytics_issue)
+      result = service.receive_issue_impact_change(config, crashlytics_issue)
       expect(result).to eq(:github_issue_number => 42)
     end
 
@@ -113,7 +113,7 @@ describe Service::GitHub do
       stub_request(:post, 'https://api.github.com/repos/crashlytics/sample-project/issues').
         to_return(failed_creation_response)
 
-      expect { service.receive_issue_impact_change crashlytics_issue }.
+      expect { service.receive_issue_impact_change config, crashlytics_issue }.
         to raise_error(Octokit::Unauthorized)
     end
   end

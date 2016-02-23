@@ -10,15 +10,19 @@ class Service::Slack < Service::Base
   string :channel, :placeholder => '#general', :label => 'The name of the channel to post to.'
   string :username, :placeholder => 'crashlytics', :label => 'The name of the user to use when posting.'
 
-  def receive_verification
-    send_message(config, verification_message)
+  page 'URL', [:url]
+  page 'Channel', [:channel]
+  page 'Username', [:username]
+
+  def receive_verification(config, _)
+    send_message(config, receive_verification_message)
     [true, "Successfully sent a message to channel #{ config[:channel] }"]
   rescue => e
     log "Rescued a verification error in Slack: #{ e.message }"
     [false, "Could not send a message to channel #{ config[:channel] }. #{e.message}"]
   end
 
-  def receive_issue_impact_change(payload)
+  def receive_issue_impact_change(config, payload)
     message, options = format_issue_impact_change_message(payload)
     send_message(config, message, options)
     :no_resource
@@ -26,7 +30,7 @@ class Service::Slack < Service::Base
 
   private
 
-  def verification_message
+  def receive_verification_message
     'Boom! Crashlytics issue change notifications have been added.  ' \
     '<http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly|' \
     'Click here for more info>.'

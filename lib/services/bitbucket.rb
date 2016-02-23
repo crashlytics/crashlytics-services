@@ -42,7 +42,13 @@ class Service::Bitbucket < Service::Base
     :label =>
       'The name of your repo:'
 
-  def receive_verification
+
+  page "Username", [:username]
+  page "Password", [:password]
+  page "Repository Owner", [:repo_owner]
+  page "Repository", [:repo]
+
+  def receive_verification(config, _)
     username = config[:username]
     repo = config[:repo]
     http.ssl[:verify] = true
@@ -61,7 +67,7 @@ class Service::Bitbucket < Service::Base
     [false, "Oops! Is your repository url correct?"]
   end
 
-  def receive_issue_impact_change(payload)
+  def receive_issue_impact_change(config, payload)
     username = config[:username]
     repo = config[:repo]
     http.ssl[:verify] = true

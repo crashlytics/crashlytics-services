@@ -10,8 +10,6 @@ describe Service::Slack do
     }
   end
 
-  let(:service) { Service::Slack.new(config) }
-
   it 'has a title' do
     expect(Service::Slack.title).to eq('Slack')
   end
@@ -22,22 +20,28 @@ describe Service::Slack do
     it { is_expected.to include_string_field :url }
     it { is_expected.to include_string_field :channel }
     it { is_expected.to include_string_field :username}
+
+    it { is_expected.to include_page 'URL', [:url] }
+    it { is_expected.to include_page 'Channel', [:channel] }
+    it { is_expected.to include_page 'Username', [:username] }
   end
 
   describe '#receive_verification' do
     it :success do
-      expect(service).to receive(:verification_message)
+      service = Service::Slack.new('verification', {})
+      expect(service).to receive(:receive_verification_message)
       expect(service).to receive(:send_message)
 
-      success, message = service.receive_verification
+      success, message = service.receive_verification(config, nil)
       expect(success).to be true
     end
 
     it :failure do
-      expect(service).to receive(:verification_message)
+      service = Service::Slack.new('verification', {})
+      expect(service).to receive(:receive_verification_message)
       expect(service).to receive(:send_message).and_raise
 
-      success, message = service.receive_verification
+      success, message = service.receive_verification(config, nil)
       expect(success).to be false
     end
   end
@@ -46,6 +50,7 @@ describe Service::Slack do
     it do
       payload = { :url => 'url', :app => { :name => 'name' },
                   :title => 'title', :method => 'method', :crashes_count => 1}
+      service = Service::Slack.new('issue_impact_change', {})
 
       expected_attachment = {:fallback=>"Issue #title was created. platform: ",
         :color=>"danger",
@@ -60,18 +65,19 @@ describe Service::Slack do
         with('<url|name> crashed 1 times in method!',
           :attachments => [expected_attachment]).and_return(fake_response)
 
-      expect(service.receive_issue_impact_change(payload)).to be :no_resource
+      expect(service.receive_issue_impact_change(config, payload)).to be :no_resource
     end
 
     it 'bubbles up errors from Slack' do
       payload = { :url => 'url', :app => { :name => 'name' },
             :title => 'title', :method => 'method', :crashes_count => 1}
+      service = Service::Slack.new('issue_impact_change', {})
 
       fake_error_response = double('response', :code => '404', :body => 'No service')
       allow_any_instance_of(Slack::Notifier).to receive(:ping).and_return(fake_error_response)
 
       expect {
-        service.receive_issue_impact_change(payload)
+        service.receive_issue_impact_change(config, payload)
       }.to raise_error(/Unexpected response from Slack: 404/)
     end
   end
@@ -94,7 +100,7 @@ describe Service::Slack do
       fake_response = double(Net::HTTPResponse, :code => '200', :body => 'foo')
       allow(slack_client).to receive(:ping).with(verification_message, {}).and_return(fake_response)
 
-      success, message = service.receive_verification
+      success, message = Service::Slack.new('verification', {}).receive_verification(config, {})
 
       expect(success).to be true
       expect(message).to eq('Successfully sent a message to channel mychannel')
@@ -104,7 +110,7 @@ describe Service::Slack do
       fake_response = double(Net::HTTPResponse, :code => '404', :body => 'foo')
       allow(slack_client).to receive(:ping).with(verification_message, {}).and_return(fake_response)
 
-      success, message = service.receive_verification
+      success, message = Service::Slack.new('verification', {}).receive_verification(config, {})
 
       expect(success).to be false
       expect(message).to eq('Could not send a message to channel mychannel. Unexpected response from Slack: 404')

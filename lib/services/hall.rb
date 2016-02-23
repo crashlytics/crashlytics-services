@@ -6,8 +6,10 @@ class Service::Hall < Service::Base
                    'You can retrieve your Group API Token ' \
                    '<a href="https://hall.com/docs/integrations/crashlytics/">here</a>.'
 
+  page 'Group API Token', [:group_token]
+
   # Create an issue
-  def receive_issue_impact_change(payload)
+  def receive_issue_impact_change(config, payload)
     response = send_hall_message(config, payload)
     if successful_response?(response)
       :no_resource
@@ -16,7 +18,7 @@ class Service::Hall < Service::Base
     end
   end
 
-  def receive_verification
+  def receive_verification(config, _)
     success = [true,  "Successfully verified Group API Token"]
     failure = [false, "Oops! Please check your Group API Token."]
     response = verify_hall_service(config)

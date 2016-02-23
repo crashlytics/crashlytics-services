@@ -23,8 +23,9 @@ namespace :services do
       services << {
         :identifier => identifier,
         :name   => svc.title,
-        :events => svc.events_handled,
-        :schema => svc.schema }
+        :events => svc.handles,
+        :schema => svc.schema,
+        :pages  => svc.pages }
     end
 
     services.sort! { |x, y| x[:identifier] <=> y[:identifier] }

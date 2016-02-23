@@ -1,14 +1,24 @@
 require 'timeout'
+require 'faraday'
 
 require 'service/attributes'
 require 'service/http'
 require 'service/schema'
+require 'service/display'
 
 module Service
   class Base
     class << self
       include Service::Attributes
       include Service::Schema
+      include Service::Display
+
+      attr_accessor :root, :env, :host
+      %w(development test production staging).each do |m|
+        define_method "#{m}?" do
+          env == m
+        end
+      end
 
       # Public: Processes an incoming Service event.
       #
@@ -19,14 +29,12 @@ module Service
       # Returns a hash containing information which can be used to find the resource
       #   (eg. a ticket) created on the service, or nil.
       def receive(event, config, payload = nil, logger = nil)
-        svc = new(config, logger)
+        svc = new(event, config, payload, logger)
 
         method = "receive_#{event}"
         if svc.respond_to?(method)
-          if event == :verification
-            svc.send(method)
-          else
-            svc.send(method, payload)
+          Timeout.timeout(20, TimeoutError) do
+            svc.send(method, config, payload)
           end
         end
       end
@@ -39,13 +47,17 @@ module Service
         super
       end
 
-      def events_handled
-        @events_handled ||= [:issue_impact_change]
-      end
-
-      # Gets / Sets the default events that this Service handles.
+      # Gets the default events that this Service will handle.  This defines
+      # the default event configuration when Hooks are created on Crashlytics.  By
+      # default, Crashlytics Hooks will only send `new_issue` events.
+      #
+      # Returns an Array of Strings (or Symbols).
       def handles(*events)
-        @events_handled = events
+        if events.empty?
+          @default_events ||= [:issue_impact_change]
+        else
+          @default_events = events
+        end
       end
     end
 
@@ -59,12 +71,24 @@ module Service
     # Returns a Hash.
     attr_reader :config
 
-    def initialize(config, logger = Proc.new {})
+    # Public: Gets the unique payload data for this Service instance.
+    #
+    # Returns a Hash.
+    attr_reader :payload
+
+    # Public: Gets the identifier for the Service's event.
+    #
+    # Returns a Symbol.
+    attr_reader :event
+
+    def initialize(event, config, payload = nil, logger = Proc.new {})
+      @event   = event.to_sym
       @config  = config
+      @payload = payload
       @logger  = logger
+      @http    = nil
     end
 
-    # Note: this ordering is important
     include Service::HTTP
   end
 end
