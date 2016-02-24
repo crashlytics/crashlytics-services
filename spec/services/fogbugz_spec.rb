@@ -12,18 +12,16 @@ describe Service::FogBugz do
 
     it { is_expected.to include_string_field :project_url }
     it { is_expected.to include_string_field :api_token }
-
-    it { is_expected.to include_page 'API Token', [:project_url, :api_token] }
   end
 
   context 'with service' do
-    let(:service) { Service::FogBugz.new('event_name', {}) }
     let(:config) do
       {
         :api_key => 'key',
         :project_url => 'https://yourproject.fogbugz.com'
       }
     end
+    let(:service) { Service::FogBugz.new(config) }
     let(:payload) do
       {
         :title => 'foo title',
@@ -46,19 +44,19 @@ describe Service::FogBugz do
 
       it 'succeeds given a valid response' do
         expect(service).to receive(:http_get).and_return(double(Faraday::Response, :body => success_response))
-        response = service.receive_verification(config, nil)
+        response = service.receive_verification
         expect(response).to eq([true, 'Successfully verified Fogbugz settings'])
       end
 
       it 'fails given an error response' do
         expect(service).to receive(:http_get).and_return(double(Faraday::Response, :body => error_response))
-        response = service.receive_verification(config, nil)
+        response = service.receive_verification
         expect(response).to eq([false, 'Oops! Please check your API key again.'])
       end
 
       it 'fails given an invalid response' do
         expect(service).to receive(:http_get).and_return(double(Faraday::Response, :body => invalid_response))
-        response = service.receive_verification(config, nil)
+        response = service.receive_verification
         expect(response).to eq([false, 'Oops! Please check your API key again.'])
       end
     end
@@ -69,18 +67,18 @@ describe Service::FogBugz do
 
       it 'creates a new case given a valid response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => success_response))
-        response = service.receive_issue_impact_change(config, payload)
+        response = service.receive_issue_impact_change(payload)
         expect(response).to be true
       end
 
       it 'raises an exception given an error response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => error_response))
-        expect { service.receive_issue_impact_change(config, payload) }.to raise_error(/Could not create FogBugz/)
+        expect { service.receive_issue_impact_change(payload) }.to raise_error(/Could not create FogBugz/)
       end
 
       it 'raises an exception given an invalid response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => invalid_response))
-        expect { service.receive_issue_impact_change(config, payload) }.to raise_error(/Could not create FogBugz/)
+        expect { service.receive_issue_impact_change(payload) }.to raise_error(/Could not create FogBugz/)
       end
     end
   end

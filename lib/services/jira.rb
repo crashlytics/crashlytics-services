@@ -16,12 +16,8 @@ class Service::Jira < Service::Base
   string :issue_type, :placeholder => 'Bug', :required => false,
          :label => '(Optional) Issue Type:'
 
-  page "Project", [ :project_url ]
-  page "Login Information", [ :username, :password ]
-  page "Customizations", [ :issue_type ]
-
   # Create an issue on Jira
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     url_components = parse_url(config[:project_url])
     client = jira_client(config, url_components[:context_path])
 
@@ -64,7 +60,7 @@ class Service::Jira < Service::Base
     raise "Jira Issue Create Failed - #{error_details(e)}"
   end
 
-  def receive_verification(config, payload)
+  def receive_verification
     url_components = parse_url(config[:project_url])
     client = jira_client(config, url_components[:context_path])
 

@@ -15,7 +15,8 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.version       = Service::VERSION
 
-  s.add_dependency 'faraday'
+  s.add_dependency 'faraday', '~> 0.9'
+  s.add_dependency 'faraday_middleware', '~> 0.9'
   s.add_dependency 'nokogiri', '~> 1.5'
 
   # Note: we are stuck at tinder 1.9 until we can eliminate our dependency

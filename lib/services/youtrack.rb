@@ -6,10 +6,7 @@ class Service::YouTrack < Service::Base
   string :username, :label => 'Email address:', :placeholder => 'user@domain.com'
   password :password, :label => 'Password:'
 
-  page 'YouTrack Project', [:base_url, :project_id]
-  page 'Login Information', [:username, :password]
-
-  def receive_verification(config, _)
+  def receive_verification
     begin
       cookie_header = login_from_config(config)
     rescue => e
@@ -25,7 +22,7 @@ class Service::YouTrack < Service::Base
     [false, "Oops! We couldn't access YouTrack project: #{config[:project_id]}"]
   end
 
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     cookie_header = login_from_config(config)
     raise "Invalid login for project_id: #{config[:project_id]}" unless cookie_header
 

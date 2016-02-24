@@ -3,10 +3,9 @@ class Service::WebHook < Service::Base
   string :url, :placeholder => "https://[user:pass@]acme.com?key=123",
          :label => 'Enter the URL to receive our JSON data POST. ' \
                    '(<a href="http://support.crashlytics.com/knowledgebase/articles/102391-how-do-i-configure-a-custom-web-hook" target="_blank">more info</a>)'
-  page "One-Step Setup", [ :url ]
 
   # Create an issue
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
     if successful_response?(response)
       true
@@ -15,7 +14,7 @@ class Service::WebHook < Service::Base
     end
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     success = [true,  "Successfully verified Web Hook settings"]
     failure = [false, "Oops! Please check your settings again."]
     response = post_event(config[:url], 'verification', 'none', nil)

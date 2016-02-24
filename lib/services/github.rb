@@ -13,12 +13,9 @@ class Service::GitHub < Service::Base
     :label => '(GitHub Enterprise only) API endpoint:',
     :placeholder => 'https://github.yourcompany.com/api/v3/'
 
-  page 'Repository', [:repo, :access_token]
-  page 'GitHub Enterprise', [:api_endpoint]
-
   STATUS_CODE_CREATED = 201
 
-  def receive_verification(config, _)
+  def receive_verification
     verify_repo_exists(config)
     [true, "Successfully accessed repo #{config[:repo]}."]
   rescue => e
@@ -26,7 +23,7 @@ class Service::GitHub < Service::Base
     [false, "Could not access repository for #{config[:repo]}."]
   end
 
-  def receive_issue_impact_change(config, issue)
+  def receive_issue_impact_change(issue)
     response = create_github_issue(config, issue)
 
     if response.status == STATUS_CODE_CREATED

@@ -5,11 +5,8 @@ class Service::Pivotal < Service::Base
                              'Make sure API Access is on for your project in Project Settings!<br />' \
                              'Tip: Create a Crashlytics user for easier sorting.'
 
-  page "Project", [ :project_url ]
-  page "API Token", [ :api_key ]
-
   # Create an issue on Pivotal
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     parsed = parse_url config[:project_url]
     url_prefix = parsed[:url_prefix]
     project_id = parsed[:project_id]
@@ -51,7 +48,7 @@ class Service::Pivotal < Service::Base
     end
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     parsed = parse_url config[:project_url]
     url_prefix = parsed[:url_prefix]
     project_id = parsed[:project_id]

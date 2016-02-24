@@ -2,12 +2,13 @@ require 'spec_helper'
 require 'webmock/rspec'
 
 describe Service::ZohoProjects do
-  let(:config) do
-    {
+
+  let(:service) do
+    Service::ZohoProjects.new(
       :project_id => 'sample_project_id',
-      :authtoken => 'sample_authtoken'
-    }
+      :authtoken => 'sample_authtoken')
   end
+
 
   it 'has a title' do
     expect(Service::ZohoProjects.title).to eq('Zoho Projects')
@@ -18,7 +19,6 @@ describe Service::ZohoProjects do
 
     it { is_expected.to include_string_field :project_id }
     it { is_expected.to include_string_field :authtoken }
-    it { is_expected.to include_page 'Project Information', [:project_id, :authtoken] }
   end
 
   def stub_api_call(expected_query)
@@ -35,12 +35,10 @@ describe Service::ZohoProjects do
       }
     end
 
-    let(:service) { Service::ZohoProjects.new('verification', config) }
-
     it 'a non-400 response as a success' do
       stub_api_call(expected_query).to_return(:status => 200)
 
-      success, message = service.receive_verification(config, nil)
+      success, message = service.receive_verification
 
       expect(service.http.ssl[:verify]).to be true # mark ssl for verification
       expect(success).to be true
@@ -50,7 +48,7 @@ describe Service::ZohoProjects do
     it 'escalates a 400 response as a failure' do
       stub_api_call(expected_query).to_return(:status => 400)
 
-      success, message = service.receive_verification(config, nil)
+      success, message = service.receive_verification
 
       expect(success).to be false
       expect(message).to eq('Invalid Auth Token/Project ID')
@@ -80,12 +78,10 @@ describe Service::ZohoProjects do
       }
     end
 
-    let(:service) { Service::ZohoProjects.new('issue_impact_change', config) }
-
     it 'creates a new issue and return its true on success' do
       stub_api_call(expected_query).to_return(:status => 200, :body => 'fake-zoho-bug-id')
 
-      response = service.receive_issue_impact_change(config, payload)
+      response = service.receive_issue_impact_change(payload)
 
       expect(service.http.ssl[:verify]).to be true # mark ssl for verification
       expect(response).to be true
@@ -95,7 +91,7 @@ describe Service::ZohoProjects do
       stub_api_call(expected_query).to_return(:status => 400, :body => 'fake-error-body')
 
       expect {
-        service.receive_issue_impact_change(config, payload)
+        service.receive_issue_impact_change(payload)
       }.to raise_error('Problem while sending request to Zoho Projects - HTTP status code: 400')
     end
   end
