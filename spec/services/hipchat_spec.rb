@@ -1,7 +1,7 @@
 require 'hipchat'
 require 'spec_helper'
 
-describe Service::HipChat do
+describe Service::HipChat, :type => :service do
   let(:config) do
     {
       :api_token => 'token',

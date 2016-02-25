@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Service::Pivotal do
+describe Service::Pivotal, :type => :service do
   before do
     @logger = double('fake-logger', :log => nil)
     @config = { :project_url => 'https://www.pivotaltracker.com/s/projects/foo_project' }

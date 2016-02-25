@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'hashie'
 
-describe Service::Campfire do
+describe Service::Campfire, :type => :service do
   before do
     @config = { :subdomain => "crashlytics",
                 :room => "crashlytics-test",

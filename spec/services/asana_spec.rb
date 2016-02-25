@@ -1,7 +1,7 @@
 require 'asana'
 require 'spec_helper'
 
-describe Service::Asana do
+describe Service::Asana, :type => :service do
 
   it 'has a title' do
     expect(Service::Asana.title).to eq('Asana')

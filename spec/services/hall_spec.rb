@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'ostruct'
 
-describe Service::Hall do
+describe Service::Hall, :type => :service do
 
   before do
     @config = { :group_token => 'sometoken' }

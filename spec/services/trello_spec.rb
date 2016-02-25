@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Service::Trello do
+describe Service::Trello, :type => :service do
   let(:config) do
     { key:   'trello_key',
       token: 'trello_token',

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Service::OpsGenie do
+describe Service::OpsGenie, :type => :service do
 
   before do
     @logger = double('fake-logger', :log => nil)

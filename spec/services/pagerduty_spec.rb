@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Service::Pagerduty do
+describe Service::Pagerduty, :type => :service do
   before do
     @logger = double('fake-logger', :log => nil)
     @config = { :api_key => 'fake-key' }

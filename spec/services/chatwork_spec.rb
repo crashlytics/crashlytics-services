@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Service::ChatWork do
+describe Service::ChatWork, :type => :service do
   let(:config) do
     {
       :api_token => 'TOooooooooooooooooooooooooooOKEN',

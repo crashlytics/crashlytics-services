@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Service::Moxtra do
+describe Service::Moxtra, :type => :service do
   before do
     @logger = double('fake-logger', :log => nil)
     @config = { :url => 'https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA' }

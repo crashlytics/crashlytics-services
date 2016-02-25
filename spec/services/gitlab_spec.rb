@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'webmock/rspec'
 
-describe Service::GitLab do
+describe Service::GitLab, :type => :service do
   let(:config) do
     {
       :project => 'root/example-project',
