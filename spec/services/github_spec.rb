@@ -8,6 +8,7 @@ describe Service::GitHub, :type => :service do
       :repo => 'crashlytics/sample-project'
     }
   end
+
   let(:logger) { double('fake-logger', :log => nil) }
   let(:logger_function) { lambda { |message| logger.log(message) }}
   let(:service) { Service::GitHub.new(config, logger_function) }
@@ -40,11 +41,10 @@ describe Service::GitHub, :type => :service do
       expect {
         service.receive_verification
       }.to raise_error(Service::DisplayableError, 'Could not access repository for crashlytics/sample-project.')
-      expect(logger).to have_received(:log).with(/Rescued a verification error/)
     end
 
     it 'uses the api_endpoint if provided' do
-      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'), logger_function)
+      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3'), logger_function)
 
       stub_request(:get, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project').
         to_return(:status => 200, :body => '')
@@ -100,7 +100,7 @@ describe Service::GitHub, :type => :service do
     end
 
     it 'creates a new Github issue on an enterprise account if api_endpoint is provided' do
-      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'), logger_function)
+      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3'), logger_function)
 
       stub_request(:post, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project/issues').
         to_return(successful_creation_response)
@@ -114,7 +114,7 @@ describe Service::GitHub, :type => :service do
         to_return(failed_creation_response)
 
       expect { service.receive_issue_impact_change crashlytics_issue }.
-        to raise_error(Octokit::Unauthorized)
+        to raise_error(Service::DisplayableError)
     end
   end
 end
