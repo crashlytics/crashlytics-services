@@ -26,16 +26,16 @@ EOT
 
   def receive_verification
     find_list config
-    [true, "Successfully found board #{config[:board]} with list #{config[:list]}"]
+    log('verification successful')
   rescue Trello::Error => e
-    [false, failure_message(config, e)]
+    display_error(failure_message(config, e))
   end
 
   def receive_issue_impact_change(issue)
     list = find_list config
     client = trello_client(config[:key], config[:token])
     client.create :card, card_params(issue).merge('idList' => list.id)
-    true
+    log('issue_impact_change successful')
   end
 
   private

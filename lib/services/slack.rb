@@ -14,9 +14,9 @@ class Service::Slack < Service::Base
     response = send_message(config, verification_message)
 
     if response.code == '200'
-      [true, "Successfully sent a message to channel #{ config[:channel] }"]
+      log('verification successful')
     else
-      [false, error_response_message(response)]
+      display_error(error_response_message(response))
     end
   end
 
@@ -24,9 +24,9 @@ class Service::Slack < Service::Base
     message, options = format_issue_impact_change_message(payload)
     response = send_message(config, message, options)
     if response.code == '200'
-      true
+      log('issue_impact_change successful')
     else
-      raise error_response_message(response)
+      display_error(error_response_message(response))
     end
   end
 

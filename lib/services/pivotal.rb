@@ -42,9 +42,9 @@ class Service::Pivotal < Service::Base
       req.body = post_to_xml(post_body)
     end
     if successful_response?(resp)
-      true
+      log('issue_impact_change successful')
     else
-      raise "Pivotal Issue Create Failed - #{error_response_details(resp)}"
+      display_error "Pivotal Issue Create Failed - #{error_response_details(resp)}"
     end
   end
 
@@ -58,14 +58,10 @@ class Service::Pivotal < Service::Base
       req.headers['X-TrackerToken'] = config[:api_key]
     end
     if resp.status == 200
-      [true,  "Successfully verified Pivotal settings"]
+      log('verification successful')
     else
-      log "HTTP Error: status code: #{error_response_details(resp)}"
-      [false, "Oops! Please check your settings again."]
+      display_error("Verification failure - #{error_response_details(resp)}")
     end
-  rescue => e
-    log "Rescued a verification error in pivotal: (url=#{config[:project_url]}) #{e}"
-    [false, "Oops! Is your project url correct?"]
   end
 
   private

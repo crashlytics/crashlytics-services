@@ -8,24 +8,19 @@ class Service::WebHook < Service::Base
   def receive_issue_impact_change(payload)
     response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
     if successful_response?(response)
-      true
+      log('issue_impact_change successful')
     else
-      raise "WebHook issue create failed - #{error_response_details(response)}"
+      display_error "WebHook issue create failed - #{error_response_details(response)}"
     end
   end
 
   def receive_verification
-    success = [true,  "Successfully verified Web Hook settings"]
-    failure = [false, "Oops! Please check your settings again."]
     response = post_event(config[:url], 'verification', 'none', nil)
     if successful_response?(response)
-      success
+      log('verification successful')
     else
-      failure
+      display_error("WebHook verification failed - #{error_response_details(response)}")
     end
-  rescue => e
-    log "Rescued a verification error in webhook: (url=#{config[:url]}) #{e}"
-    failure
   end
 
   private

@@ -11,10 +11,9 @@ class Service::OpsGenie < Service::Base
     }
     resp = post_to_opsgenie(config, body)
     if resp.success?
-      log "Issue impact change successfully submitted to OpsGenie"
-      true
+      log 'issue_impact_change successful'
     else
-      raise "OpsGenie issue creation failed - #{error_response_details(resp)}"
+      display_error "OpsGenie issue creation failed - #{error_response_details(resp)}"
     end
   end
 
@@ -24,10 +23,10 @@ class Service::OpsGenie < Service::Base
     }
     resp =  post_to_opsgenie(config, body)
     if resp.success?
-      [true,  'Successfully verified OpsGenie settings']
+      log('verification successful')
     else
       log "Receive verification failed, API key: #{config[:api_key]}, OpsGenie response: #{resp[:status]}"
-      [false, 'Couldn\'t verify OpsGenie settings; please check your API key.']
+      display_error 'Couldn\'t verify OpsGenie settings; please check your API key.'
     end
   end
 

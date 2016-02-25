@@ -14,10 +14,10 @@ class Service::ZohoProjects < Service::Base
 
     response = send_request_to_projects config, payload
     if response.status != 200
-      raise "Problem while sending request to Zoho Projects - #{error_response_details(response)}"
+      display_error("Problem while sending request to Zoho Projects - #{error_response_details(response)}")
     end
 
-    true
+    log('issue_impact_change successful')
   end
 
   def receive_verification
@@ -25,9 +25,11 @@ class Service::ZohoProjects < Service::Base
 
     response = send_request_to_projects config, payload
     if response.status == 400
-      [false, 'Invalid Auth Token/Project ID']
+      display_error('Invalid Auth Token/Project ID')
+    elsif successful_response?(response)
+      log('verification successful')
     else
-      [true, 'Verification successfully completed']
+      display_error("ZohoProjects verification failed - #{error_response_details(response)}")
     end
   end
 

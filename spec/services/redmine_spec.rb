@@ -11,7 +11,9 @@ describe Service::Redmine do
   end
 
   before do
-    @service = Service::Redmine.new(:project_url => 'http://redmine.acme.com/projects/foo_project')
+    @logger = double('fake-logger', :log => nil)
+    @config = { :project_url => 'http://redmine.acme.com/projects/foo_project' }
+    @service = Service::Redmine.new(@config, lambda { |message| @logger.log(message) })
   end
 
   describe 'schema and display configuration' do
@@ -27,18 +29,17 @@ describe Service::Redmine do
       stub_request(:get, "http://redmine.acme.com/issues.json?key&limit=1&project_id=foo_project").
         to_return(:status => 200, :body => "", :headers => {})
 
-      resp = @service.receive_verification
-      expect(resp).to eq([true,  "Successfully verified Redmine settings"])
+      @service.receive_verification
+      expect(@logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
       stub_request(:get, 'http://redmine.acme.com/issues.json?key&limit=1&project_id=foo_project').
         to_return(:status => 500, :body => 'body-text')
 
-      success, msg = @service.receive_verification
-      expect(success).to eq(false)
-      expect(msg).to match(/Unexpected response from Redmine - HTTP status code: 500/)
-      expect(msg).not_to include('body-text')
+      expect {
+        @service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Unexpected response from Redmine - HTTP status code: 500')
     end
   end
 
@@ -61,15 +62,17 @@ describe Service::Redmine do
       stub_request(:post, "http://redmine.acme.com/issues.json?key").
         to_return(:status => 201, :body => stub_body.to_json)
 
-      resp = @service.receive_issue_impact_change(@payload)
-      expect(resp).to be true
+      @service.receive_issue_impact_change(@payload)
+      expect(@logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail upon unsuccessful api response' do
       stub_request(:post, "http://redmine.acme.com/issues.json?key").
         to_return(:status => 500, :body => "", :headers => {})
 
-      expect { @service.receive_issue_impact_change(@payload) }.to raise_error(/Redmine Issue Create Failed - HTTP status code: 500/)
+      expect {
+        @service.receive_issue_impact_change(@payload)
+      }.to raise_error(Service::DisplayableError, 'Redmine Issue Create Failed - HTTP status code: 500')
     end
   end
 end

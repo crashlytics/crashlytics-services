@@ -2,7 +2,9 @@ require 'spec_helper'
 
 describe Service::Pagerduty do
   before do
-    @service = Service::Pagerduty.new(:api_key => 'fake-key')
+    @logger = double('fake-logger', :log => nil)
+    @config = { :api_key => 'fake-key' }
+    @service = Service::Pagerduty.new(@config, lambda { |message| @logger.log(message) })
   end
 
   it 'has a title' do
@@ -28,8 +30,8 @@ describe Service::Pagerduty do
         .with('https://events.pagerduty.com/generic/2010-04-15/create_event.json')
         .and_return(test.post('/generic/2010-04-15/create_event.json'))
 
-      resp = @service.receive_verification
-      expect(resp).to eq([true, 'Successfully verified Pagerduty settings'])
+      @service.receive_verification
+      expect(@logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -43,8 +45,9 @@ describe Service::Pagerduty do
         .with('https://events.pagerduty.com/generic/2010-04-15/create_event.json')
         .and_return(test.post('/generic/2010-04-15/create_event.json'))
 
-      resp = @service.receive_verification
-      expect(resp).to eq([false, 'Oops! Please check your API key again.'])
+      expect {
+        @service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Pagerduty verification failed - HTTP status code: 500')
     end
   end
 
@@ -73,8 +76,8 @@ describe Service::Pagerduty do
         .with('https://events.pagerduty.com/generic/2010-04-15/create_event.json')
         .and_return(test.post('/generic/2010-04-15/create_event.json'))
 
-      resp = @service.receive_issue_impact_change(@payload)
-      expect(resp).to be true
+      @service.receive_issue_impact_change(@payload)
+      expect(@logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -88,7 +91,9 @@ describe Service::Pagerduty do
         .with('https://events.pagerduty.com/generic/2010-04-15/create_event.json')
         .and_return(test.post('/generic/2010-04-15/create_event.json'))
 
-      expect { @service.receive_issue_impact_change(@payload) }.to raise_error(/500/)
+      expect {
+        @service.receive_issue_impact_change(@payload)
+      }.to raise_error(Service::DisplayableError, 'Pagerduty issue impact change failed - HTTP status code: 500')
     end
   end
 end

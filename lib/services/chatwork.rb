@@ -15,14 +15,12 @@ class Service::ChatWork < Service::Base
 
   def receive_verification
     send_message(config, verification_message)
-    [true, "Successfully sent a message to room #{config[:room]}"]
-  rescue => e
-    log "Rescued a verification error in ChatWork: #{e}"
-    [false, "Could not send a message to room #{config[:room]}. #{e.message}"]
+    log('verification successful')
   end
 
   def receive_issue_impact_change(payload)
     send_message(config, format_issue_impact_change_message(payload))
+    log('issue_impact_change successful')
   end
 
   private
@@ -46,8 +44,7 @@ class Service::ChatWork < Service::Base
       req.params['body'] = message
     end
     if res.status < 200 || res.status > 299
-      raise "Could not send a message to room - #{error_response_details(res)}"
+      display_error("Could not send a message to room - #{error_response_details(res)}")
     end
-    true
   end
 end

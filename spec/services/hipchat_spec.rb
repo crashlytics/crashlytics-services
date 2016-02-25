@@ -9,8 +9,8 @@ describe Service::HipChat do
       :notify => nil
     }
   end
-
-  let(:service) { Service::HipChat.new(config) }
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:service) { Service::HipChat.new(config, lambda { |message| logger.log(message) }) }
 
   it 'has a title' do
     expect(Service::HipChat.title).to eq('HipChat')
@@ -31,16 +31,17 @@ describe Service::HipChat do
       expect(service).to receive(:verification_message)
       expect(service).to receive(:send_message)
 
-      success, message = service.receive_verification
-      expect(success).to be true
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
     end
 
     it :failure do
       expect(service).to receive(:verification_message)
       expect(service).to receive(:send_message).and_raise
 
-      success, message = service.receive_verification
-      expect(success).to be false
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Could not send a message to room room id')
     end
   end
 
@@ -51,7 +52,8 @@ describe Service::HipChat do
       expect(service).to receive(:format_issue_impact_change_message).with(payload)
       expect(service).to receive(:send_message)
 
-      expect(service.receive_issue_impact_change(payload)).to be true
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'surfaces exceptions as runtime errors' do
@@ -63,19 +65,6 @@ describe Service::HipChat do
       expect {
         service.receive_issue_impact_change(payload)
       }.to raise_error(/Unhandled error/)
-    end
-  end
-
-  describe :send_message do
-    it do
-      message = 'hi'
-      client = double(HipChat::Client)
-      options = { :api_version => 'v1' }
-      expect(HipChat::Client).to receive(:new).with(config[:api_token], options).and_return(client)
-      expect(client).to receive(:[]).with(config[:room]).and_return(client)
-      expect(client).to receive(:send).with('Crashlytics', message, { :notify => false })
-
-      Service::HipChat.new('verification', {}).send(:send_message, config, message)
     end
   end
 end

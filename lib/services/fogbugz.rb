@@ -22,9 +22,10 @@ class Service::FogBugz < Service::Base
     fogbugz_case, error = parse_response(response, 'response/case')
 
     if fogbugz_case && !error
-      true
+      log('issue_impact_change successful')
     else
-      raise "Could not create FogBugz case: Response: #{error}"
+      log("issue_impact_change failure: #{error}")
+      display_error("Could not create FogBugz case")
     end
   end
 
@@ -36,14 +37,10 @@ class Service::FogBugz < Service::Base
     project, error = parse_response(response, 'response/projects')
 
     if project && !error
-      [true,  'Successfully verified Fogbugz settings']
+      log('verification successful')
     else
-      if error
-        log "Received verification failed: Error code #{error.attr('code')} API key: #{config[:api_key]} Response: #{error}"
-      else
-        log "Received verification failed: Response: #{error}"
-      end
-      [false, 'Oops! Please check your API key again.']
+      log "verification failure: #{error}"
+      display_error('Oops! Please check your API key again.')
     end
   end
 

@@ -35,26 +35,48 @@ class Service::Foo < Service::Base
   # Receives a config hash containing :identifier => value pairs for each input field
   # and a payload which for impact change events is a hash of data about the issue.
   #
-  # Return true to indicate success.
+  # Return value is ignored.
   #
-  # For failure or unexpected errors, it's recommended to raise here and let the integration
-  # harness handle the error.  `nil` is not a recommended return value here as it is
-  # just handled as a very generic error.
+  # For failure or unexpected errors, use the display_error helper to raise an exception
+  # that will be displayed to the user.
+  #
+  # A helpful error message might include the unexpected HTTP response status code, or
+  # a friendly explanation of an edge case that a customer could use to troubleshoot.
+  #
+  # Note: only brief messages are accepted, and due to bugs with formatting, we can't accept
+  # messages which include raw response body text.
+  #
   def receive_issue_impact_change(config, issue)
-    true
+    # response = http_post config[:project_url], <some-params>
+    # if response.status == 200
+    #   log("Successful!")
+    # elsif response.status == 300
+    #   display_error('It looks like your project was moved.')
+    # else
+    #   display_error('Something unexpected happened!')
+    # end
   end
 
   # Receives a config hash containing :identifier => value pairs for each input field.
-  # Returns an array 2-tuple containing a boolean and a response message.
-  # The boolean should be true if the data in the config was verified, otherwise false.
   #
-  # You can also raise errors out of this method, but the response we return to users
-  # will be very generic.  You should make every effort to handle known error scenarios
-  # by rescuing from an exception and returning an appropriate [false, '<explanation>']
-  # that will be played back to the user trying to set up an integration.
+  # Return value is ignored.
+
+  # For failure or unexpected errors, use the display_error helper to raise an exception
+  # that will be displayed to the user.
+  #
+  # A helpful error message might include the unexpected HTTP response status code, or
+  # a friendly explanation of an edge case that a customer could use to troubleshoot.
+  #
   def receive_verification
-    # on success
-    [true, "Successfully integrated!"]
+    # response = http_post config[:project_url], <some-params>
+    #
+    # if response.status == 200
+    #   log("Successful!")
+    # elsif response.status == 401
+    #   display_error('Looks like you are not authorized!')
+    # else
+    #   display_error('Something unexpected happened!')
+    # end
   end
 end
 ```

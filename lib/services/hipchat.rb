@@ -14,15 +14,15 @@ class Service::HipChat < Service::Base
 
   def receive_verification
     send_message(config, verification_message)
-    [true, "Successfully sent a mesage to room #{ config[:room] }"]
+    log('verification successful')
   rescue => e
     log "Rescued a verification error in HipChat: #{ e }"
-    [false, "Could not send a message to room #{ config[:room] }"]
+    display_error "Could not send a message to room #{ config[:room] }"
   end
 
   def receive_issue_impact_change(payload)
     send_message(config, format_issue_impact_change_message(payload))
-    true
+    log('issue_impact_change successful')
   end
 
   private

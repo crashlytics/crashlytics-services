@@ -8,8 +8,9 @@ describe Service::GitHub do
       :repo => 'crashlytics/sample-project'
     }
   end
-
-  let(:service) { Service::GitHub.new(config) }
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:logger_function) { lambda { |message| logger.log(message) }}
+  let(:service) { Service::GitHub.new(config, logger_function) }
 
   it 'has a title' do
     expect(Service::GitHub.title).to eq('GitHub')
@@ -28,29 +29,28 @@ describe Service::GitHub do
       stub_request(:get, 'https://api.github.com/repos/crashlytics/sample-project').
          to_return(:status => 200, :body => '')
 
-      success, message = service.receive_verification
-      expect(success).to be true
-      expect(message).to eq('Successfully accessed repo crashlytics/sample-project.')
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
     end
 
     it 'returns false and an error message on failure' do
       stub_request(:get, 'https://api.github.com/repos/crashlytics/sample-project').
          to_return(:status => 404, :body => '')
 
-      success, message = service.receive_verification
-      expect(success).to be false
-      expect(message).to eq('Could not access repository for crashlytics/sample-project.')
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Could not access repository for crashlytics/sample-project.')
+      expect(logger).to have_received(:log).with(/Rescued a verification error/)
     end
 
     it 'uses the api_endpoint if provided' do
-      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'))
+      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'), logger_function)
 
       stub_request(:get, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project').
         to_return(:status => 200, :body => '')
 
-      success, message = service.receive_verification
-      expect(success).to be true
-      expect(message).to eq('Successfully accessed repo crashlytics/sample-project.')
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
     end
   end
 
@@ -95,18 +95,18 @@ describe Service::GitHub do
       stub_request(:post, 'https://api.github.com/repos/crashlytics/sample-project/issues').
         to_return(successful_creation_response)
 
-      result = service.receive_issue_impact_change(crashlytics_issue)
-      expect(result).to be true
+      service.receive_issue_impact_change(crashlytics_issue)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'creates a new Github issue on an enterprise account if api_endpoint is provided' do
-      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'))
+      service = Service::GitHub.new(config.merge(:api_endpoint => 'https://github.fabric.io/api/v3/'), logger_function)
 
       stub_request(:post, 'https://github.fabric.io/api/v3/repos/crashlytics/sample-project/issues').
         to_return(successful_creation_response)
 
-      result = service.receive_issue_impact_change(crashlytics_issue)
-      expect(result).to be true
+      service.receive_issue_impact_change(crashlytics_issue)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'raises if creating a new GitHub issue fails' do

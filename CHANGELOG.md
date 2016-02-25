@@ -1,4 +1,8 @@
 =======
+4.1.0
+------
+- Clarify how we escalate errors to the UI.
+
 4.0.0
 ------
 - Simplify signatures that need to be implemented by service subclasses.

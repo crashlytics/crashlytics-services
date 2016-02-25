@@ -15,13 +15,14 @@ describe Service::Asana do
   end
 
   context 'with service' do
+    let(:logger) { double('fake-logger', :log => nil) }
     let(:config) do
       {
         :api_key => 'key',
         :project_id => 'project_id_foo'
       }
     end
-    let(:service) { Service::Asana.new(config) }
+    let(:service) { Service::Asana.new(config, lambda { |message| logger.log message }) }
     let(:issue) do
       {
         :title => 'foo title',
@@ -54,14 +55,16 @@ describe Service::Asana do
         expect(service).to receive(:find_project).
           with(config[:api_key], 'project_id_foo').
           and_return(double(:id => 'project_id_foo'))
-        response = service.receive_verification
-        expect(response).to eq([true, 'Successfully verified Asana settings!'])
+        service.receive_verification
+        expect(logger).to have_received(:log).with('verification successful')
       end
 
       it 'should fail if API call raises an exception' do
-        expect(service).to receive(:find_project).and_raise
-        response = service.receive_verification
-        expect(response.first).to eq(false)
+        expect(service).to receive(:find_project).and_raise('fake-exception')
+        expect {
+          service.receive_verification
+        }.to raise_error(Service::DisplayableError, 'Oops! Encountered an error. Please check your settings.')
+        expect(logger).to have_received(:log).with('verification failed: fake-exception')
       end
     end
 
@@ -84,16 +87,18 @@ describe Service::Asana do
         expect(project).to receive(:workspace).and_return workspace
         expect(workspace).to receive(:create_task).with(expected_task_options).and_return task
 
-        response = service.receive_issue_impact_change issue
-        expect(response).to be true
+        service.receive_issue_impact_change issue
+        expect(logger).to have_received(:log).with('issue_impact_change successful')
       end
 
       it 'should raise if creating a new Asana task fails' do
         expect(service).to receive(:find_project).with(config[:api_key], project_id).and_return project
         expect(project).to receive(:workspace).and_return workspace
-        expect(workspace).to receive(:create_task).with(expected_task_options).and_raise('fake')
+        expect(workspace).to receive(:create_task).with(expected_task_options) { double(:id => nil) }
 
-        expect { service.receive_issue_impact_change issue }.to raise_error(RuntimeError, /fake/)
+        expect {
+          service.receive_issue_impact_change issue
+        }.to raise_error(Service::DisplayableError, /Asana task creation failed/)
       end
     end
   end

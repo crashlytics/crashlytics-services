@@ -14,4 +14,17 @@ describe Service::Base do
       expect(Service.services['fake']).to eq(Service::Fake)
     end
   end
+
+  describe '#display_error' do
+    it 'escalates a user readable exception' do
+      logger = double('fake-logger', :log => nil)
+      service = Service::Fake.new({}, lambda { |message| logger.log(message)})
+
+      expect {
+        service.display_error('Oh no!')
+      }.to raise_error(Service::DisplayableError, 'Oh no!')
+
+      expect(logger).to have_received(:log).with('Oh no!')
+    end
+  end
 end

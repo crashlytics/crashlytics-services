@@ -15,11 +15,11 @@ class Service::Asana < Service::Base
 
   def receive_verification
     begin
-      project = find_project config[:api_key], config[:project_id]
-      [true,  'Successfully verified Asana settings!']
+      find_project config[:api_key], config[:project_id]
+      log('verification successful')
     rescue => e
-      log "Rescued a verification error in Asana: #{e}"
-      [false, 'Oops! Encountered an error. Please check your settings.']
+      log "verification failed: #{e}"
+      display_error('Oops! Encountered an error. Please check your settings.')
     end
   end
 
@@ -32,8 +32,11 @@ class Service::Asana < Service::Base
 
     project = find_project config[:api_key], config[:project_id]
     task = project.workspace.create_task task_options
-    raise "Asana Task creation failed: #{task}" unless task.id
-    true
+    if task.id
+      log('issue_impact_change successful')
+    else
+      display_error('Asana task creation failed')
+    end
   end
 
   private

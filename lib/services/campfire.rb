@@ -30,23 +30,20 @@ class Service::Campfire < Service::Base
 
     resp = room.speak(message)
     unless resp.is_a?(Hash) && resp.message
-      raise "Campfire Message Post Failed: #{(resp.map {|e| e.join(' ') }).join(', ')}"
+      display_error("Campfire Message Post Failed")
     end
-    true
+    log('issue_impact_change successful')
   end
 
   def receive_verification
     room = find_campfire_room(config)
     if room.nil?
-      [false, "Oops! Can not find #{config[:room]} room. Please check your settings."]
+      display_error("Oops! Can not find #{config[:room]} room. Please check your settings.")
     elsif room.name == config[:room]
-      [true,  "Successfully verified Campfire settings"]
+      log('verification successful')
     end
-    rescue ::Tinder::AuthenticationFailed => e
-      [false, 'Oops! Is your API token correct?']
-    rescue => e
-      log "Rescued a verification error in campfire: #{e}"
-      [false, "Oops! Encountered an unexpected error (#{e}). Please check your settings."]
+  rescue ::Tinder::AuthenticationFailed => e
+    display_error('Oops! Is your API token correct?')
   end
 
   private

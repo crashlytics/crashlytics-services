@@ -11,7 +11,8 @@ describe Service::Trello do
   let(:board) { double('Trello::Board', lists: lists) }
   let(:list) { double('Trello::List', id: 'abc123', name: 'Crashes') }
   let(:lists) { [list] }
-  let(:service) { described_class.new(config) }
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:service) { described_class.new(config, lambda { |message| logger.log(message) }) }
   let(:client) { double 'Trello::Client' }
 
   before do
@@ -33,8 +34,6 @@ describe Service::Trello do
   end
 
   describe '#receive_verification' do
-    subject(:receive_verification) { service.receive_verification }
-
     before do
       expect(client).to receive(:find).with(:boards, 'aWXeu09f') do
         case find_result
@@ -54,7 +53,8 @@ describe Service::Trello do
       let(:find_result) { :board_with_list }
 
       it 'sets success flag to true' do
-        expect(receive_verification.first).to be true
+        service.receive_verification
+        expect(logger).to have_received(:log).with('verification successful')
       end
     end
 
@@ -62,12 +62,10 @@ describe Service::Trello do
       context 'board not found' do
         let(:find_result) { :board_not_found }
 
-        it 'sets success flag to false' do
-          expect(receive_verification.first).to be false
-        end
-
-        it 'sets failure message' do
-          expect(receive_verification.last).to include "not found"
+        it 'displays an error' do
+          expect {
+            service.receive_verification
+          }.to raise_error(Service::DisplayableError, 'Board aWXeu09f was not found')
         end
       end
 
@@ -75,36 +73,31 @@ describe Service::Trello do
         let(:lists) { [] }
         let(:find_result) { :board_with_list }
 
-        it 'sets success flag to false' do
-          expect(receive_verification.first).to be false
+        it 'displays an error' do
+          expect {
+            service.receive_verification
+          }.to raise_error(Service::DisplayableError, 'Unable to find list Crashes in board aWXeu09f')
         end
 
-        it 'sets failure message' do
-          expect(receive_verification.last).to include "Unable to find list"
-        end
       end
 
       context 'invalid key' do
         let(:find_result) { :invalid_key }
 
-        it 'sets success flag to false' do
-          expect(receive_verification.first).to be false
-        end
-
-        it 'sets failure message' do
-          expect(receive_verification.last).to include "trello_key is invalid"
+        it 'displays an error' do
+          expect {
+            service.receive_verification
+          }.to raise_error(Service::DisplayableError, 'Key trello_key is invalid')
         end
       end
 
       context 'invalid token' do
         let(:find_result) { :invalid_token }
 
-        it 'sets success flag to false' do
-          expect(receive_verification.first).to be false
-        end
-
-        it 'sets failure message' do
-          expect(receive_verification.last).to include "trello_token is invalid"
+        it 'displays an error' do
+          expect {
+            service.receive_verification
+          }.to raise_error(Service::DisplayableError, 'Token trello_token is invalid')
         end
       end
     end
@@ -138,15 +131,14 @@ EOT
         'desc'   => expected_card_description }
     end
 
-    subject { service.receive_issue_impact_change(crashlytics_issue) }
-
     context 'success' do
       let(:card) { double 'Trello::Card', id: 'card123' }
 
       before { expect(client).to receive(:create).with(:card, card_params).and_return card }
 
       it 'returns a hash containing created card id' do
-        expect(subject).to be true
+        service.receive_issue_impact_change(crashlytics_issue)
+        expect(logger).to have_received(:log).with('issue_impact_change successful')
       end
     end
 
@@ -154,7 +146,9 @@ EOT
       before { expect(client).to receive(:create).with(:card, card_params).and_raise Trello::Error }
 
       it 'raises an error' do
-        expect { subject }.to raise_error Trello::Error
+        expect {
+          service.receive_issue_impact_change(crashlytics_issue)
+        }.to raise_error Trello::Error
       end
     end
   end

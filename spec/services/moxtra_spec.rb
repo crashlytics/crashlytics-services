@@ -2,8 +2,11 @@ require 'spec_helper'
 
 describe Service::Moxtra do
   before do
+    @logger = double('fake-logger', :log => nil)
+    @config = { :url => 'https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA' }
     @service = Service::Moxtra.new(
-      :url => 'https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA')
+      @config,
+      lambda { |message| @logger.log(message) })
   end
 
   it 'has a title' do
@@ -28,8 +31,8 @@ describe Service::Moxtra do
         .with('https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA')
         .and_return(test.post('/'))
 
-      resp = @service.receive_verification
-      expect(resp).to eq([true,  "Successfully sent a message to Moxtra binder"])
+      @service.receive_verification
+      expect(@logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -43,8 +46,9 @@ describe Service::Moxtra do
         .with('https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA')
         .and_return(test.post('/'))
 
-      resp = @service.receive_verification
-      expect(resp).to eq([false, "Could not send a message to Moxtra binder"])
+      expect {
+        @service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Could not send a message to Moxtra binder')
     end
   end
 
@@ -73,8 +77,8 @@ describe Service::Moxtra do
         .with('https://api.moxtra.com/webhooks/CAEqBTAvMWdpehdCcW96c1Y0QVEwNjh6ZkZ6VHZPTkFqMIABBpADFA')
         .and_return(test.post('/'))
 
-      resp = @service.receive_issue_impact_change(@payload)
-      expect(resp).to be true
+      @service.receive_issue_impact_change(@payload)
+      expect(@logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail with extra information upon unsuccessful api response' do
@@ -90,7 +94,7 @@ describe Service::Moxtra do
 
       expect {
         @service.receive_issue_impact_change(@payload)
-      }.to raise_error(/Moxtra WebHook issue create failed - HTTP status code: 500/)
+      }.to raise_error(Service::DisplayableError, 'Moxtra WebHook issue create failed - HTTP status code: 500')
     end
   end
 end

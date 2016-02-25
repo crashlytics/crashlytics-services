@@ -3,6 +3,7 @@ require 'timeout'
 require 'service/attributes'
 require 'service/http'
 require 'service/schema'
+require 'service/displayable_error'
 
 module Service
   class Base
@@ -52,6 +53,14 @@ module Service
     # Logs a message.
     def log(msg)
       @logger.call msg
+    end
+
+    # raise an exception that will be displayed to the UI
+    # preferred over allowing uncaught exceptions which will just be
+    # rolled up into a generic error message
+    def display_error(message)
+      log(message)
+      raise Service::DisplayableError.new(message)
     end
 
     # Public: Gets the configuration data for this Service instance.

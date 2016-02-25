@@ -43,9 +43,9 @@ class Service::Redmine < Service::Base
       req.body                    = post_body.to_json
     end
     unless resp.status == 201 # created
-      raise "Redmine Issue Create Failed - #{error_response_details(resp)}"
+      display_error("Redmine Issue Create Failed - #{error_response_details(resp)}")
     end
-    true
+    log('issue_impact_change successful')
   end
 
   def receive_verification
@@ -56,13 +56,10 @@ class Service::Redmine < Service::Base
     resp = http_get path, :key   => config[:api_key], :project_id => parsed[:project_id],
                           :limit => 1
     if resp.status == 200
-      [true,  "Successfully verified Redmine settings"]
+      log('verification successful')
     else
-      [false, "Unexpected response from Redmine - #{error_response_details(resp)}"]
+      display_error("Unexpected response from Redmine - #{error_response_details(resp)}")
     end
-  rescue => e
-    log "Rescued a verification error in redmine: (url=#{config[:project_url]}) #{e}"
-    [false, "Oops! Is your project url correct?"]
   end
 
   private

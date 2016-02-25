@@ -14,9 +14,9 @@ class Service::GitLab < Service::Base
     end
 
     if resp.success?
-      [true, "Successfully accessed project #{config[:project]}."]
+      log('verification successful')
     else
-      [false, "Could not access project #{config[:project]} - #{error_response_details(resp)}"]
+      display_error("Could not access project #{config[:project]} - #{error_response_details(resp)}")
     end
   end
 
@@ -29,10 +29,10 @@ class Service::GitLab < Service::Base
     )
 
     if response.status != 201
-      raise "GitLab issue creation failed - #{error_response_details(response)}"
+      display_error "GitLab issue creation failed - #{error_response_details(response)}"
     end
 
-    true
+    log('issue_impact_change successful')
   end
 
   private

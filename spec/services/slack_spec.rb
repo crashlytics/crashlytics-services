@@ -10,7 +10,8 @@ describe Service::Slack do
     }
   end
 
-  let(:service) { Service::Slack.new(config) }
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:service) { Service::Slack.new(config, lambda { |message| logger.log(message) }) }
 
   it 'has a title' do
     expect(Service::Slack.title).to eq('Slack')
@@ -25,20 +26,34 @@ describe Service::Slack do
   end
 
   describe '#receive_verification' do
-    it :success do
-      expect(service).to receive(:verification_message)
-      expect(service).to receive(:send_message) { double(:code => '200') }
-
-      success, message = service.receive_verification
-      expect(success).to be true
+    let(:slack_client) { double(Slack::Notifier) }
+    let(:verification_message) do
+      "Boom! Crashlytics issue change notifications have been added.  " +
+        "<http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly" +
+        "|Click here for more info>."
     end
 
-    it :failure do
-      expect(service).to receive(:verification_message)
-      expect(service).to receive(:send_message) { double(:code => '500') }
+    before do
+      allow(Slack::Notifier).to receive(:new)
+          .with(config[:url], {:channel=>"mychannel", :username=>"crashuser"})
+          .and_return(slack_client)
+    end
 
-      success, message = service.receive_verification
-      expect(success).to be false
+    it 'treats 200 response as success' do
+      fake_response = double(Net::HTTPResponse, :code => '200', :body => 'foo')
+      allow(slack_client).to receive(:ping).with(verification_message, {}).and_return(fake_response)
+
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
+    end
+
+    it 'treats non-200 response as a failure by displaying an error message' do
+      fake_response = double(Net::HTTPResponse, :code => '404', :body => 'foo')
+      allow(slack_client).to receive(:ping).with(verification_message, {}).and_return(fake_response)
+
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Unexpected response from Slack - HTTP status code: 404')
     end
   end
 
@@ -60,7 +75,8 @@ describe Service::Slack do
         with('<url|name> crashed 1 times in method!',
           :attachments => [expected_attachment]).and_return(fake_response)
 
-      expect(service.receive_issue_impact_change(payload)).to be true
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'bubbles up errors from Slack' do
@@ -72,42 +88,7 @@ describe Service::Slack do
 
       expect {
         service.receive_issue_impact_change(payload)
-      }.to raise_error(/Unexpected response from Slack - HTTP status code: 404/)
-    end
-  end
-
-  describe '#send_message' do
-    let(:slack_client) { double(Slack::Notifier) }
-    let(:verification_message) do
-      "Boom! Crashlytics issue change notifications have been added.  " +
-        "<http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly" +
-        "|Click here for more info>."
-    end
-
-    before do
-      allow(Slack::Notifier).to receive(:new)
-          .with(config[:url], {:channel=>"mychannel", :username=>"crashuser"})
-          .and_return(slack_client)
-    end
-
-    it 'treats 200 response as success by returning true and a message' do
-      fake_response = double(Net::HTTPResponse, :code => '200', :body => 'foo')
-      allow(slack_client).to receive(:ping).with(verification_message, {}).and_return(fake_response)
-
-      success, message = service.receive_verification
-
-      expect(success).to be true
-      expect(message).to eq('Successfully sent a message to channel mychannel')
-    end
-
-    it 'treats non-200 response as a failure by returning false and an error message' do
-      fake_response = double(Net::HTTPResponse, :code => '404', :body => 'foo')
-      allow(slack_client).to receive(:ping).with(verification_message, {}).and_return(fake_response)
-
-      success, message = service.receive_verification
-
-      expect(success).to be false
-      expect(message).to eq('Unexpected response from Slack - HTTP status code: 404')
+      }.to raise_error(Service::DisplayableError, 'Unexpected response from Slack - HTTP status code: 404')
     end
   end
 end

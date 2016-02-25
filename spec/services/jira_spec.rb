@@ -2,7 +2,14 @@ require 'spec_helper'
 require 'webmock/rspec'
 
 describe Service::Jira do
-  let(:service) { Service::Jira.new(:project_url => 'https://example.com/browse/project_key') }
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:logger_function) { lambda { |message| logger.log(message) }}
+  let(:config) do
+    { :project_url => 'https://example.com/browse/project_key' }
+  end
+  let(:service) do
+    Service::Jira.new(config, logger_function)
+  end
 
   it 'has a title' do
     expect(Service::Jira.title).to eq('Jira')
@@ -22,18 +29,17 @@ describe Service::Jira do
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
          to_return(:status => 200)
 
-      success, message = service.receive_verification
-      expect(success).to be true
-      expect(message).to match(/Successfully verified Jira settings/)
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
          to_return(:status => 500)
 
-      success, message = service.receive_verification
-      expect(success).to be false
-      expect(message).to match(/Unexpected HTTP response/)
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, /Unexpected HTTP response/)
     end
   end
 
@@ -73,14 +79,14 @@ describe Service::Jira do
          with(:body => /\"issuetype\":{\"name\":\"Bug\"}}/).
          to_return(:status => 201, :body => '{"id":"foo"}')
 
-      resp = service.receive_issue_impact_change(payload)
-      expect(resp).to be true
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'sends custom issuetype name if provided' do
-      service = Service::Jira.new(
+      service = Service::Jira.new({
         :project_url => 'https://example.com/browse/project_key',
-        :issue_type => 'Crash')
+        :issue_type => 'Crash'}, logger_function)
 
       stub_request(:get, "https://example.com/rest/api/2/project/project_key").
          to_return(:status => 200, :body => '{"id":12345}')
@@ -89,8 +95,8 @@ describe Service::Jira do
          with(:body => /\"issuetype\":{\"name\":\"Crash\"}}/).
          to_return(:status => 201, :body => '{"id":"foo"}')
 
-      resp = service.receive_issue_impact_change(payload)
-      expect(resp).to be true
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should succeed upon successful api response' do
@@ -100,8 +106,8 @@ describe Service::Jira do
       stub_request(:post, "https://example.com/rest/api/2/issue").
          to_return(:status => 201, :body => '{"id":"foo"}')
 
-      resp = service.receive_issue_impact_change(payload)
-      expect(resp).to be true
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'escalates error details if they are provided in the response body' do
@@ -113,7 +119,7 @@ describe Service::Jira do
 
       expect {
         service.receive_issue_impact_change(payload)
-      }.to raise_error(/error_details/)
+      }.to raise_error(Service::DisplayableError, /error_details/)
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -125,7 +131,7 @@ describe Service::Jira do
 
       expect {
         service.receive_issue_impact_change(payload)
-      }.to raise_error(/Jira Issue Create Failed/)
+      }.to raise_error(Service::DisplayableError, /Jira Issue Create Failed/)
     end
   end
 

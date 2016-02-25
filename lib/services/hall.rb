@@ -10,24 +10,19 @@ class Service::Hall < Service::Base
   def receive_issue_impact_change(payload)
     response = send_hall_message(config, payload)
     if successful_response?(response)
-      true
+      log('issue_impact_change successful')
     else
-      raise "Failed to send Hall message - #{error_response_details(response)}"
+      display_error "Failed to send Hall message - #{error_response_details(response)}"
     end
   end
 
   def receive_verification
-    success = [true,  "Successfully verified Group API Token"]
-    failure = [false, "Oops! Please check your Group API Token."]
     response = verify_hall_service(config)
     if successful_response?(response)
-      success
+      log('verification successful')
     else
-      failure
+      display_error('Oops! Please check your Group API Token.')
     end
-  rescue => e
-    log "Rescued a verification error in Hall for Group API Token: '#{config[:group_token]}' #{e}"
-    failure
   end
 
   private
