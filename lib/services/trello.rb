@@ -1,10 +1,8 @@
-require 'trello'
-
 class Service::Trello < Service::Base
   title 'Trello'
 
   string :board, placeholder: 'Board ID',
-    label: 
+    label:
       'Your Trello board id:' \
       '<br />' \
       'Example: 4d5ea62fd76aa1136000000c (Trello Development board)'
@@ -25,16 +23,12 @@ Grant access to your account by pressing the Allow button. Paste the returned to
 EOT
 
   def receive_verification
-    find_list config
+    find_list
     log('verification successful')
-  rescue Trello::Error => e
-    display_error(failure_message(config, e))
   end
 
   def receive_issue_impact_change(issue)
-    list = find_list config
-    client = trello_client(config[:key], config[:token])
-    client.create :card, card_params(issue).merge('idList' => list.id)
+    create_card(issue)
     log('issue_impact_change successful')
   end
 
@@ -57,24 +51,62 @@ There's a lot more information about this crash on crashlytics.com:
 EOT
   end
 
-  def trello_client(key, token)
-    Trello::Client.new developer_public_key: key, member_token: token
-  end
-
-  def failure_message(config, e)
-    if e.message =~ /invalid token/
+  def failure_message(response_body)
+    if response_body =~ /invalid token/
       "Token #{config[:token]} is invalid"
-    elsif e.message =~ /invalid key/
+    elsif response_body =~ /invalid key/
       "Key #{config[:key]} is invalid"
-    elsif e.message =~ /invalid list/
-      "Unable to find list #{config[:list]} in board #{config[:board]}"
     else
       "Board #{config[:board]} was not found"
     end
   end
 
-  def find_list(config)
-    board = trello_client(config[:key], config[:token]).find :boards, config[:board]
-    board.lists.find { |list| list.name == config[:list] } || fail(Trello::Error, 'invalid list')
+  def find_board
+    response = http_get "https://api.trello.com/1/boards/#{config[:board]}", auth_params
+
+    if response.success?
+      JSON.parse(response.body)
+    else
+      display_error(failure_message(response.body))
+    end
+  end
+
+  def find_list
+    board_id = find_board['id']
+    response = http_get "https://api.trello.com/1/boards/#{board_id}/lists", auth_params.merge(:filter => 'open')
+
+    if response.success?
+      lists = JSON.parse(response.body)
+      list = lists.find { |list| list['name'] == config[:list] } || display_missing_list_error
+    else
+      display_error(failure_message(response.body))
+    end
+  end
+
+  def display_missing_list_error
+    display_error("List #{config[:list]} not found in board #{config[:board]}")
+  end
+
+  def create_card(issue)
+    list = find_list
+
+    response = http_post "https://api.trello.com/1/cards?key=#{config[:key]}&token=#{config[:token]}", auth_params do |req|
+      req.params.merge(auth_params)
+      req.body = {
+        :desc => card_description(issue),
+        :idList => list['id'],
+        :name => issue[:title]
+      }
+    end
+
+    if response.success?
+      # no-op
+    else
+      display_error("Unexpected error while creating a card - #{error_response_details(response)}")
+    end
+  end
+
+  def auth_params
+    { :key => config[:key], :token => config[:token] }
   end
 end
