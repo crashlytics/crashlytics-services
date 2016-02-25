@@ -52,12 +52,12 @@ class Service::Jira < Service::Base
     # The Jira client raises an HTTPError if the response is not of the type Net::HTTPSuccess
     issue = client.Issue.build
     if issue.save(post_body)
-      true
+      log 'issue_impact_change successful'
     else
-      raise "Jira Issue Create Failed - Errors are: #{issue.respond_to?(:errors) ? issue.errors : {}}"
+      display_error "Jira Issue Create Failed - Errors are: #{issue.respond_to?(:errors) ? issue.errors : {}}"
     end
   rescue JIRA::HTTPError => e
-    raise "Jira Issue Create Failed - #{error_details(e)}"
+    display_error "Jira Issue Create Failed - #{error_details(e)}"
   end
 
   def receive_verification
@@ -65,11 +65,9 @@ class Service::Jira < Service::Base
     client = jira_client(config, url_components[:context_path])
 
     resp = client.Project.find(url_components[:project_key])
-    [true,  'Successfully verified Jira settings']
+    log 'verification successful'
   rescue JIRA::HTTPError => e
-    error_message = "Unexpected HTTP response from Jira - #{error_details(e)}"
-    log error_message
-    [false, error_message]
+    display_error "Unexpected HTTP response from Jira - #{error_details(e)}"
   end
 
   def error_details(error)

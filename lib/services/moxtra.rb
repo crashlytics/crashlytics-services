@@ -8,24 +8,19 @@ class Service::Moxtra < Service::Base
   def receive_issue_impact_change(payload)
     response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
     if successful_response?(response)
-      true
+      log('issue_impact_change successful')
     else
-      raise "Moxtra WebHook issue create failed - #{error_response_details(response)}"
+      display_error("Moxtra WebHook issue create failed - #{error_response_details(response)}")
     end
   end
 
   def receive_verification
-    success = [true,  "Successfully sent a message to Moxtra binder"]
-    failure = [false, "Could not send a message to Moxtra binder"]
     response = post_event(config[:url], 'verification', 'none', nil)
     if successful_response?(response)
-      success
+      log('verification successful')
     else
-      failure
+      display_error('Could not send a message to Moxtra binder')
     end
-  rescue => e
-    log "Received a verification error in Moxtra: (url=#{config[:url]}) #{e}"
-    failure
   end
 
   private

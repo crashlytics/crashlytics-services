@@ -26,8 +26,8 @@ describe Service::YouTrack do
         :password => 'password'
     }
   end
-
-  let(:service) { described_class.new(config) }
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:service) { described_class.new(config, lambda { |message| logger.log(message) }) }
 
   def stub_successful_login_for(config)
     stub_request(:post, "#{config[:base_url]}/rest/user/login")
@@ -88,32 +88,25 @@ describe Service::YouTrack do
       stub_successful_login_for(config)
       stub_successful_project_check_for(config)
 
-      response = service.receive_verification
-      expect(response).to eq([true, 'Successfully connected to your YouTrack project!'])
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail if login is successful but project does not exist' do
       stub_successful_login_for(config)
       stub_failed_project_check_for(config)
 
-      response = service.receive_verification
-      expect(response).to eq([false, "Oops! We couldn't access YouTrack project: foo_project_id"])
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, "Oops! We couldn't access YouTrack project: foo_project_id")
     end
 
     it 'should fail if login fails' do
       stub_failed_login_for(config)
 
-      response = service.receive_verification
-      expect(response).to eq([false, 'YouTrack login failed - HTTP status code: 500'])
-    end
-
-    it 'should fail on unhandled exception checking for project existence' do
-      stub_successful_login_for(config)
-
-      allow(service).to receive(:project_exists?).and_raise("unhandled error")
-
-      response = service.receive_verification
-      expect(response).to eq([false, "Oops! We couldn't access YouTrack project: foo_project_id"])
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'YouTrack login failed - HTTP status code: 500')
     end
   end
 
@@ -132,7 +125,7 @@ describe Service::YouTrack do
         }).to_return(:status => 201, :body => {}.to_json, :headers => { 'Location' => 'foo_youtrack_issue_url' })
 
       response = service.receive_issue_impact_change(issue_payload)
-      expect(response).to be true
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail if login is successful but PUT fails' do
@@ -148,12 +141,16 @@ describe Service::YouTrack do
           }
         }).to_return(:status => 500, :body => {}.to_json)
 
-      expect { service.receive_issue_impact_change(issue_payload) }.to raise_exception(/issue creation failed/)
+      expect {
+        service.receive_issue_impact_change(issue_payload)
+      }.to raise_error(Service::DisplayableError, 'YouTrack issue creation failed - HTTP status code: 500')
     end
 
     it 'should fail if login fails' do
       stub_failed_login_for(config)
-      expect { service.receive_issue_impact_change(issue_payload) }.to raise_exception(/YouTrack login failed - HTTP status code: 500/)
+      expect {
+        service.receive_issue_impact_change(issue_payload)
+      }.to raise_error(Service::DisplayableError, 'YouTrack login failed - HTTP status code: 500')
     end
   end
 

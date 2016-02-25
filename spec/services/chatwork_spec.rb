@@ -7,8 +7,8 @@ describe Service::ChatWork do
       :room => 'ROOM_ID'
     }
   end
-
-  let(:service) { Service::ChatWork.new(config) }
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:service) { Service::ChatWork.new(config, lambda { |message| logger.log(message) }) }
 
   it 'has a title' do
     expect(Service::ChatWork.title).to eq('ChatWork')
@@ -25,15 +25,26 @@ describe Service::ChatWork do
     it 'should succeed upon successful api response' do
       expect(service).to receive(:verification_message)
       expect(service).to receive(:send_message)
-      success, message = service.receive_verification
-      expect(success).to be true
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
+      test = Faraday.new do |builder|
+        builder.adapter :test do |stub|
+          stub.post("v1/rooms/#{config[:room]}/messages") { [500, {}, ''] }
+        end
+      end
+
+      expect(service).to receive(:http_post)
+        .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
+        .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
+
       expect(service).to receive(:verification_message)
-      expect(service).to receive(:send_message).and_raise
-      success, message = service.receive_verification
-      expect(success).to be false
+
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Could not send a message to room - HTTP status code: 500')
     end
   end
 
@@ -66,8 +77,8 @@ describe Service::ChatWork do
         .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
         .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
 
-      resp = service.receive_issue_impact_change(payload)
-      expect(resp).to be true
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -81,7 +92,9 @@ describe Service::ChatWork do
         .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
         .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
 
-      expect { service.receive_issue_impact_change(payload) }.to raise_error(/Could not send a message to room/)
+      expect {
+        service.receive_issue_impact_change(payload)
+      }.to raise_error(Service::DisplayableError, 'Could not send a message to room - HTTP status code: 500')
     end
   end
 end

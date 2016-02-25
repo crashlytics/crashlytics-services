@@ -8,19 +8,18 @@ class Service::Pagerduty < Service::Base
   def receive_issue_impact_change(payload)
     resp = post_event('issue_impact_change', 'issue', payload)
     if resp.success?
-      true
+      log('issue_impact_change successful')
     else
-      raise "Pagerduty issue impact change failed - #{error_response_details(resp)}"
+      display_error("Pagerduty issue impact change failed - #{error_response_details(resp)}")
     end
   end
 
   def receive_verification
     resp = post_event('verification', 'none', nil)
     if resp.success?
-      [true,  'Successfully verified Pagerduty settings']
+      log('verification successful')
     else
-      log "Receive verification failed - #{error_response_details(resp)}"
-      [false, 'Oops! Please check your API key again.']
+      display_error("Pagerduty verification failed - #{error_response_details(resp)}")
     end
   end
 

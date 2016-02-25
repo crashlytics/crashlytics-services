@@ -7,7 +7,8 @@ describe Service::Campfire do
                 :room => "crashlytics-test",
                 :api_token => "376136523ffbc6b82c289b5831681db8c1835e65" }
 
-    @service = Service::Campfire.new(@config)
+    @logger = double('fake-logger', :log => nil)
+    @service = Service::Campfire.new(@config, lambda { |message| @logger.log message })
   end
 
   it 'has a title' do
@@ -40,15 +41,16 @@ describe Service::Campfire do
     it 'should succeed upon successful api response' do
       expect(@service).to receive(:find_campfire_room).with(@config).and_return(double(:name => @config[:room]))
 
-      resp = @service.receive_verification
-      expect(resp).to eq([true, 'Successfully verified Campfire settings'])
+      @service.receive_verification
+      expect(@logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
       expect(@service).to receive(:find_campfire_room).with(@config).and_return(nil)
 
-      resp = @service.receive_verification
-      expect(resp).to eq([false, "Oops! Can not find #{@config[:room]} room. Please check your settings."])
+      expect {
+        @service.receive_verification
+      }.to raise_error(Service::DisplayableError, "Oops! Can not find #{@config[:room]} room. Please check your settings.")
     end
   end
 
@@ -72,13 +74,15 @@ describe Service::Campfire do
 
     it 'should succeed upon successful api response' do
       expect(@room).to receive(:speak).and_return(Hashie::Mash.new(:message => { :id => 766665427 }))
-      resp = @service.receive_issue_impact_change(@payload)
-      expect(resp).to be true
+      @service.receive_issue_impact_change(@payload)
+      expect(@logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail upon unsuccessful api response' do
       expect(@room).to receive(:speak).and_return(Hashie::Mash.new)
-      expect { @service.receive_issue_impact_change(@payload) }.to raise_error(/Campfire Message Post Failed/)
+      expect {
+        @service.receive_issue_impact_change(@payload)
+      }.to raise_error(Service::DisplayableError, 'Campfire Message Post Failed')
     end
   end
 end

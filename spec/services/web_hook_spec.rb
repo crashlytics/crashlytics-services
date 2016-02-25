@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'webmock/rspec'
 
 describe Service::WebHook do
   before do
@@ -15,23 +16,28 @@ describe Service::WebHook do
     it { is_expected.to include_string_field :url }
   end
 
-  let(:service) { Service::WebHook.new(:url => 'https://example.org') }
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:config) do
+    { :url => 'https://example.org' }
+  end
+  let(:service) { Service::WebHook.new(config, lambda { |message| logger.log(message) }) }
 
   describe 'receive_verification' do
     it 'should succeed upon successful api response' do
       stub_request(:post, 'https://example.org?verification=1').
         to_return(:status => 200, :body => 'fake_body')
 
-      resp = service.receive_verification
-      expect(resp).to eq([true,  'Successfully verified Web Hook settings'])
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
       stub_request(:post, 'https://example.org?verification=1').
         to_return(:status => 500, :body => 'fake_body')
 
-      resp = service.receive_verification
-      expect(resp).to eq([false, "Oops! Please check your settings again."])
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'WebHook verification failed - HTTP status code: 500')
     end
   end
 
@@ -53,8 +59,8 @@ describe Service::WebHook do
       stub_request(:post, 'https://example.org').
         to_return(:status => 201, :body => 'fake_body')
 
-      resp = service.receive_issue_impact_change(payload)
-      expect(resp).to be true
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail with extra information upon unsuccessful api response' do
@@ -63,16 +69,7 @@ describe Service::WebHook do
 
       expect {
         service.receive_issue_impact_change(payload)
-      }.to raise_error('WebHook issue create failed - HTTP status code: 500')
-    end
-
-    it 'suppresses the body of a failed api response if it appears to be an HTML document' do
-      stub_request(:post, 'https://example.org').
-        to_return(:status => 500, :body => '<!DOCTYPE html><html><body>Stuff</body></html>')
-
-      expect {
-        service.receive_issue_impact_change(payload)
-      }.to raise_error('WebHook issue create failed - HTTP status code: 500')
+      }.to raise_error(Service::DisplayableError, 'WebHook issue create failed - HTTP status code: 500')
     end
   end
 end

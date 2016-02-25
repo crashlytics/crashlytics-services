@@ -17,19 +17,19 @@ class Service::GitHub < Service::Base
 
   def receive_verification
     verify_repo_exists(config)
-    [true, "Successfully accessed repo #{config[:repo]}."]
+    log('verification successful')
   rescue => e
     log "Rescued a verification error in GitHub for repo #{config[:repo]}: #{e}"
-    [false, "Could not access repository for #{config[:repo]}."]
+    display_error("Could not access repository for #{config[:repo]}.")
   end
 
   def receive_issue_impact_change(issue)
     response = create_github_issue(config, issue)
 
     if response.status == STATUS_CODE_CREATED
-      true
+      log 'issue_impact_change successful'
     else
-      raise "GitHub issue creation failed - #{error_response_details(response)}"
+      display_error("GitHub issue creation failed - #{error_response_details(response)}")
     end
   end
 

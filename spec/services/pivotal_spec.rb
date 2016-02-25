@@ -2,7 +2,9 @@ require 'spec_helper'
 
 describe Service::Pivotal do
   before do
-    @service = Service::Pivotal.new(:project_url => 'https://www.pivotaltracker.com/s/projects/foo_project')
+    @logger = double('fake-logger', :log => nil)
+    @config = { :project_url => 'https://www.pivotaltracker.com/s/projects/foo_project' }
+    @service = Service::Pivotal.new(@config, lambda { |message| @logger.log(message) })
   end
 
   it 'has a title' do
@@ -29,8 +31,8 @@ describe Service::Pivotal do
         .with('https://www.pivotaltracker.com/services/v3/projects/foo_project')
         .and_return(test.get('/services/v3/projects/foo_project'))
 
-      resp = @service.receive_verification
-      expect(resp).to eq([true,  "Successfully verified Pivotal settings"])
+      @service.receive_verification
+      expect(@logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -44,8 +46,9 @@ describe Service::Pivotal do
         .with('https://www.pivotaltracker.com/services/v3/projects/foo_project')
         .and_return(test.get('/services/v3/projects/foo_project'))
 
-      resp = @service.receive_verification
-      expect(resp).to eq([false, "Oops! Please check your settings again."])
+      expect {
+        @service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Verification failure - HTTP status code: 500')
     end
   end
 
@@ -75,8 +78,8 @@ describe Service::Pivotal do
         .with('https://www.pivotaltracker.com/services/v3/projects/foo_project/stories')
         .and_return(test.post('/services/v3/projects/foo_project/stories'))
 
-      resp = @service.receive_issue_impact_change(@payload)
-      expect(resp).to be true
+      @service.receive_issue_impact_change(@payload)
+      expect(@logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail upon unsuccessful api response' do
@@ -90,7 +93,9 @@ describe Service::Pivotal do
         .with('https://www.pivotaltracker.com/services/v3/projects/foo_project/stories')
         .and_return(test.post('/services/v3/projects/foo_project/stories'))
 
-      expect { @service.receive_issue_impact_change(@payload) }.to raise_error(/Pivotal Issue Create/)
+      expect {
+        @service.receive_issue_impact_change(@payload)
+      }.to raise_error(Service::DisplayableError, 'Pivotal Issue Create Failed - HTTP status code: 500')
     end
   end
 
