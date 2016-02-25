@@ -1,4 +1,3 @@
-require 'slack-notifier'
 require 'json'
 
 class Service::Slack < Service::Base
@@ -13,7 +12,7 @@ class Service::Slack < Service::Base
   def receive_verification
     response = send_message(config, verification_message)
 
-    if response.code == '200'
+    if response.status == 200
       log('verification successful')
     else
       display_error(error_response_message(response))
@@ -23,7 +22,7 @@ class Service::Slack < Service::Base
   def receive_issue_impact_change(payload)
     message, options = format_issue_impact_change_message(payload)
     response = send_message(config, message, options)
-    if response.code == '200'
+    if response.status == 200
       log('issue_impact_change successful')
     else
       display_error(error_response_message(response))
@@ -33,7 +32,7 @@ class Service::Slack < Service::Base
   private
 
   def error_response_message(response)
-    "Unexpected response from Slack - HTTP status code: #{response.code}"
+    "Unexpected response from Slack - #{error_response_details(response)}"
   end
 
   def verification_message
@@ -62,8 +61,13 @@ class Service::Slack < Service::Base
     channel = config[:channel]
     username = config[:username]
 
-    client = Slack::Notifier.new url, channel: channel, username: username
-
-    client.ping(message, options)
+    http_post url do |req|
+      req.headers['Content-Type'] = 'application/json'
+      req.body = {
+        :text => message,
+        :channel => channel,
+        :username => username
+      }.merge(options).to_json
+    end
   end
 end
