@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Service::Sprintly do
+describe Service::Sprintly, :type => :service do
   let(:logger) { double('fake-logger', :log => nil) }
   let(:config) do
     { :dashboard_url => 'https://sprint.ly/product/1/'}

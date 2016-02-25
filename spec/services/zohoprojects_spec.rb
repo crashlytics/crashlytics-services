@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'webmock/rspec'
 
-describe Service::ZohoProjects do
+describe Service::ZohoProjects, :type => :service do
 
   let(:logger) { double('fake-logger', :log => nil) }
   let(:config) do

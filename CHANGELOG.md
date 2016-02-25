@@ -1,4 +1,9 @@
 =======
+4.1.1
+------
+- Fix IPv6 Blacklist
+- Prevent IP blacklisting in service specs
+
 4.1.0
 ------
 - Clarify how we escalate errors to the UI.

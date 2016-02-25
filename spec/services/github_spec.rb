@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'webmock/rspec'
 
-describe Service::GitHub do
+describe Service::GitHub, :type => :service do
   let(:config) do
     {
       :access_token => 'foo_access_token',

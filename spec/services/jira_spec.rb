@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'webmock/rspec'
 
-describe Service::Jira do
+describe Service::Jira, :type => :service do
   let(:logger) { double('fake-logger', :log => nil) }
   let(:logger_function) { lambda { |message| logger.log(message) }}
   let(:config) do

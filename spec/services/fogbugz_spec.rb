@@ -1,7 +1,7 @@
 require 'asana'
 require 'spec_helper'
 
-describe Service::FogBugz do
+describe Service::FogBugz, :type => :service do
 
   it 'has a title' do
     expect(Service::FogBugz.title).to eq('FogBugz')

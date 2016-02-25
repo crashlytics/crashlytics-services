@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Service::Bitbucket do
+describe Service::Bitbucket, :type => :service do
   let(:config) do
     {
       :username => 'user_name',

@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'webmock/rspec'
 
-describe Service::Appaloosa do
+describe Service::Appaloosa, :type => :service do
 
   let(:logger) { double('fake-logger', :log => nil) }
   let(:web_hook_url) { 'https://www.appaloosa-store.com/123-fake-store/mobile_applications/456/issues?application_token=4d9b0a249ff0b82d47ab12394edd64c202d32edb6d9c44e5993bb38a8be345ca' }

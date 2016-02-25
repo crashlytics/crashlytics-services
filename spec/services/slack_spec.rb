@@ -1,7 +1,7 @@
 require 'slack-notifier'
 require 'spec_helper'
 
-describe Service::Slack do
+describe Service::Slack, :type => :service do
   let(:config) do
     {
       :url => 'https://crashtest.slack.com/services/hooks/incoming-webhook?token=token',

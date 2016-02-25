@@ -1,4 +1,5 @@
 require 'faraday/middleware'
+require 'faraday/error'
 require 'ipaddr'
 require 'uri'
 
@@ -7,7 +8,6 @@ require 'uri'
 BLACKLISTED_IP_RANGES = [
   '::1',
   '::/128',
-  '::/0',
   '::1/128',
   'fe80::10',
   'fc00::/7',
@@ -47,14 +47,13 @@ module Faraday
     end
 
     private
+
     def addresses(hostname)
-     Socket.gethostbyname(hostname).map { |a| IPAddr.new_ntoh(a) rescue nil }.compact
+      Socket.gethostbyname(hostname).map { |a| IPAddr.new_ntoh(a) rescue nil }.compact
     end
 
     def denied_ip?(ipaddr)
       BLACKLISTED_IP_RANGES.any? { |blacklisted_range| blacklisted_range.include?(ipaddr) }
     end
   end
-
-
 end

@@ -1,10 +1,7 @@
 require 'spec_helper'
 require 'webmock/rspec'
 
-describe Service::WebHook do
-  before do
-    allow_any_instance_of(Faraday::RestrictIPAddressesMiddleware).to receive(:denied?).and_return(false)
-  end
+describe Service::WebHook, :type => :service do
 
   it 'has a title' do
     expect(Service::WebHook.title).to eq('Web Hook')
