@@ -1,0 +1,12 @@
+trello:
+  board: TBD
+  list: TBD
+  key: TBD
+  token: TBD
+slack:
+  url: https://hooks.slack.com/services/TBD/TBD/TBD
+  channel: '#service_hooks'
+  username: crashlytics
+github:
+  repo: <your-org>/<your-repo>
+  access_token: abc1234

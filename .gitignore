@@ -4,7 +4,7 @@
 .LSOverride
 Icon
 Gemfile.lock
-
+service_configs.yml
 # Thumbnails
 ._*
 
