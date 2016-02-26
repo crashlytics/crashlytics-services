@@ -1,5 +1,3 @@
-require 'asana'
-
 class Service::Asana < Service::Base
   title 'Asana'
 
@@ -13,33 +11,80 @@ class Service::Asana < Service::Base
          'by using the web UI.  In the Asana web UI, click on ' \
          'a project in the left pane, and then take the first long number in the URL.'
 
+  def initialize(config, logger = Proc.new {})
+    super
+    configure_http
+  end
+
   def receive_verification
-    begin
-      find_project config[:api_key], config[:project_id]
+    if find_project
       log('verification successful')
-    rescue => e
-      log "verification failed: #{e}"
-      display_error('Oops! Encountered an error. Please check your settings.')
+    else
+      display_error("Could not access project #{config[:project_id]}.")
     end
   end
 
   def receive_issue_impact_change(issue)
-    task_options = {
-      :name => issue[:title],
-      :notes => create_notes(issue),
-      :projects => [config[:project_id]]
-    }
+    project = find_project
 
-    project = find_project config[:api_key], config[:project_id]
-    task = project.workspace.create_task task_options
-    if task.id
+    display_error('Could not create Asana task: Project not found') unless project
+
+    response = create_task(project, issue)
+
+    if successful_response?(response)
       log('issue_impact_change successful')
     else
-      display_error('Asana task creation failed')
+      display_error("Asana task creation failed: #{error_response_details(response)}")
     end
   end
 
   private
+
+  def configure_http
+    http.basic_auth(config[:api_key], nil)
+  end
+
+  def request_headers
+    {
+      'Accept' => 'application/json',
+      'Content-type' => 'application/json'
+    }
+  end
+
+  def find_project
+    response = http_get(project_url) do |request|
+      request.headers.merge!(request_headers)
+    end
+
+    if successful_response?(response)
+      JSON.parse(response.body)
+    end
+  end
+
+  def create_task(project, issue)
+    workspace_id = project['data']['workspace']['id']
+
+    response = http_post("#{asana_url}/tasks") do |request|
+      request.headers.merge!(request_headers)
+      request.body = {
+        :data => {
+          :workspace => workspace_id,
+          :name => issue[:title],
+          :notes => create_notes(issue),
+          :assignee => 'me'
+        }
+      }.to_json
+    end
+  end
+
+  def asana_url
+    "https://app.asana.com/api/1.0"
+  end
+
+  def project_url
+    "#{asana_url}/projects/#{config[:project_id]}"
+  end
+
   def create_notes(issue)
     notes = ''
     notes << "#{issue[:url]}\n\n"
@@ -47,11 +92,5 @@ class Service::Asana < Service::Base
     notes << "Number of crashes: #{issue[:crashes_count]}\n"
     notes << "Impacted devices: #{issue[:impacted_devices_count]}"
     notes
-  end
-
-  # Returns Asana::Project or raises if any error
-  def find_project(api_key, project_id)
-    Asana.configure { |client| client.api_key = api_key }
-    Asana::Project.find project_id
   end
 end
