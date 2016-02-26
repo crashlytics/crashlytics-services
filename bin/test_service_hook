@@ -13,7 +13,13 @@ require 'yaml'
 
 service_hook_config_file = ARGV[0]
 service = ARGV[1]
-config = YAML.load_file(service_hook_config_file)[service].symbolize_keys
+config = {}
+
+# symbolize keys in the config hash
+YAML.load_file(service_hook_config_file)[service].each_pair do |key, value|
+  config[key.to_sym] = value
+end
+
 
 issue_impact = {
   :event => "issue_impact_change",
