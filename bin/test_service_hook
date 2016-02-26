@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+# Usage instructions:
+#
+#   bundle exec ruby test_service_hook.rb <service-config.yml> <service-name>
+#
+# Example:
+#
+#   bundle exec ruby test_service_hook.rb /path/to/service-config.yml trello
+#
+require 'service'
+require 'yaml'
+
+service_hook_config_file = ARGV[0]
+service = ARGV[1]
+config = YAML.load_file(service_hook_config_file)[service].symbolize_keys
+
+issue_impact = {
+  :event => "issue_impact_change",
+  :impacted_devices_count => 0,
+  :crashes_count => 0,
+  :title => "Title",
+  :method => "Method",
+  :url => "some url",
+  :app => {
+    :name => "Test",
+    :platform => "platform"
+  }
+}
+
+Service.services[service].receive(:verification, config, nil, lambda { |msg| puts msg })
+
+Service.services[service].receive(:issue_impact_change, config, issue_impact, lambda { |msg| puts msg})
