@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
 
   # enforce consistency with worker pipeline version of eventmachine
   s.add_dependency 'eventmachine', '~> 1.0'
-  s.add_dependency 'ruby-trello', '~> 1.1'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'simplecov'
