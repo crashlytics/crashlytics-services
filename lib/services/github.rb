@@ -1,5 +1,3 @@
-require 'octokit'
-
 class Service::GitHub < Service::Base
   title 'GitHub'
 
@@ -15,16 +13,21 @@ class Service::GitHub < Service::Base
 
   STATUS_CODE_CREATED = 201
 
+  def initialize(config, logger = Proc.new {})
+    super
+    configure_http
+  end
+
   def receive_verification
-    verify_repo_exists(config)
-    log('verification successful')
-  rescue => e
-    log "Rescued a verification error in GitHub for repo #{config[:repo]}: #{e}"
-    display_error("Could not access repository for #{config[:repo]}.")
+    if successful_response?(verify_repo_exists)
+      log('verification successful')
+    else
+      display_error("Could not access repository for #{config[:repo]}.")
+    end
   end
 
   def receive_issue_impact_change(issue)
-    response = create_github_issue(config, issue)
+    response = create_github_issue(issue)
 
     if response.status == STATUS_CODE_CREATED
       log 'issue_impact_change successful'
@@ -35,22 +38,29 @@ class Service::GitHub < Service::Base
 
   private
 
-  # Returns a [Sawyer::Resource, status code] tuple.
-  # The resource will have different attrs depending on success or failure.
-  def create_github_issue(config, issue)
-    client = build_client(config)
+  def configure_http
+    http.authorization :token, config[:access_token]
+  end
 
+  def create_github_issue(issue)
     repo = config[:repo]
     issue_title = issue[:title]
     issue_body = format_issue_impact_change_payload(issue)
 
-    client.create_issue(repo, issue_title, issue_body)
-    client.last_response
+    http_post("#{repository_url}/issues") do |request|
+      request.headers.merge!(request_headers)
+      request.body = {
+        :labels => [],
+        :title => issue_title,
+        :body => issue_body
+      }.to_json
+    end
   end
 
-  # Returns GitHub repo, raising an exception if the access_token doesn't work.
-  def verify_repo_exists(config)
-    build_client(config).repo config[:repo]
+  def verify_repo_exists
+    http_get(repository_url) do |request|
+      request.headers.merge!(request_headers)
+    end
   end
 
   def format_issue_impact_change_payload(issue)
@@ -65,10 +75,19 @@ class Service::GitHub < Service::Base
 
   private
 
-  def build_client(config)
-    Octokit::Client.new(
-      :api_endpoint => config[:api_endpoint],
-      :access_token => config[:access_token]
-    )
+  def request_headers
+    {
+      'Content-type' => 'application/json',
+      'Accept' => 'application/vnd.github.v3+json'
+    }
   end
+
+  def repository_url
+    "#{github_url}/repos/#{config[:repo]}"
+  end
+
+  def github_url
+    config[:api_endpoint] || 'https://api.github.com'
+  end
+
 end
