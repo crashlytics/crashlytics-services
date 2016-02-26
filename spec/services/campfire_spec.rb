@@ -5,7 +5,7 @@ describe Service::Campfire, :type => :service do
   before do
     @config = { :subdomain => "crashlytics",
                 :room => "crashlytics-test",
-                :api_token => "376136523ffbc6b82c289b5831681db8c1835e65" }
+                :api_token => "api_token" }
 
     @logger = double('fake-logger', :log => nil)
     @service = Service::Campfire.new(@config, lambda { |message| @logger.log message })
@@ -25,14 +25,14 @@ describe Service::Campfire, :type => :service do
 
   describe 'receive_verification' do
     it 'should succeed upon successful api response' do
-      stub_request(:get, "https://crashlytics.campfirenow.com/rooms").
+      stub_request(:get, "https://api_token:@crashlytics.campfirenow.com/rooms").
         to_return(:status => 200, :body => '{"rooms":[{"id":620593,"name":"crashlytics-test"}]}', :headers => {})
       @service.receive_verification
       expect(@logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
-      stub_request(:get, "https://crashlytics.campfirenow.com/rooms").
+      stub_request(:get, "https://api_token:@crashlytics.campfirenow.com/rooms").
         to_return(:status => 401, :body => "", :headers => {})
       expect {
         @service.receive_verification
@@ -53,19 +53,19 @@ describe Service::Campfire, :type => :service do
         },
         :url => "http://foo.com/bar"
       }
-      stub_request(:get, "https://crashlytics.campfirenow.com/rooms").
+      stub_request(:get, "https://api_token:@crashlytics.campfirenow.com/rooms").
         to_return(:status => 200, :body => '{"rooms":[{"id":620593,"name":"crashlytics-test"}]}', :headers => {})
     end
 
     it 'should succeed upon successful api response' do
-      stub_request(:post, "https://crashlytics.campfirenow.com/room/620593/speak").
+      stub_request(:post, "https://api_token:@crashlytics.campfirenow.com/room/620593/speak").
         to_return(:status => 200, :body => '', :headers => {})
 
       @service.receive_issue_impact_change(@payload)
     end
 
     it 'should fail upon unsuccessful api response' do
-      stub_request(:post, "https://crashlytics.campfirenow.com/room/620593/speak").
+      stub_request(:post, "https://api_token:@crashlytics.campfirenow.com/room/620593/speak").
         to_return(:status => 401, :body => '', :headers => {})
 
       expect {
