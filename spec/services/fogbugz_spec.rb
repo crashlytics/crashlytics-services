@@ -1,4 +1,3 @@
-require 'asana'
 require 'spec_helper'
 
 describe Service::FogBugz, :type => :service do
