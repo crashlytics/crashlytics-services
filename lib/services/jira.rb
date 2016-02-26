@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'pp'
-require 'jira'
 require 'uri'
+require 'json'
 
 class Service::Jira < Service::Base
   title "Jira"
@@ -16,12 +16,17 @@ class Service::Jira < Service::Base
   string :issue_type, :placeholder => 'Bug', :required => false,
          :label => '(Optional) Issue Type:'
 
+  def initialize(config, logger = Proc.new {})
+    super(config, logger)
+    url_components = parse_url(config[:project_url])
+    configure_http(url_components[:protocol])
+    @base_api_url = [url_components[:protocol], url_components[:domain], url_components[:context_path]].join
+    @project_key = url_components[:project_key]
+  end
+
   # Create an issue on Jira
   def receive_issue_impact_change(payload)
-    url_components = parse_url(config[:project_url])
-    client = jira_client(config, url_components[:context_path])
-
-    project = client.Project.find(url_components[:project_key])
+    project = lookup_jira_project
 
     users_text = if payload[:impacted_devices_count] == 1
       'This issue is affecting at least 1 user who has crashed '
@@ -42,58 +47,67 @@ class Service::Jira < Service::Base
                  "More information: #{ payload[:url] }"
 
     post_body = { 'fields' => {
-        'project' => { 'id' => project.id },
+        'project' => { 'id' => project['id'] },
         'summary'     => payload[:title] + ' [Crashlytics]',
         'description' => issue_description,
         'issuetype' => { 'name' => config[:issue_type] || 'Bug' }
       }
     }
 
-    # The Jira client raises an HTTPError if the response is not of the type Net::HTTPSuccess
-    issue = client.Issue.build
-    if issue.save(post_body)
-      log 'issue_impact_change successful'
-    else
-      display_error "Jira Issue Create Failed - Errors are: #{issue.respond_to?(:errors) ? issue.errors : {}}"
-    end
-  rescue JIRA::HTTPError => e
-    display_error "Jira Issue Create Failed - #{error_details(e)}"
+    create_jira_issue(post_body)
   end
 
   def receive_verification
-    url_components = parse_url(config[:project_url])
-    client = jira_client(config, url_components[:context_path])
-
-    resp = client.Project.find(url_components[:project_key])
-    log 'verification successful'
-  rescue JIRA::HTTPError => e
-    display_error "Unexpected HTTP response from Jira - #{error_details(e)}"
+    lookup_jira_project
+    log('verification successful')
   end
 
-  def error_details(error)
-    "Message: #{error.message}, Status: #{error.code}"
+  def lookup_jira_project
+    api_url = "#{@base_api_url}/rest/api/2/project/#{@project_key}"
+
+    resp = http_get(api_url)
+
+    if resp.success?
+      JSON.parse(resp.body)
+    else
+      display_error "Jira Verification Failed - #{error_response_details(resp)}"
+    end
   end
 
-  def jira_client(config, context_path)
-    url = config[:project_url]
-    ssl_enabled = (URI(url).scheme == 'https')
-    ssl_verify_mode = ssl_enabled ? OpenSSL::SSL::VERIFY_PEER : OpenSSL::SSL::VERIFY_NONE
-    JIRA::Client.new(
-      :username =>     config[:username],
-      :password =>     config[:password],
-      :site =>         config[:project_url],
-      :context_path => context_path,
-      :auth_type =>    :basic,
-      :use_ssl =>      ssl_enabled,
-      :ssl_verify_mode => ssl_verify_mode
-    )
+  def create_jira_issue(body)
+    api_url = "#{@base_api_url}/rest/api/2/issue"
+
+    resp = http_post(api_url, body.to_json) do |req|
+      req.headers['Content-Type'] = 'application/json'
+    end
+
+    if resp.success?
+      log('issue_impact_change successful')
+    else
+      errors = resp.body['errors'] if resp.body
+      if errors
+        log("error_details: #{errors}")
+      end
+      display_error "Jira Issue Create Failed - #{error_response_details(resp)}"
+    end
+  end
+
+  def configure_http(protocol_str)
+    http.basic_auth(config[:username], config[:password])
+    if protocol_str =~ /https/
+      http.ssl.verify = true
+      http.ssl.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    else
+      http.ssl.verify = false
+      http.ssl.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
   end
 
   def parse_url(url)
-    matches = url.match(/(https?:\/\/.+?)(\/.+)?\/(projects|browse)\/([\w\-]+)/)
+    matches = url.match(/(https?:\/\/)(.+?)(\/.+)?\/(projects|browse)\/([\w\-]+)/)
     if matches.nil?
       raise "Unexpected URL format"
     end
-    { :url_prefix => matches[1], :context_path => matches[2] || '', :project_key => matches[4] }
+    { :protocol => matches[1], :domain => matches[2], :context_path => matches[3] || '', :project_key => matches[5] }
   end
 end

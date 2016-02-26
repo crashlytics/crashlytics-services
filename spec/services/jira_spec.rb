@@ -2,10 +2,15 @@ require 'spec_helper'
 require 'webmock/rspec'
 
 describe Service::Jira, :type => :service do
+
   let(:logger) { double('fake-logger', :log => nil) }
   let(:logger_function) { lambda { |message| logger.log(message) }}
   let(:config) do
-    { :project_url => 'https://example.com/browse/project_key' }
+    {
+      :project_url => 'https://example.com/browse/project_key',
+      :username => "username",
+      :password => "password",
+    }
   end
   let(:service) do
     Service::Jira.new(config, logger_function)
@@ -26,34 +31,33 @@ describe Service::Jira, :type => :service do
 
   describe 'receive_verification' do
     it 'should succeed upon successful api response' do
-      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
-         to_return(:status => 200)
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+         to_return(:status => 200, :body => '{"id":12345}')
 
       service.receive_verification
       expect(logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
-      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
          to_return(:status => 500)
 
       expect {
         service.receive_verification
-      }.to raise_error(Service::DisplayableError, /Unexpected HTTP response/)
+      }.to raise_error(Service::DisplayableError, /Jira Verification Failed/)
     end
   end
 
-  describe 'jira_client' do
+  describe 'http client' do
     it 'disables SSL checking when the project_url is http' do
-      client = service.jira_client({ :project_url => 'http://example.com/browse/project_key' }, '')
-      expect(client.options[:use_ssl]).to be false
-      expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_NONE)
+      config[:project_url] = 'http://example.com/browse/project_key'
+      expect(service.http.ssl.verify?).to be false
+      expect(service.http.ssl.verify_mode).to eq(OpenSSL::SSL::VERIFY_NONE)
     end
 
     it 'enables SSL checking and peer verification when the project_url is https' do
-      client = service.jira_client({ :project_url => 'https://example.com/browse/project_key'}, '')
-      expect(client.options[:use_ssl]).to be true
-      expect(client.options[:ssl_verify_mode]).to eq(OpenSSL::SSL::VERIFY_PEER)
+      expect(service.http.ssl.verify?).to be true
+      expect(service.http.ssl.verify_mode).to eq(OpenSSL::SSL::VERIFY_PEER)
     end
   end
 
@@ -72,10 +76,10 @@ describe Service::Jira, :type => :service do
     end
 
     it 'sends issuetype name of Bug by default' do
-      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://example.com/rest/api/2/issue").
+      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
          with(:body => /\"issuetype\":{\"name\":\"Bug\"}}/).
          to_return(:status => 201, :body => '{"id":"foo"}')
 
@@ -100,52 +104,67 @@ describe Service::Jira, :type => :service do
     end
 
     it 'should succeed upon successful api response' do
-      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://example.com/rest/api/2/issue").
+      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
          to_return(:status => 201, :body => '{"id":"foo"}')
 
       service.receive_issue_impact_change(payload)
       expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
-    it 'escalates error details if they are provided in the response body' do
-      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+    it 'logs error details if they are provided in the response body' do
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://example.com/rest/api/2/issue").
+      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
          to_return(:status =>  400, :body => '{"errors":{"key":"error_details"}}')
 
       expect {
         service.receive_issue_impact_change(payload)
-      }.to raise_error(Service::DisplayableError, /error_details/)
+      }.to raise_error(Service::DisplayableError, /Jira Issue Create Failed/)
+      expect(logger).to have_received(:log).with(/error_details/)
     end
 
     it 'should fail upon unsuccessful api response' do
-      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://example.com/rest/api/2/issue").
+      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
          to_return(:status => 500, :body => '{"id":"foo","key":"bar"}')
 
       expect {
         service.receive_issue_impact_change(payload)
       }.to raise_error(Service::DisplayableError, /Jira Issue Create Failed/)
     end
+
+    it 'should handle context path properly' do
+      config[:project_url] = 'https://mycompany.atlassian.net/jira/browse/PROJECT-KEY'
+      stub_request(:get, "https://username:password@mycompany.atlassian.net/jira/rest/api/2/project/PROJECT-KEY").
+         to_return(:status => 200, :body => '{"id":12345}')
+
+      stub_request(:post, "https://username:password@mycompany.atlassian.net/jira/rest/api/2/issue").
+         to_return(:status => 201, :body => '{"id":"foo"}')
+
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
+    end
   end
 
   describe '#parse_url' do
     it 'parses old versions of JIRA URLs' do
       parsed = service.parse_url('https://mycompany.atlassian.net/jira/browse/PROJECT-KEY')
-      expect(parsed[:url_prefix]).to eq('https://mycompany.atlassian.net')
+      expect(parsed[:protocol]).to eq('https://')
+      expect(parsed[:domain]).to eq('mycompany.atlassian.net')
       expect(parsed[:project_key]).to eq('PROJECT-KEY')
       expect(parsed[:context_path]).to eq('/jira')
     end
 
     it 'parses new versions of JIRA URLs' do
       parsed = service.parse_url('https://mycompany.atlassian.net/projects/PROJECT-KEY')
-      expect(parsed[:url_prefix]).to eq('https://mycompany.atlassian.net')
+      expect(parsed[:protocol]).to eq('https://')
+      expect(parsed[:domain]).to eq('mycompany.atlassian.net')
       expect(parsed[:project_key]).to eq('PROJECT-KEY')
       expect(parsed[:context_path]).to eq('')
     end
