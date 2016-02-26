@@ -19,10 +19,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'faraday_middleware', '~> 0.9'
   s.add_dependency 'nokogiri', '~> 1.5'
 
-  # Note: we are stuck at tinder 1.9 until we can eliminate our dependency
-  # on eventmachine 1.0.0.beta.4
-  s.add_dependency 'tinder', '~> 1.9'
-
   # enforce consistency with worker pipeline version of eventmachine
   s.add_dependency 'eventmachine', '~> 1.0'
   s.add_dependency 'ruby-trello', '~> 1.1'
