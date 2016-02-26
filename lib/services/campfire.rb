@@ -1,5 +1,3 @@
-require 'tinder'
-
 class Service::Campfire < Service::Base
   title 'Campfire'
 
@@ -7,9 +5,16 @@ class Service::Campfire < Service::Base
   string :room, :label => 'Your Campfire chatroom:'
   string :api_token, :label => "Get it from Campfire's \"My Info\" screen."
 
+  def initialize(config, logger = Proc.new)
+    super
+    configure_http
+  end
+
   # Post an issue to Campfire room
   def receive_issue_impact_change(payload)
-    room = find_campfire_room(config)
+    room = find_campfire_room
+
+    display_error("Could not find Campfire room: #{config[:room]}") unless room
 
     users_text = if payload[:impacted_devices_count] == 1
       'This issue is affecting at least 1 user who has crashed '
@@ -28,27 +33,55 @@ class Service::Campfire < Service::Base
     message << crashes_text
     message << payload[:url].to_s
 
-    resp = room.speak(message)
-    unless resp.is_a?(Hash) && resp.message
-      display_error("Campfire Message Post Failed")
+    response = http_post("#{campfire_url}/room/#{room['id']}/speak") do |request|
+      request.headers.merge!(request_headers)
+      request.body = {
+        :message => {
+          :body => message
+        }
+      }.to_json
     end
-    log('issue_impact_change successful')
+
+    if response.success?
+      log('issue_impact_change successful')
+    else
+      display_error("Could not send Campfire message: #{error_response_details(response)}")
+    end
   end
 
   def receive_verification
-    room = find_campfire_room(config)
-    if room.nil?
-      display_error("Oops! Can not find #{config[:room]} room. Please check your settings.")
-    elsif room.name == config[:room]
+    if find_campfire_room
       log('verification successful')
+    else
+      display_error("Oops! Can not find #{config[:room]} room. Please check your settings.")
     end
-  rescue ::Tinder::AuthenticationFailed => e
-    display_error('Oops! Is your API token correct?')
   end
 
   private
-  def find_campfire_room(config)
-    campfire = ::Tinder::Campfire.new(config[:subdomain], :token => config[:api_token])
-    campfire.find_room_by_name(config[:room])
+
+  def configure_http
+    http.basic_auth(config[:api_token], nil)
+  end
+
+  def find_campfire_room
+    response = http_get("#{campfire_url}/rooms") do |request|
+      request.headers.merge!(request_headers)
+    end
+
+    if response.success?
+      json = JSON.parse(response.body)
+      room = json['rooms'].find { |room| room['name'] == config[:room] }
+    end
+  end
+
+  def campfire_url
+    "https://#{config[:subdomain]}.campfirenow.com"
+  end
+
+  def request_headers
+    {
+      'Accept' => 'application/json',
+      'Content-type' => 'application/json'
+    }
   end
 end
