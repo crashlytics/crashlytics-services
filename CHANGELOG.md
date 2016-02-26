@@ -1,4 +1,8 @@
 =======
+5.0.0
+-----
+- Switch over several services to use our internal http libraries.
+
 4.1.1
 ------
 - Fix IPv6 Blacklist
