@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'webmock/rspec'
+require 'base64'
 
 describe Service::Jira, :type => :service do
 
@@ -15,6 +16,10 @@ describe Service::Jira, :type => :service do
   let(:service) do
     Service::Jira.new(config, logger_function)
   end
+  let(:headers) {
+    username_password = config[:username] + ":" + config[:password]
+    { 'Authorization' => "Basic #{Base64.strict_encode64(username_password)}" }
+  }
 
   it 'has a title' do
     expect(Service::Jira.title).to eq('Jira')
@@ -31,7 +36,8 @@ describe Service::Jira, :type => :service do
 
   describe 'receive_verification' do
     it 'should succeed upon successful api response' do
-      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         with(:headers => headers).
          to_return(:status => 200, :body => '{"id":12345}')
 
       service.receive_verification
@@ -39,7 +45,8 @@ describe Service::Jira, :type => :service do
     end
 
     it 'should fail upon unsuccessful api response' do
-      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         with(:headers => headers).
          to_return(:status => 500)
 
       expect {
@@ -76,11 +83,12 @@ describe Service::Jira, :type => :service do
     end
 
     it 'sends issuetype name of Bug by default' do
-      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         with(:headers => headers).
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
-         with(:body => /\"issuetype\":{\"name\":\"Bug\"}}/).
+      stub_request(:post, "https://example.com/rest/api/2/issue").
+         with(:body => /\"issuetype\":{\"name\":\"Bug\"}}/, :headers => headers).
          to_return(:status => 201, :body => '{"id":"foo"}')
 
       service.receive_issue_impact_change(payload)
@@ -104,10 +112,12 @@ describe Service::Jira, :type => :service do
     end
 
     it 'should succeed upon successful api response' do
-      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         with(:headers => headers).
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
+      stub_request(:post, "https://example.com/rest/api/2/issue").
+         with(:headers => headers).
          to_return(:status => 201, :body => '{"id":"foo"}')
 
       service.receive_issue_impact_change(payload)
@@ -115,10 +125,12 @@ describe Service::Jira, :type => :service do
     end
 
     it 'logs error details if they are provided in the response body' do
-      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         with(:headers => headers).
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
+      stub_request(:post, "https://example.com/rest/api/2/issue").
+         with(:headers => headers).
          to_return(:status =>  400, :body => '{"errors":{"key":"error_details"}}')
 
       expect {
@@ -128,10 +140,12 @@ describe Service::Jira, :type => :service do
     end
 
     it 'should fail upon unsuccessful api response' do
-      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+         with(:headers => headers).
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
+      stub_request(:post, "https://example.com/rest/api/2/issue").
+         with(:headers => headers).
          to_return(:status => 500, :body => '{"id":"foo","key":"bar"}')
 
       expect {
@@ -141,10 +155,12 @@ describe Service::Jira, :type => :service do
 
     it 'should handle context path properly' do
       config[:project_url] = 'https://mycompany.atlassian.net/jira/browse/PROJECT-KEY'
-      stub_request(:get, "https://username:password@mycompany.atlassian.net/jira/rest/api/2/project/PROJECT-KEY").
+      stub_request(:get, "https://mycompany.atlassian.net/jira/rest/api/2/project/PROJECT-KEY").
+         with(:headers => headers).
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://username:password@mycompany.atlassian.net/jira/rest/api/2/issue").
+      stub_request(:post, "https://mycompany.atlassian.net/jira/rest/api/2/issue").
+         with(:headers => headers).
          to_return(:status => 201, :body => '{"id":"foo"}')
 
       service.receive_issue_impact_change(payload)
