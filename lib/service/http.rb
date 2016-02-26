@@ -127,7 +127,7 @@ module Service
         Faraday.new(options) do |b|
           b.use ::Faraday::RestrictIPAddressesMiddleware
           b.request :url_encoded
-          b.adapter :em_synchrony
+          b.adapter :net_http
         end
       end
     end
