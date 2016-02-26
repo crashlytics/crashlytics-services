@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   # enforce consistency with worker pipeline version of eventmachine
   s.add_dependency 'eventmachine', '~> 1.0'
   s.add_dependency 'em-synchrony'
+  s.add_dependency 'em-http-request'
   s.add_dependency 'hipchat', '~> 1.4'
   s.add_dependency 'asana', '0.0.4'
   s.add_dependency 'octokit', '~> 3.7'
