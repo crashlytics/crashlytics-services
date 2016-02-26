@@ -1,5 +1,3 @@
-require 'hipchat'
-
 class Service::HipChat < Service::Base
   title 'HipChat'
 
@@ -15,9 +13,6 @@ class Service::HipChat < Service::Base
   def receive_verification
     send_message(config, verification_message)
     log('verification successful')
-  rescue => e
-    log "Rescued a verification error in HipChat: #{ e }"
-    display_error "Could not send a message to room #{ config[:room] }"
   end
 
   def receive_issue_impact_change(payload)
@@ -43,15 +38,42 @@ class Service::HipChat < Service::Base
   def send_message(config, message)
     token = config[:api_token]
     room = config[:room]
-    url = config[:url]
-    api_version = config[:v2] ? 'v2' : 'v1'
     notify = config[:notify] ? true : false
-    options = { :api_version => api_version }
-    server_url = url.to_s
-    unless server_url.empty?
-      options[:server_url] = server_url
+    server_url = (config[:url].nil? || config[:url].empty?) ? 'https://api.hipchat.com' : config[:url]
+
+    body = {
+      "room_id" => room,
+      "from" => "Crashlytics",
+      "message" => message,
+      "message_format" => "html",
+      "color" => "yellow",
+      "notify" => notify
+    }
+
+    # Configure the request based on the HipChat api version
+    api_url, content_type, body = if config[:v2]
+      [
+        "#{server_url}/v2/room/#{URI.encode(room)}/notification",
+        'application/json',
+        body.to_json
+      ]
+    else
+      body['notify'] = notify ? 1 : 0
+      [
+        "#{server_url}/v1/rooms/message",
+        'application/x-www-form-urlencoded',
+        body
+      ]
     end
-    client = HipChat::Client.new(token, options)
-    client[room].send('Crashlytics', message, :notify => notify)
+
+    resp = http_post(api_url, body) do |req|
+      req.params['auth_token'] = token
+      req.headers['Content-Type'] = content_type
+      req.headers['Accept'] = 'application/json'
+    end
+
+    if !resp.success?
+      display_error "Could not send a message to room #{ config[:room]} - #{error_response_details(resp)}"
+    end
   end
 end
