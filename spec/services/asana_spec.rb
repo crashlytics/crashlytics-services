@@ -22,10 +22,6 @@ describe Service::Asana, :type => :service do
       }
     end
     let(:service) { Service::Asana.new(config, lambda { |message| logger.log message }) }
-    let(:headers) {
-      username_password = "#{config[:api_key]}:"
-      { 'Authorization' => "Basic #{Base64.strict_encode64(username_password)}" }
-    }
     let(:issue) do
       {
         :title => 'foo title',
@@ -55,8 +51,7 @@ describe Service::Asana, :type => :service do
 
     describe :receive_verification do
       it 'should succeed if API can authenticate and find project' do
-        stub_request(:get, "https://app.asana.com/api/1.0/projects/project_id_foo").
-          with(:headers => headers).
+        stub_request(:get, "https://key:@app.asana.com/api/1.0/projects/project_id_foo").
           to_return(:status => 200, :body => '{}')
 
         service.receive_verification
@@ -64,8 +59,7 @@ describe Service::Asana, :type => :service do
       end
 
       it 'should fail if API call raises an exception' do
-        stub_request(:get, "https://app.asana.com/api/1.0/projects/project_id_foo").
-          with(:headers => headers).
+        stub_request(:get, "https://key:@app.asana.com/api/1.0/projects/project_id_foo").
           to_return(:status => 403, :body => '')
 
         expect {
@@ -89,14 +83,12 @@ describe Service::Asana, :type => :service do
       let(:task) { double(:id => 'new_task_id') }
 
       before do
-        stub_request(:get, "https://app.asana.com/api/1.0/projects/project_id_foo").
-          with(:headers => headers).
+        stub_request(:get, "https://key:@app.asana.com/api/1.0/projects/project_id_foo").
           and_return(:status => 200, :body => '{"data":{"workspace":{"id":1}}}')
       end
 
       it 'should create a new Asana task' do
-        stub_request(:post, "https://app.asana.com/api/1.0/tasks").
-          with(:headers => headers).
+        stub_request(:post, "https://key:@app.asana.com/api/1.0/tasks").
           and_return(:status => 200, :body => '')
 
         service.receive_issue_impact_change issue
@@ -104,8 +96,7 @@ describe Service::Asana, :type => :service do
       end
 
       it 'should raise if creating a new Asana task fails' do
-        stub_request(:post, "https://app.asana.com/api/1.0/tasks").
-          with(:headers => headers).
+        stub_request(:post, "https://key:@app.asana.com/api/1.0/tasks").
           and_return(:status => 403, :body => '')
 
         expect {
