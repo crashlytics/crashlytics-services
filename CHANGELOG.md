@@ -1,4 +1,8 @@
 =======
+5.2.0
+-----
+- Remove successful_response? and stop using it
+
 5.1.0
 -----
 - Remove Hall

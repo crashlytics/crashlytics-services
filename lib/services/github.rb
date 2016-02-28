@@ -19,7 +19,9 @@ class Service::GitHub < Service::Base
   end
 
   def receive_verification
-    if successful_response?(verify_repo_exists)
+    response = verify_repo_exists
+
+    if response.success?
       log('verification successful')
     else
       display_error("Could not access repository for #{config[:repo]}.")

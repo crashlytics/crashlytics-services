@@ -41,7 +41,7 @@ class Service::Pivotal < Service::Base
       req.params[:token] = config[:api_key]
       req.body = post_to_xml(post_body)
     end
-    if successful_response?(resp)
+    if resp.success?
       log('issue_impact_change successful')
     else
       display_error "Pivotal Issue Create Failed - #{error_response_details(resp)}"

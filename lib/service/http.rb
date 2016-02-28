@@ -132,13 +132,6 @@ module Service
       end
     end
 
-    # Public: Returns true for a 200-level response, false otherwise
-    #
-    # response - HTTP response to check for success
-    def successful_response?(response)
-      (200..299).include?(response.status)
-    end
-
     # Public: produces an error detail message based on the HTTP response
     # here to provide some consistency for the various error reporting
     # in individual services

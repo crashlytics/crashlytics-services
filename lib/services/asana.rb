@@ -31,7 +31,7 @@ class Service::Asana < Service::Base
 
     response = create_task(project, issue)
 
-    if successful_response?(response)
+    if response.success?
       log('issue_impact_change successful')
     else
       display_error("Asana task creation failed: #{error_response_details(response)}")
@@ -56,7 +56,7 @@ class Service::Asana < Service::Base
       request.headers.merge!(request_headers)
     end
 
-    if successful_response?(response)
+    if response.success?
       JSON.parse(response.body)
     end
   end
