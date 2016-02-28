@@ -1,4 +1,8 @@
 =======
+5.1.0
+-----
+- Remove Hall
+
 5.0.0
 -----
 - Switch over several services to use our internal http libraries.
