@@ -7,7 +7,7 @@ class Service::Appaloosa < Service::Base
   # Create an issue
   def receive_issue_impact_change(payload)
     response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
-    if successful_response?(response)
+    if response.success?
       log('issue_impact_change successful')
     else
       display_error("Appaloosa WebHook issue create failed - #{error_response_details(response)}")
@@ -16,7 +16,7 @@ class Service::Appaloosa < Service::Base
 
   def receive_verification
     response = post_event(config[:url], 'verification', 'none', nil)
-    if successful_response?(response)
+    if response.success?
       log('verification successful')
     else
       display_error('Could not send a message to Appaloosa')

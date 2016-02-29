@@ -26,7 +26,7 @@ class Service::ZohoProjects < Service::Base
     response = send_request_to_projects config, payload
     if response.status == 400
       display_error('Invalid Auth Token/Project ID')
-    elsif successful_response?(response)
+    elsif response.success?
       log('verification successful')
     else
       display_error("ZohoProjects verification failed - #{error_response_details(response)}")
