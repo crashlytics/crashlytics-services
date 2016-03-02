@@ -2,11 +2,11 @@
 
 # Usage instructions:
 #
-#   bundle exec ruby test_service_hook.rb <service-config.yml> <service-name>
+#   bundle exec bin/test_service_hook <service-config.yml> <service-name>
 #
 # Example:
 #
-#   bundle exec ruby test_service_hook.rb /path/to/service-config.yml trello
+#   bundle exec ruby bin/test_service_hook /path/to/service-config.yml trello
 #
 require 'service'
 require 'yaml'
@@ -22,18 +22,36 @@ end
 
 
 issue_impact = {
-  :event => "issue_impact_change",
+  :event => 'issue_impact_change',
+  :display_id => 1,
+  :impact_level => 1,
+  :method => 'SomeMethod',
+  :title => 'SomeTitle',
   :impacted_devices_count => 0,
   :crashes_count => 0,
-  :title => "Title",
-  :method => "Method",
-  :url => "some url",
+  :url => 'some url',
   :app => {
-    :name => "Test",
-    :platform => "platform"
+    :name => 'Test',
+    :bundle_identifier => 'io.fabric.test',
+    :platform => 'platform'
+  }
+}
+
+issue_velocity_alert = {
+  :event => 'issue_velocity_alert',
+  :display_id => 1,
+  :impact_level => 1,
+  :method => 'SomeMethod',
+  :title => 'SomeTitle',
+  :crash_percentage => 1.02,
+  :version => '1.0 (1.1)',
+  :app => {
+    :name => 'Test',
+    :bundle_identifier => 'io.fabric.test',
+    :platform => 'platform'
   }
 }
 
 Service.services[service].receive(:verification, config, nil, lambda { |msg| puts msg })
-
-Service.services[service].receive(:issue_impact_change, config, issue_impact, lambda { |msg| puts msg})
+Service.services[service].receive(:issue_impact_change, config, issue_impact, lambda { |msg| puts msg })
+Service.services[service].receive(:issue_velocity_alert, config, issue_velocity_alert, lambda { |msg| puts msg })
