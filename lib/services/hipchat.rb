@@ -1,5 +1,6 @@
 class Service::HipChat < Service::Base
   title 'HipChat'
+  handles :issue_impact_change, :issue_velocity_alert
 
   password :api_token, :placeholder => 'API Token',
            :label => 'Your HipChat API Token. <br />' \
@@ -11,34 +12,55 @@ class Service::HipChat < Service::Base
   string :url, :placeholder => 'https://api.hipchat.com', :label => 'The URL of the HipChat server.', :required => false
 
   def receive_verification
-    send_message(config, verification_message)
-    log('verification successful')
+    send_message(verification_message, :color => 'green')
+    log_message("verification successful")
   end
 
   def receive_issue_impact_change(payload)
-    send_message(config, format_issue_impact_change_message(payload))
-    log('issue_impact_change successful')
+    message_content = format_issue_message(payload, "Just reached impact level #{payload[:impact_level]}")
+    send_message(message_content, :color => 'yellow')
+    log_message("issue_impact_change successful")
+  end
+
+  def receive_issue_velocity_alert(payload)
+    message_content = format_issue_message(payload, "Velocity Alert! Crashing #{payload[:crash_percentage]}% of all sessions in the past hour on version #{payload[:version]}")
+    send_message(message_content, :color => 'red')
+    log_message("issue_velocity_alert successful")
   end
 
   private
 
+  def v2?
+    ['true', true].include?(config[:v2])
+  end
+
+  def notify?
+    ['true', true].include?(config[:notify])
+  end
+
+  def log_prefix
+    v2? ? 'v2' : 'v1'
+  end
+
+  def log_message(message)
+    log("#{log_prefix} #{message}")
+  end
+
   def verification_message
-    'Boom! Crashlytics issue change notifications have been added.  ' \
+    'Boom! Crashlytics notifications have been added.  ' \
     '<a href="http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly">' \
     'Click here for more info</a>.'
   end
 
-  def format_issue_impact_change_message(payload)
-    "<a href=#{ payload[:url].to_s }>" \
-    "[#{ payload[:app][:name] } - #{ payload[:app][:bundle_identifier] }] Issue ##{ payload[:display_id] }: " \
-    "#{ payload[:title] } #{ payload[:method] }" \
-    '</a>'
+  def format_issue_message(payload, extra_explanation)
+    "<a href=#{payload[:url].to_s}>" \
+    "[#{payload[:app][:name]} - #{payload[:app][:bundle_identifier]}] Issue ##{payload[:display_id]}: " \
+    "#{payload[:title] } #{payload[:method]}" \
+    "</a> - #{extra_explanation}"
   end
 
-  def send_message(config, message)
-    token = config[:api_token]
+  def send_message(message, extra_options = {})
     room = config[:room]
-    notify = config[:notify] ? true : false
     server_url = (config[:url].nil? || config[:url].empty?) ? 'https://api.hipchat.com' : config[:url]
 
     body = {
@@ -46,19 +68,19 @@ class Service::HipChat < Service::Base
       "from" => "Crashlytics",
       "message" => message,
       "message_format" => "html",
-      "color" => "yellow",
-      "notify" => notify
+      "color" => extra_options[:color] || "yellow",
+      "notify" => notify?
     }
 
     # Configure the request based on the HipChat api version
-    api_url, content_type, body = if config[:v2]
+    api_url, content_type, body = if v2?
       [
         "#{server_url}/v2/room/#{URI.encode(room)}/notification",
         'application/json',
         body.to_json
       ]
     else
-      body['notify'] = notify ? 1 : 0
+      body['notify'] = notify? ? 1 : 0
       [
         "#{server_url}/v1/rooms/message",
         'application/x-www-form-urlencoded',
@@ -67,7 +89,7 @@ class Service::HipChat < Service::Base
     end
 
     resp = http_post(api_url, body) do |req|
-      req.params['auth_token'] = token
+      req.params['auth_token'] = config[:api_token]
       req.headers['Content-Type'] = content_type
       req.headers['Accept'] = 'application/json'
     end
