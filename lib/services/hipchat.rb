@@ -8,7 +8,7 @@ class Service::HipChat < Service::Base
   checkbox :v2, :label => 'Is this an API v2 token?'
   string :room, :placeholder => 'Room ID or Name', :label => 'The ID or name of the room.'
   checkbox :notify, :label => 'Should a notification be triggered for people in the room?'
-  string :url, :placeholder => 'https://api.hipchat.com', :label => 'The URL of the HipChat server.'
+  string :url, :placeholder => 'https://api.hipchat.com', :label => 'The URL of the HipChat server.', :required => false
 
   def receive_verification
     send_message(config, verification_message)
