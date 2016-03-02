@@ -14,7 +14,7 @@ describe Service::Pagerduty, :type => :service do
   describe 'schema and display configuration' do
     subject { Service::Pagerduty }
 
-    it { is_expected.to include_string_field :api_key }
+    it { is_expected.to include_password_field :api_key }
   end
 
   describe 'receive_verification' do

@@ -9,7 +9,7 @@ describe Service::Asana, :type => :service do
   describe 'schema and display configuration' do
     subject { Service::Asana }
 
-    it { is_expected.to include_string_field :api_key }
+    it { is_expected.to include_password_field :api_key }
     it { is_expected.to include_string_field :project_id }
   end
 

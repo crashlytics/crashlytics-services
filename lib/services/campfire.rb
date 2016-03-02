@@ -3,7 +3,7 @@ class Service::Campfire < Service::Base
 
   string :subdomain, :label => 'Your Campfire subdomain:'
   string :room, :label => 'Your Campfire chatroom:'
-  string :api_token, :label => "Get it from Campfire's \"My Info\" screen."
+  password :api_token, :label => "Get it from Campfire's \"My Info\" screen."
 
   def initialize(config, logger = Proc.new)
     super

@@ -22,7 +22,7 @@ describe Service::ZohoProjects, :type => :service do
     subject { Service::ZohoProjects }
 
     it { is_expected.to include_string_field :project_id }
-    it { is_expected.to include_string_field :authtoken }
+    it { is_expected.to include_password_field :authtoken }
   end
 
   def stub_api_call(expected_query)

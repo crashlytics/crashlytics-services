@@ -7,7 +7,7 @@ class Service::ZohoProjects < Service::Base
     "<br /><br />" \
     "Project ID"
 
-  string :authtoken, :label => 'Auth Token'
+  password :authtoken, :label => 'Auth Token'
 
   def receive_issue_impact_change(issue)
     payload = JSON.generate(:event => 'issue_impact_change', :payload => issue)

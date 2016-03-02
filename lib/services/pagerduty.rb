@@ -1,7 +1,7 @@
 class Service::Pagerduty < Service::Base
   title 'Pagerduty'
 
-  string :api_key, :label => 'Create a new Pagerduty service using the Generic API, then paste the API key here.',
+  password :api_key, :label => 'Create a new Pagerduty service using the Generic API, then paste the API key here.',
     :placeholder => 'Pagerduty API key'
 
   # Create an issue on Pagerduty

@@ -3,8 +3,8 @@ class Service::FogBugz < Service::Base
 
   string :project_url, :placeholder => "https://yourproject.fogbugz.com",
          :label => 'URL to your FogBugz project:'
-  string :api_token, :placeholder => 'API Token',
-         :label => 'Your FogBugz API Token.'
+  password :api_token, :placeholder => 'API Token',
+           :label => 'Your FogBugz API Token.'
 
   # Create an issue
   def receive_issue_impact_change(payload)

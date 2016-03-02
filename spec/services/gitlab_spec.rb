@@ -21,7 +21,7 @@ describe Service::GitLab, :type => :service do
 
     it { is_expected.to include_string_field :url }
     it { is_expected.to include_string_field :project }
-    it { is_expected.to include_string_field :private_token }
+    it { is_expected.to include_password_field :private_token }
   end
 
   describe :receive_verification do

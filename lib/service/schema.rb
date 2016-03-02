@@ -7,11 +7,11 @@ module Service
     # Example:
     #
     #   class FooService < Service
-    #     string :token, :label => "API Token"
+    #     string :username, :label => "Username"
     #   end
     #
     #   FooService.schema
-    #   # => [[:string, :token, { :label => "API Token" }]]
+    #   # => [[:string, :username, { :label => "Username" }]]
     #
     # Returns an Array of [ Symbol attribute type, Symbol attribute name, { options hash } ] tuples.
     def schema
@@ -24,11 +24,11 @@ module Service
     # Example:
     #
     #   class FooService < Service
-    #     string :token, :label => "API Token", :placeholder => "Your API token",
+    #     string :username, :label => "Username", :placeholder => "Your username",
     #   end
     #
     #   FooService.schema
-    #   # => [[:string, :token, { :label => "...", ... }]]
+    #   # => [[:string, :username, { :label => "...", ... }]]
     #
     # identifier - attribute identifier
     # options    - a hash of options for the attribute, including :label,

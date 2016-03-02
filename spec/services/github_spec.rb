@@ -22,7 +22,7 @@ describe Service::GitHub, :type => :service do
 
     it { is_expected.to include_string_field :api_endpoint }
     it { is_expected.to include_string_field :repo }
-    it { is_expected.to include_string_field :access_token }
+    it { is_expected.to include_password_field :access_token }
   end
 
   describe '#receive_verification' do
