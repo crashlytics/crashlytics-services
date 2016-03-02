@@ -1,7 +1,7 @@
 class Service::Asana < Service::Base
   title 'Asana'
 
-  string :api_key, :placeholder => 'Asana API key',
+  password :api_key, :placeholder => 'Asana API key',
          :label => 'Your Asana API key can be found in Asana by ' \
          'clicking on your name in the lower lefthand pane, ' \
          'clicking \'Account Settings\' and selecting the \'APPS\' tab.'

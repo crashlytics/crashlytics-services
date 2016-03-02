@@ -15,7 +15,7 @@ describe Service::Pivotal, :type => :service do
     subject { Service::Pivotal }
 
     it { is_expected.to include_string_field :project_url }
-    it { is_expected.to include_string_field :api_key }
+    it { is_expected.to include_password_field :api_key }
   end
 
   describe 'receive_verification' do

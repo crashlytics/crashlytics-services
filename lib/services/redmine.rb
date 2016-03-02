@@ -1,10 +1,10 @@
 class Service::Redmine < Service::Base
   string :project_url, :placeholder => "http://redmine.acme.com/projects/yourproject",
          :label => "URL to your Redmine project:"
-  string :api_key, :label => 'Paste your API Key (located under "My Account")<br><br>' \
-                             'You must also "Enable REST web service" in ' \
-                             'Admin > Settings > Auth.<br><br>' \
-                             'Tip: Create a Crashlytics user for easier sorting.'
+  password :api_key, :label => 'Paste your API Key (located under "My Account")<br><br>' \
+                               'You must also "Enable REST web service" in ' \
+                               'Admin > Settings > Auth.<br><br>' \
+                               'Tip: Create a Crashlytics user for easier sorting.'
 
   # Create an issue on Redmine
   def receive_issue_impact_change(payload)

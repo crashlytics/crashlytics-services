@@ -10,7 +10,7 @@ describe Service::HipChat, :type => :service do
   describe 'schema and display configuration' do
     subject { Service::HipChat }
 
-    it { is_expected.to include_string_field :api_token }
+    it { is_expected.to include_password_field :api_token }
     it { is_expected.to include_checkbox_field :v2 }
     it { is_expected.to include_string_field :room }
     it { is_expected.to include_checkbox_field :notify }

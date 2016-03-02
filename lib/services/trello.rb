@@ -13,7 +13,7 @@ class Service::Trello < Service::Base
       'Your Trello API key:' \
       '<br />' \
       'Can be obtained <a href="https://trello.com/1/appKey/generate">here</a> (Key field)'
-  string :token, placeholder: 'Member token',
+  password :token, placeholder: 'Member token',
                  label: <<-EOT
 You should generate a token by opening the following URL. Replace DEVELOPER_PUBLIC_KEY with your key.
 <textarea readonly="true">

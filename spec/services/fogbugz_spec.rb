@@ -10,7 +10,7 @@ describe Service::FogBugz, :type => :service do
     subject { Service::FogBugz }
 
     it { is_expected.to include_string_field :project_url }
-    it { is_expected.to include_string_field :api_token }
+    it { is_expected.to include_password_field :api_token }
   end
 
   context 'with service' do

@@ -2,7 +2,7 @@ class Service::GitHub < Service::Base
   title 'GitHub'
 
   string :repo, :placeholder => 'org/repository', :label => 'Your GitHub repository:'
-  string :access_token, :placeholder => 'GitHub access token', :label =>
+  password :access_token, :placeholder => 'GitHub access token', :label =>
     'You can create an access token ' \
     '<a target="_blank" href="https://help.github.com/articles/creating-an-access-token-for-command-line-use">here</a>, which can be revoked through GitHub at any time.<br /><br />' \
     'However, we strongly recommend that you create a new GitHub user for this, one that only has access to the repo with which you wish to integrate.<br /><br />' \

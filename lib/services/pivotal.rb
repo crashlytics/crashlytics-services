@@ -1,7 +1,7 @@
 class Service::Pivotal < Service::Base
   string :project_url, :placeholder => "https://www.pivotaltracker.com/projects/yourproject/",
          :label => "URL to your Pivotal project:"
-  string :api_key, :label => 'Paste your API Token (located under "Profile"). ' \
+  password :api_key, :label => 'Paste your API Token (located under "Profile"). ' \
                              'Make sure API Access is on for your project in Project Settings!<br />' \
                              'Tip: Create a Crashlytics user for easier sorting.'
 

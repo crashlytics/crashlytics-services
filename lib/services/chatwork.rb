@@ -3,10 +3,10 @@ require 'json'
 class Service::ChatWork < Service::Base
   title 'ChatWork'
 
-  string :api_token, :placeholder => 'API Token',
-         :label => 'Your ChatWork API Token. <br />' \
-                   'You can create an API Token ' \
-                   '<a href="https://www.chatwork.com/service/packages/chatwork/subpackages/api/apply_beta_business.php">here</a>.'
+  password :api_token, :placeholder => 'API Token',
+           :label => 'Your ChatWork API Token. <br />' \
+                     'You can create an API Token ' \
+                     '<a href="https://www.chatwork.com/service/packages/chatwork/subpackages/api/apply_beta_business.php">here</a>.'
   string :room, :placeholder => 'Room ID',
          :label => 'Specify the Room ID where you want to send messages.<br />' \
                    'Room ID is the numeric id shown in the URL of each group chat.<br />' \

@@ -20,7 +20,7 @@ describe Service::Campfire, :type => :service do
 
     it { is_expected.to include_string_field :subdomain }
     it { is_expected.to include_string_field :room }
-    it { is_expected.to include_string_field :api_token }
+    it { is_expected.to include_password_field :api_token }
   end
 
   describe 'receive_verification' do

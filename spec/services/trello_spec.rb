@@ -83,7 +83,7 @@ EOT
     it { is_expected.to include_string_field :board }
     it { is_expected.to include_string_field :list }
     it { is_expected.to include_string_field :key }
-    it { is_expected.to include_string_field :token }
+    it { is_expected.to include_password_field :token }
   end
 
   describe '#receive_verification' do
