@@ -1,4 +1,10 @@
 =======
+5.3.0
+-----
+HipChat updates:
+- more expressive messaging.
+- `issue_velocity_alert` support
+
 5.2.0
 -----
 - Remove successful_response? and stop using it
