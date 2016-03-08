@@ -39,7 +39,7 @@ describe Service::Slack, :type => :service do
 
   describe '#receive_verification' do
     let(:verification_message) do
-      "Boom! Crashlytics issue change notifications have been added.  " +
+      "Boom! Crashlytics issue notifications have been added.  " +
         "<http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly" +
         "|Click here for more info>."
     end
@@ -68,21 +68,32 @@ describe Service::Slack, :type => :service do
   end
 
   describe '#receive_issue_impact_change' do
+    let(:payload) do
+      {
+        :url => 'url',
+        :display_id => '123',
+        :app => { :name => 'name' },
+        :title => 'title',
+        :method => 'method',
+        :crashes_count => 3
+      }
+    end
+
     let(:issue_impact_change_attachments) do
       [{
-        :fallback => "Issue #title was created. platform: ",
-        :color => "danger",
-        :mrkdwn_in => ["text", "title", "fields", "fallback"],
+        :fallback => "name crashed 3 times in method!",
+        :color => "warning",
+        :mrkdwn_in => ["text", "fields"],
         :fields => [
-          { :title => "Summary", :value => "Issue #title was created for method method." },
-          { :title => "Platform", :value => nil, :short => "true" },
-          { :title => "Bundle identifier", :value => nil, :short => "true"}
+          { :title => "Summary", :value => "Issue #123: title method" },
+          { :title => "Platform", :value => nil, :short => true },
+          { :title => "Bundle identifier", :value => nil, :short => true }
         ]
       }]
     end
     let(:issue_impact_change_body) do
       {
-        :text => '<url|name> crashed 1 times in method!',
+        :text => '<url|name> crashed 3 times in method!',
         :channel => 'mychannel',
         :username => 'crashuser',
         :attachments => issue_impact_change_attachments
@@ -92,9 +103,6 @@ describe Service::Slack, :type => :service do
     it do
       stub_slack_request(:request_body => issue_impact_change_body).to_return(:status => 200, :body => 'unused')
 
-      payload = { :url => 'url', :app => { :name => 'name' },
-                  :title => 'title', :method => 'method', :crashes_count => 1}
-
       service.receive_issue_impact_change(payload)
       expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
@@ -102,11 +110,62 @@ describe Service::Slack, :type => :service do
     it 'bubbles up errors from Slack' do
       stub_slack_request(:request_body => issue_impact_change_body).to_return(:status => 404, :body => 'No service')
 
-      payload = { :url => 'url', :app => { :name => 'name' },
-            :title => 'title', :method => 'method', :crashes_count => 1}
-
       expect {
         service.receive_issue_impact_change(payload)
+      }.to raise_error(Service::DisplayableError, 'Unexpected response from Slack - HTTP status code: 404')
+    end
+  end
+
+  describe '#receive_issue_velocity_alert' do
+    let(:payload) do
+      {
+        :event => 'issue_velocity_alert',
+        :display_id => '123',
+        :method => 'method',
+        :title => 'title',
+        :crash_percentage => 1.03,
+        :version => '1.0 (1.1)',
+        :url => 'url',
+        :app => {
+          :name => 'AppName',
+          :bundle_identifier => 'io.fabric.test',
+          :platform => 'platform'
+        }
+      }
+    end
+    let(:issue_velocity_alert_attachments) do
+      [{
+        :fallback => 'Velocity Alert! Issue #123: title method crashed 1.03% of all AppName sessions in the past hour on version 1.0 (1.1)',
+        :color => "danger",
+        :mrkdwn_in => ["text", "fields"],
+        :fields => [
+          { :title => "Summary", :value => 'Issue #123: title method' },
+          { :title => "Platform", :value => 'platform', :short => true },
+          { :title => "Bundle identifier", :value => 'io.fabric.test', :short => true }
+        ]
+      }]
+    end
+    let(:issue_velocity_alert_body) do
+      {
+        :text => 'Velocity Alert! <url|Issue #123: title method> crashed 1.03% of all AppName sessions in the past hour on version 1.0 (1.1)',
+        :channel => 'mychannel',
+        :username => 'crashuser',
+        :attachments => issue_velocity_alert_attachments
+      }.to_json
+    end
+
+    it 'logs a message on success' do
+      stub_slack_request(:request_body => issue_velocity_alert_body).to_return(:status => 200, :body => 'unused')
+
+      service.receive_issue_velocity_alert(payload)
+      expect(logger).to have_received(:log).with('issue_velocity_alert successful')
+    end
+
+    it 'surfaces failures as human readable error messages' do
+      stub_slack_request(:request_body => issue_velocity_alert_body).to_return(:status => 404, :body => 'No service')
+
+      expect {
+        service.receive_issue_velocity_alert(payload)
       }.to raise_error(Service::DisplayableError, 'Unexpected response from Slack - HTTP status code: 404')
     end
   end
