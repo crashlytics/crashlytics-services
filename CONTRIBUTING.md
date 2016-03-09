@@ -1,4 +1,16 @@
-## How to Contribute ##
+# How to Contribute #
+
+## Bugs, Issues, Suggestions, Problems
+
+Having problems with your integrations?  Have some ideas of how to make it even better?  Please share on our [Twitter Developers Forum](https://twittercommunity.com/c/fabric)
+
+## Bugfixes
+
+If you think you found a bug in one of our integrations, please open a PR with a failing test case that can reproduce the issue.  Even better: include a fix!
+
+## Adding support for new service hooks
+
+Want to integrate your service with Crashlytics?  This guide walks you through how to submit a PR for a new service integration.
 
 ### Phase 1: Pre-flight Check
 1. Your service must be live and publicly accessible.  We don't accept submissions for services that are still under development.
