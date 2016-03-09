@@ -7,29 +7,29 @@ class Service::ZohoProjects < Service::Base
     "<br /><br />" \
     "Project ID"
 
-  string :authtoken, :label => 'Auth Token'
+  password :authtoken, :label => 'Auth Token'
 
-  page 'Project Information', [:project_id, :authtoken]
-
-  def receive_issue_impact_change(config, issue)
+  def receive_issue_impact_change(issue)
     payload = JSON.generate(:event => 'issue_impact_change', :payload => issue)
 
     response = send_request_to_projects config, payload
     if response.status != 200
-      raise "Problem while sending request to Zoho Projects - #{error_response_details(response)}"
+      display_error("Problem while sending request to Zoho Projects - #{error_response_details(response)}")
     end
 
-    true
+    log('issue_impact_change successful')
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     payload = JSON.generate(:event => 'verification')
 
     response = send_request_to_projects config, payload
     if response.status == 400
-      [false, 'Invalid Auth Token/Project ID']
+      display_error('Invalid Auth Token/Project ID')
+    elsif response.success?
+      log('verification successful')
     else
-      [true, 'Verification successfully completed']
+      display_error("ZohoProjects verification failed - #{error_response_details(response)}")
     end
   end
 

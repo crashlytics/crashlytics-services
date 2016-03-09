@@ -1,22 +1,76 @@
 require 'spec_helper'
+require 'webmock/rspec'
 
-describe Service::Trello do
+describe Service::Trello, :type => :service do
   let(:config) do
-    { key:   'trello_key',
-      token: 'trello_token',
-      board: 'aWXeu09f',
-      list:  'Crashes'
+    {
+      :key => 'trello_key',
+      :token => 'trello_token',
+      :board => 'aWXeu09f',
+      :list => 'Crashes'
     }
   end
-  let(:board) { double('Trello::Board', lists: lists) }
-  let(:list) { double('Trello::List', id: 'abc123', name: 'Crashes') }
-  let(:lists) { [list] }
-  let(:service) { described_class.new('verification', {}) }
-  let(:client) { double 'Trello::Client' }
+  let(:board_id) { '56d06bb8505c4db753000001' }
+  let(:list_id) { '56d06da3505c4db753000002'}
 
-  before do
-    allow(Trello::Client).to receive(:new).with(:developer_public_key => 'trello_key', :member_token => 'trello_token').and_return client
-    allow(client).to receive(:find).with(:boards, 'aWXeu09f').and_return board
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:service) { described_class.new(config, lambda { |message| logger.log(message) }) }
+
+  def stub_find_board
+    stub_request(:get, "https://api.trello.com/1/boards/#{config[:board]}?key=#{config[:key]}&token=#{config[:token]}")
+  end
+
+  let(:board_response_body) do
+    { :id => board_id }.to_json
+  end
+
+  def stub_find_lists
+    stub_request(:get, "https://api.trello.com/1/boards/#{board_id}/lists?filter=open&key=#{config[:key]}&token=#{config[:token]}")
+  end
+
+  let(:list_response_body) do
+    [
+      {
+        :id => list_id,
+        :name => config[:list],
+        :idBoard => board_id
+      }
+    ].to_json
+  end
+
+
+  let(:expected_card_description) do
+      <<-EOT
+#### in my#method
+
+* Number of crashes: 120
+* Impacted devices: 25
+
+There's a lot more information about this crash on crashlytics.com:
+http://crashlytics.com/issue-url
+EOT
+  end
+
+  let(:expected_card_create_request_body) do
+    {
+      :desc => expected_card_description,
+      #:due => '',
+      #:idLabels => '',
+      :idList => '56d06da3505c4db753000002',
+      #:idMembers => '',
+      :name => 'Fatal Error',
+      #:pos => ''
+    }
+  end
+
+  def stub_create_card
+     stub_request(:post, "https://api.trello.com/1/cards?key=#{config[:key]}&token=#{config[:token]}").
+       with(:body => expected_card_create_request_body)
+            #:headers => {'Accept'=>'*/*; q=0.5, application/xml', 'Accept-Encoding'=>'gzip, deflate', 'Content-Length'=>'330', 'Content-Type'=>'application/x-www-form-urlencoded', 'User-Agent'=>'Ruby'})
+  end
+
+  let(:card_creation_response_body) do
+    { :id => '56d08430505c4db753000003' }.to_json
   end
 
   it 'has a title' do
@@ -29,152 +83,85 @@ describe Service::Trello do
     it { is_expected.to include_string_field :board }
     it { is_expected.to include_string_field :list }
     it { is_expected.to include_string_field :key }
-    it { is_expected.to include_string_field :token }
-
-    it { is_expected.to include_page 'Board', [:board, :list] }
-    it { is_expected.to include_page 'Credentials', [:key, :token] }
-  end
-
-  describe '.pages' do
-    describe 'first' do
-      subject { described_class.pages[0] }
-
-      specify { expect(subject[:title]).to eq 'Board' }
-      specify { expect(subject[:attrs]).to eq [:board, :list] }
-    end
-
-    describe 'second' do
-      subject { described_class.pages[1] }
-
-      specify { expect(subject[:title]).to eq 'Credentials' }
-      specify { expect(subject[:attrs]).to eq [:key, :token] }
-    end
+    it { is_expected.to include_password_field :token }
   end
 
   describe '#receive_verification' do
-    subject(:receive_verification) { service.receive_verification(config, nil) }
-
-    before do
-      expect(client).to receive(:find).with(:boards, 'aWXeu09f') do
-        case find_result
-        when :board_with_list
-          board
-        when :board_not_found
-          raise Trello::Error, 'invalid id'
-        when :invalid_key
-          raise Trello::Error, 'invalid key'
-        when :invalid_token
-          raise Trello::Error, 'invalid token'
-        end
-      end
+    it 'logs a message when successful' do
+      stub_find_board.and_return(:status => 200, :body => board_response_body)
+      stub_find_lists.and_return(:status => 200, :body => list_response_body)
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
     end
 
-    context 'success' do
-      let(:find_result) { :board_with_list }
-
-      it 'sets success flag to true' do
-        expect(receive_verification.first).to be true
-      end
+    it 'displays an error when board not found' do
+      stub_find_board.and_return(:status => 400, :body => 'invalid id')
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Board aWXeu09f was not found')
     end
 
-    context 'failure' do
-      context 'board not found' do
-        let(:find_result) { :board_not_found }
+    it 'displays an error when list not found' do
+      stub_find_board.and_return(:status => 200, :body => board_response_body)
+      stub_find_lists.and_return(:status => 200, :body => [].to_json)
 
-        it 'sets success flag to false' do
-          expect(receive_verification.first).to be false
-        end
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'List Crashes not found in board aWXeu09f')
+    end
 
-        it 'sets failure message' do
-          expect(receive_verification.last).to include "not found"
-        end
-      end
+    it 'displays an error when invalid key' do
+      stub_find_board.and_return(:status => 401, :body => 'invalid key')
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Key trello_key is invalid')
+    end
 
-      context 'list not found' do
-        let(:lists) { [] }
-        let(:find_result) { :board_with_list }
-
-        it 'sets success flag to false' do
-          expect(receive_verification.first).to be false
-        end
-
-        it 'sets failure message' do
-          expect(receive_verification.last).to include "Unable to find list"
-        end
-      end
-
-      context 'invalid key' do
-        let(:find_result) { :invalid_key }
-
-        it 'sets success flag to false' do
-          expect(receive_verification.first).to be false
-        end
-
-        it 'sets failure message' do
-          expect(receive_verification.last).to include "trello_key is invalid"
-        end
-      end
-
-      context 'invalid token' do
-        let(:find_result) { :invalid_token }
-
-        it 'sets success flag to false' do
-          expect(receive_verification.first).to be false
-        end
-
-        it 'sets failure message' do
-          expect(receive_verification.last).to include "trello_token is invalid"
-        end
-      end
+    it 'displays an error when invalid token' do
+      stub_find_board.and_return(:status => 401, :body => 'invalid token')
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Token trello_token is invalid')
     end
   end
 
   describe '#receive_issue_impact_change' do
     let(:crashlytics_issue) do
-      { url: 'http://crashlytics.com/issue-url',
-        app: { name: 'my app' },
-        title: 'Fatal Error',
-        method: 'my#method',
-        crashes_count: '120',
-        impacted_devices_count: '25'
+      {
+        :url => 'http://crashlytics.com/issue-url',
+        :app => { name: 'my app' },
+        :title => 'Fatal Error',
+        :method => 'my#method',
+        :crashes_count => '120',
+        :impacted_devices_count => '25'
       }
-    end
-    let(:expected_card_description) do
-      <<-EOT
-#### in my#method
-
-* Number of crashes: 120
-* Impacted devices: 25
-
-There's a lot more information about this crash on crashlytics.com:
-http://crashlytics.com/issue-url
-EOT
     end
 
     let(:card_params) do
-      { 'name'   => 'Fatal Error', 
-        'idList' => 'abc123', 
-        'desc'   => expected_card_description }
+      {
+        'name'   => 'Fatal Error',
+        'idList' => config[:list],
+        'desc'   => expected_card_description
+      }
     end
 
-    subject { service.receive_issue_impact_change(config, crashlytics_issue) }
+    it 'logs a message on success' do
+      stub_find_board.and_return(:status => 200, :body => board_response_body)
+      stub_find_lists.and_return(:status => 200, :body => list_response_body)
+      stub_create_card.and_return(:status => 200, :body => card_creation_response_body)
 
-    context 'success' do
-      let(:card) { double 'Trello::Card', id: 'card123' }
-
-      before { expect(client).to receive(:create).with(:card, card_params).and_return card }
-
-      it 'returns a hash containing created card id' do
-        expect(subject).to be true
-      end
+      service.receive_issue_impact_change(crashlytics_issue)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
-    context 'failure' do
-      before { expect(client).to receive(:create).with(:card, card_params).and_raise Trello::Error }
+    it 'raises an error on failure' do
+      stub_find_board.and_return(:status => 200, :body => board_response_body)
+      stub_find_lists.and_return(:status => 200, :body => list_response_body)
+      stub_create_card.and_return(:status => 400, :body => 'invalid value for idList')
 
-      it 'raises an error' do
-        expect { subject }.to raise_error Trello::Error
-      end
+      expect {
+        service.receive_issue_impact_change(crashlytics_issue)
+      }.to raise_error(Service::DisplayableError, 'Unexpected error while creating a card - HTTP status code: 400')
     end
   end
 end

@@ -1,4 +1,16 @@
-## How to Contribute ##
+# How to Contribute #
+
+## Bugs, Issues, Suggestions, Problems
+
+Having problems with your integrations?  Have some ideas of how to make it even better?  Please share on our [Twitter Developers Forum](https://twittercommunity.com/c/fabric)
+
+## Bugfixes
+
+If you think you found a bug in one of our integrations, please open a PR with a failing test case that can reproduce the issue.  Even better: include a fix!
+
+## Adding support for new service hooks
+
+Want to integrate your service with Crashlytics?  This guide walks you through how to submit a PR for a new service integration.
 
 ### Phase 1: Pre-flight Check
 1. Your service must be live and publicly accessible.  We don't accept submissions for services that are still under development.
@@ -10,16 +22,17 @@
 1. Fork the project.
 1. Create a new file in `lib/services/<service-name>.rb`.
   * Trivialized documentation example: [README.md](https://github.com/crashlytics/crashlytics-services/blob/master/README.md)
-  * A real integration implementation: [real live example](https://github.com/crashlytics/crashlytics-services/blob/master/lib/services/zohoprojects.rb)
-1. If your integration must use a gem, add it to the gemspec, with specific version numbers.
-  * If possible, we recommend you implement your integration using only the built-in HTTP functions instead of using gems.
-  * Gems _can_ make integration with our backend infrastructure complex, so the more dependencies you bring in, the longer it may take us to finalize and deploy your integration.
-  * Certain gems are not compatible with our backend (most notably, those that cannot be used within EventMachine), so please choose your dependencies sparingly.
-1. Add RSpec tests in `spec/services/<service-name>_spec.rb` so we know your code works! We recommend using WebMock to verify edge cases.  See this [real live example](https://github.com/crashlytics/crashlytics-services/blob/master/spec/services/zohoprojects_spec.rb) for inspiration.  You can run the entire suite by doing `bundle install` and `bundle exec rake`. Please cover at _minimum_ the following four scenarios:
+  * A real integration implementation: [real live example](https://github.com/crashlytics/crashlytics-services/blob/master/lib/services/hipchat.rb)
+1. We no longer accept submissions that have their own gem dependencies.
+  * You must implement your integration using only the built-in HTTP functions.
+1. Add RSpec tests in `spec/services/<service-name>_spec.rb` so we know your code works! We recommend using WebMock to verify edge cases.  See this [real live example](https://github.com/crashlytics/crashlytics-services/blob/master/spec/services/hipchat_spec.rb) for inspiration.  You can run the entire suite by doing `bundle install` and `bundle exec rake`. Please cover at _minimum_ the following six scenarios:
   * `receive_verification` success
   * `receive_verification` failure
   * `receive_issue_impact_change` success
   * `receive_issue_impact_change` failure.
+  * `receive_issue_velocity_alert` success.
+  * `receive_issue_velocity_alert` failure.
+1. Your service must also be exercisable via `bin/test_service_hook`
 1. You must include a logo for the service in the `img/<service-name>.png`.  This logo will appear in the email we send when someone enables your integration.
   * max 155x45px on a transparent background
 1. You must also include an all white version of your logo in the `img/<service-name>-mono.png` folder.  This logo will appear in the Settings dashboard configuration page.

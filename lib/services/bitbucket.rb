@@ -42,13 +42,7 @@ class Service::Bitbucket < Service::Base
     :label =>
       'The name of your repo:'
 
-
-  page "Username", [:username]
-  page "Password", [:password]
-  page "Repository Owner", [:repo_owner]
-  page "Repository", [:repo]
-
-  def receive_verification(config, _)
+  def receive_verification
     username = config[:username]
     repo = config[:repo]
     http.ssl[:verify] = true
@@ -57,17 +51,17 @@ class Service::Bitbucket < Service::Base
     resp = http_get build_url(repo_owner(config), repo)
 
     if resp.status == 200
-      [true, "Successfully verified Bitbucket settings"]
+      log('verification successful')
     else
       log "Verification error - #{error_response_details(resp)}"
-      [false, "Oops! Please check your settings again."]
+      display_error('Oops! Please check your settings again.')
     end
   rescue => e
     log "Rescued a verification error in bitbucket: (repo=#{config[:repo]}) #{e}"
-    [false, "Oops! Is your repository url correct?"]
+    display_error("Oops! Is your repository url correct?")
   end
 
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     username = config[:username]
     repo = config[:repo]
     http.ssl[:verify] = true
@@ -102,10 +96,10 @@ class Service::Bitbucket < Service::Base
     end
 
     if resp.status != 200
-      raise "Bitbucket issue creation failed - #{error_response_details(resp)}"
+      display_error("Bitbucket issue creation failed - #{error_response_details(resp)}")
     end
 
-    true
+    log('issue_impact_change successful')
   end
 
   def build_url(repo_owner, repo)

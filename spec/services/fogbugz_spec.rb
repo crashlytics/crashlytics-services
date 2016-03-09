@@ -1,7 +1,6 @@
-require 'asana'
 require 'spec_helper'
 
-describe Service::FogBugz do
+describe Service::FogBugz, :type => :service do
 
   it 'has a title' do
     expect(Service::FogBugz.title).to eq('FogBugz')
@@ -11,19 +10,18 @@ describe Service::FogBugz do
     subject { Service::FogBugz }
 
     it { is_expected.to include_string_field :project_url }
-    it { is_expected.to include_string_field :api_token }
-
-    it { is_expected.to include_page 'API Token', [:project_url, :api_token] }
+    it { is_expected.to include_password_field :api_token }
   end
 
   context 'with service' do
-    let(:service) { Service::FogBugz.new('event_name', {}) }
     let(:config) do
       {
         :api_key => 'key',
         :project_url => 'https://yourproject.fogbugz.com'
       }
     end
+    let(:logger) { double('fake-logger', :log => nil) }
+    let(:service) { Service::FogBugz.new(config, lambda { |message| logger.log(message) }) }
     let(:payload) do
       {
         :title => 'foo title',
@@ -46,20 +44,24 @@ describe Service::FogBugz do
 
       it 'succeeds given a valid response' do
         expect(service).to receive(:http_get).and_return(double(Faraday::Response, :body => success_response))
-        response = service.receive_verification(config, nil)
-        expect(response).to eq([true, 'Successfully verified Fogbugz settings'])
+        service.receive_verification
+        expect(logger).to have_received(:log).with('verification successful')
       end
 
       it 'fails given an error response' do
         expect(service).to receive(:http_get).and_return(double(Faraday::Response, :body => error_response))
-        response = service.receive_verification(config, nil)
-        expect(response).to eq([false, 'Oops! Please check your API key again.'])
+        expect {
+          service.receive_verification
+        }.to raise_error(Service::DisplayableError, 'Oops! Please check your API key again.')
+        expect(logger).to have_received(:log).with('verification failure: <error code="0"/>')
       end
 
       it 'fails given an invalid response' do
         expect(service).to receive(:http_get).and_return(double(Faraday::Response, :body => invalid_response))
-        response = service.receive_verification(config, nil)
-        expect(response).to eq([false, 'Oops! Please check your API key again.'])
+        expect {
+          service.receive_verification
+        }.to raise_error(Service::DisplayableError, 'Oops! Please check your API key again.')
+        expect(logger).to have_received(:log).with('verification failure: ')
       end
     end
 
@@ -69,18 +71,23 @@ describe Service::FogBugz do
 
       it 'creates a new case given a valid response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => success_response))
-        response = service.receive_issue_impact_change(config, payload)
-        expect(response).to be true
+        service.receive_issue_impact_change(payload)
+        expect(logger).to have_received(:log).with('issue_impact_change successful')
       end
 
       it 'raises an exception given an error response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => error_response))
-        expect { service.receive_issue_impact_change(config, payload) }.to raise_error(/Could not create FogBugz/)
+        expect {
+          service.receive_issue_impact_change(payload)
+        }.to raise_error(Service::DisplayableError, 'Could not create FogBugz case')
+        expect(logger).to have_received(:log).with('issue_impact_change failure: <error code="0"/>')
       end
 
       it 'raises an exception given an invalid response' do
         expect(service).to receive(:http_post).and_return(double(Faraday::Response, :body => invalid_response))
-        expect { service.receive_issue_impact_change(config, payload) }.to raise_error(/Could not create FogBugz/)
+        expect {
+          service.receive_issue_impact_change(payload)
+        }.to raise_error(Service::DisplayableError, 'Could not create FogBugz case')
       end
     end
   end

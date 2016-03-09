@@ -1,8 +1,7 @@
-require 'asana'
 require 'spec_helper'
+require 'webmock/rspec'
 
-describe Service::Asana do
-
+describe Service::Asana, :type => :service do
   it 'has a title' do
     expect(Service::Asana.title).to eq('Asana')
   end
@@ -10,21 +9,19 @@ describe Service::Asana do
   describe 'schema and display configuration' do
     subject { Service::Asana }
 
-    it { is_expected.to include_page 'API Key', [:api_key] }
-    it { is_expected.to include_string_field :api_key }
-
-    it { is_expected.to include_page 'Project ID', [:project_id] }
+    it { is_expected.to include_password_field :api_key }
     it { is_expected.to include_string_field :project_id }
   end
 
   context 'with service' do
-    let(:service) { Service::Asana.new('event_name', {}) }
+    let(:logger) { double('fake-logger', :log => nil) }
     let(:config) do
       {
         :api_key => 'key',
         :project_id => 'project_id_foo'
       }
     end
+    let(:service) { Service::Asana.new(config, lambda { |message| logger.log message }) }
     let(:issue) do
       {
         :title => 'foo title',
@@ -53,18 +50,21 @@ describe Service::Asana do
     end
 
     describe :receive_verification do
-      it 'should succeed if API can authenticate and find product' do
-        expect(service).to receive(:find_project).
-          with(config[:api_key], 'project_id_foo').
-          and_return(double(:id => 'project_id_foo'))
-        response = service.receive_verification(config, nil)
-        expect(response).to eq([true, 'Successfully verified Asana settings!'])
+      it 'should succeed if API can authenticate and find project' do
+        stub_request(:get, "https://key:@app.asana.com/api/1.0/projects/project_id_foo").
+          to_return(:status => 200, :body => '{}')
+
+        service.receive_verification
+        expect(logger).to have_received(:log).with('verification successful')
       end
 
       it 'should fail if API call raises an exception' do
-        expect(service).to receive(:find_project).and_raise
-        response = service.receive_verification(config, nil)
-        expect(response.first).to eq(false)
+        stub_request(:get, "https://key:@app.asana.com/api/1.0/projects/project_id_foo").
+          to_return(:status => 403, :body => '')
+
+        expect {
+          service.receive_verification
+        }.to raise_error(Service::DisplayableError, /Could not access project/)
       end
     end
 
@@ -82,21 +82,26 @@ describe Service::Asana do
       let(:workspace) { double(:id => 'workspace_id_foo') }
       let(:task) { double(:id => 'new_task_id') }
 
-      it 'should create a new Asana task' do
-        expect(service).to receive(:find_project).with(config[:api_key], project_id).and_return project
-        expect(project).to receive(:workspace).and_return workspace
-        expect(workspace).to receive(:create_task).with(expected_task_options).and_return task
+      before do
+        stub_request(:get, "https://key:@app.asana.com/api/1.0/projects/project_id_foo").
+          and_return(:status => 200, :body => '{"data":{"workspace":{"id":1}}}')
+      end
 
-        response = service.receive_issue_impact_change config, issue
-        expect(response).to be true
+      it 'should create a new Asana task' do
+        stub_request(:post, "https://key:@app.asana.com/api/1.0/tasks").
+          and_return(:status => 200, :body => '')
+
+        service.receive_issue_impact_change issue
+        expect(logger).to have_received(:log).with('issue_impact_change successful')
       end
 
       it 'should raise if creating a new Asana task fails' do
-        expect(service).to receive(:find_project).with(config[:api_key], project_id).and_return project
-        expect(project).to receive(:workspace).and_return workspace
-        expect(workspace).to receive(:create_task).with(expected_task_options).and_raise('fake')
+        stub_request(:post, "https://key:@app.asana.com/api/1.0/tasks").
+          and_return(:status => 403, :body => '')
 
-        expect { service.receive_issue_impact_change config, issue }.to raise_error(RuntimeError, /fake/)
+        expect {
+          service.receive_issue_impact_change issue
+        }.to raise_error(Service::DisplayableError, /Asana task creation failed/)
       end
     end
   end

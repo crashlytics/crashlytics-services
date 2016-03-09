@@ -9,10 +9,7 @@ class Service::Sprintly < Service::Base
   password :api_key, :placeholder => 'Sprint.ly API key',
            :label => 'Your Sprint.ly API key:'
 
-  page 'Product', [:dashboard_url]
-  page 'Login Information', [:email, :api_key]
-
-  def receive_verification(config, _)
+  def receive_verification
     begin
       url = items_api_url_from_dashboard_url(config[:dashboard_url])
       http.ssl[:verify] = true
@@ -20,19 +17,15 @@ class Service::Sprintly < Service::Base
 
       resp = http_get url
       if resp.status == 200
-        [true,  'Successfully verified Sprint.ly settings!']
+        log('verification successful')
       else
-        log "Sprint.ly error: #{error_response_details(resp)}"
-        [false, "Oops! Please check your settings again."]
+        display_error "Sprint.ly error - #{error_response_details(resp)}"
       end
-    rescue => e
-      log "Rescued a verification error in Sprint.ly: (url=#{config[:dashboard_url]}) #{e}"
-      [false, "Oops! Please check your settings again."]
     end
   end
 
   # Create a defect on Sprint.ly
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     url = items_api_url_from_dashboard_url(config[:dashboard_url])
     http.ssl[:verify] = true
     http.basic_auth config[:email], config[:api_key]
@@ -48,9 +41,9 @@ class Service::Sprintly < Service::Base
     end
 
     if resp.status == 200
-      true
+      log('issue_impact_change successful')
     else
-      raise "[Sprint.ly] Adding defect to backlog failed - #{error_response_details(resp)}"
+      display_error("[Sprint.ly] Adding defect to backlog failed - #{error_response_details(resp)}")
     end
   end
 

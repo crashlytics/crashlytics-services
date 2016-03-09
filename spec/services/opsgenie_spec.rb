@@ -1,6 +1,12 @@
 require 'spec_helper'
 
-describe Service::OpsGenie do
+describe Service::OpsGenie, :type => :service do
+
+  before do
+    @logger = double('fake-logger', :log => nil)
+    @config = { :api_key => 'OpsGenie API key' }
+    @service = Service::OpsGenie.new(@config, lambda { |message| @logger.log(message) })
+  end
 
   it 'has a title' do
     expect(Service::OpsGenie.title).to eq('OpsGenie')
@@ -9,16 +15,10 @@ describe Service::OpsGenie do
   describe 'schema and display configuration' do
     subject { Service::OpsGenie }
 
-    it { is_expected.to include_string_field :api_key }
-    it { is_expected.to include_page 'API Key', [:api_key] }
+    it { is_expected.to include_password_field :api_key }
   end
 
   describe 'receive_verification' do
-    before do
-      @config = { :api_key => 'OpsGenie API key' }
-      @service = Service::OpsGenie.new('verification', {})
-      @payload = 'does not matter'
-    end
 
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
@@ -31,8 +31,8 @@ describe Service::OpsGenie do
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/'))
 
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([true,  'Successfully verified OpsGenie settings'])
+      @service.receive_verification
+      expect(@logger).to have_received(:log).with('verification successful')
     end
 
     it 'fails upon unsuccessful api response' do
@@ -46,18 +46,13 @@ describe Service::OpsGenie do
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/'))
 
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([false, "Couldn't verify OpsGenie settings; please check your API key."])
+      expect {
+        @service.receive_verification
+      }.to raise_error(Service::DisplayableError, "Couldn't verify OpsGenie settings; please check your API key.")
     end
   end
 
   describe 'receive_issue_impact_change' do
-    before do
-      @config = {}
-      @service = Service::OpsGenie.new('issue_impact_change', {})
-      @payload = 'does not matter'
-    end
-
     it 'succeeds upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
@@ -69,8 +64,8 @@ describe Service::OpsGenie do
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/v1/json/crashlytics'))
 
-      resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to be true
+      @service.receive_issue_impact_change(@config)
+      expect(@logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'fails upon unsuccessful api response' do
@@ -84,7 +79,9 @@ describe Service::OpsGenie do
         .with('https://api.opsgenie.com/v1/json/crashlytics')
         .and_return(test.post('/v1/json/crashlytics'))
 
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error 'OpsGenie issue creation failed - HTTP status code: 500'
+      expect {
+        @service.receive_issue_impact_change(@config)
+      }.to raise_error(Service::DisplayableError, 'OpsGenie issue creation failed - HTTP status code: 500')
     end
   end
 end

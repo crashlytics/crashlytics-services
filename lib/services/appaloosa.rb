@@ -3,30 +3,24 @@ class Service::Appaloosa < Service::Base
   string :url, :placeholder => 'Incoming Webhook URL',
          :label => 'Your Appaloosa Incoming Webhook URL. <br />' \
                    'You can find your incoming webhook url under the issues section in application details.'
-  page "URL", [ :url ]
 
   # Create an issue
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
-    if successful_response?(response)
-      true
+    if response.success?
+      log('issue_impact_change successful')
     else
-      raise "Appaloosa WebHook issue create failed - #{error_response_details(response)}"
+      display_error("Appaloosa WebHook issue create failed - #{error_response_details(response)}")
     end
   end
 
-  def receive_verification(config, _)
-    success = [true,  "Successfully sent a message to Appaloosa"]
-    failure = [false, "Could not send a message to Appaloosa"]
+  def receive_verification
     response = post_event(config[:url], 'verification', 'none', nil)
-    if successful_response?(response)
-      success
+    if response.success?
+      log('verification successful')
     else
-      failure
+      display_error('Could not send a message to Appaloosa')
     end
-  rescue => e
-    log "Received a verification error in Appaloosa: (url=#{config[:url]}) #{e}"
-    failure
   end
 
   private

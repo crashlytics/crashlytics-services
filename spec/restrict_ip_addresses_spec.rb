@@ -40,7 +40,7 @@ describe Faraday::RestrictIPAddressesMiddleware do
       ]
     end
 
-    it 'rejects the request' do
+    it 'accepts the request' do
       expect(app).to receive(:call)
       middleware.call(env)
     end

@@ -1,14 +1,17 @@
-require 'slack-notifier'
 require 'spec_helper'
+require 'webmock/rspec'
 
-describe Service::Slack do
+describe Service::Slack, :type => :service do
   let(:config) do
     {
-      :url => 'https://crashtest.slack.com/services/hooks/incoming-webhook?token=token',
+      :url => 'https://crashtest.slack.com/services/hooks/incoming-webhook',
       :username => 'crashuser',
       :channel => 'mychannel'
     }
   end
+
+  let(:logger) { double('fake-logger', :log => nil) }
+  let(:service) { Service::Slack.new(config, lambda { |message| logger.log(message) }) }
 
   it 'has a title' do
     expect(Service::Slack.title).to eq('Slack')
@@ -20,100 +23,150 @@ describe Service::Slack do
     it { is_expected.to include_string_field :url }
     it { is_expected.to include_string_field :channel }
     it { is_expected.to include_string_field :username}
+  end
 
-    it { is_expected.to include_page 'URL', [:url] }
-    it { is_expected.to include_page 'Channel', [:channel] }
-    it { is_expected.to include_page 'Username', [:username] }
+  def stub_slack_request(options = {})
+    expectation_parameters = {
+      :headers => { 'Content-Type' => 'application/json' }
+    }
+
+    # only set body if it's provided, otherwise skip that check
+    expectation_parameters[:body] = options[:request_body]
+
+    stub_request(:post, "https://crashtest.slack.com/services/hooks/incoming-webhook").
+      with(expectation_parameters)
   end
 
   describe '#receive_verification' do
-    it :success do
-      service = Service::Slack.new('verification', {})
-      expect(service).to receive(:receive_verification_message)
-      expect(service).to receive(:send_message) { double(:code => '200') }
-
-      success, message = service.receive_verification(config, nil)
-      expect(success).to be true
+    let(:verification_message) do
+      "Boom! Crashlytics issue notifications have been added.  " +
+        "<http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly" +
+        "|Click here for more info>."
+    end
+    let(:verification_body) do
+      {
+        :text => verification_message,
+        :channel => 'mychannel',
+        :username => 'crashuser'
+      }.to_json
     end
 
-    it :failure do
-      service = Service::Slack.new('verification', {})
-      expect(service).to receive(:receive_verification_message)
-      expect(service).to receive(:send_message) { double(:code => '500') }
+    it 'treats 200 response as success' do
+      stub_slack_request(:request_body => verification_body).to_return(:status => 200, :body => 'unused')
 
-      success, message = service.receive_verification(config, nil)
-      expect(success).to be false
+      service.receive_verification
+      expect(logger).to have_received(:log).with('verification successful')
+    end
+
+    it 'treats non-200 response as a failure by displaying an error message' do
+      stub_slack_request(:request_body => verification_body).to_return(:status => 404, :body => 'unused')
+
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Unexpected response from Slack - HTTP status code: 404')
     end
   end
 
   describe '#receive_issue_impact_change' do
-    it do
-      payload = { :url => 'url', :app => { :name => 'name' },
-                  :title => 'title', :method => 'method', :crashes_count => 1}
-      service = Service::Slack.new('issue_impact_change', {})
-
-      expected_attachment = {:fallback=>"Issue #title was created. platform: ",
-        :color=>"danger",
-        :mrkdwn_in=>["text", "title", "fields", "fallback"],
-        :fields=>[{:title=>"Summary", :value=>"Issue #title was created for method method."},
-          {:title=>"Platform", :value=>nil, :short=>"true"},
-          {:title=>"Bundle identifier", :value=>nil, :short=>"true"}]
+    let(:payload) do
+      {
+        :url => 'url',
+        :display_id => '123',
+        :app => { :name => 'name' },
+        :title => 'title',
+        :method => 'method',
+        :crashes_count => 3
       }
+    end
 
-      fake_response = double('response', :code => '200', :body => 'Unused')
-      expect_any_instance_of(Slack::Notifier).to receive(:ping).
-        with('<url|name> crashed 1 times in method!',
-          :attachments => [expected_attachment]).and_return(fake_response)
+    let(:issue_impact_change_attachments) do
+      [{
+        :fallback => "name crashed 3 times in method!",
+        :color => "warning",
+        :mrkdwn_in => ["text", "fields"],
+        :fields => [
+          { :title => "Summary", :value => "Issue #123: title method" },
+          { :title => "Platform", :value => nil, :short => true },
+          { :title => "Bundle identifier", :value => nil, :short => true }
+        ]
+      }]
+    end
+    let(:issue_impact_change_body) do
+      {
+        :text => '<url|name> crashed 3 times in method!',
+        :channel => 'mychannel',
+        :username => 'crashuser',
+        :attachments => issue_impact_change_attachments
+      }.to_json
+    end
 
-      expect(service.receive_issue_impact_change(config, payload)).to be true
+    it do
+      stub_slack_request(:request_body => issue_impact_change_body).to_return(:status => 200, :body => 'unused')
+
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'bubbles up errors from Slack' do
-      payload = { :url => 'url', :app => { :name => 'name' },
-            :title => 'title', :method => 'method', :crashes_count => 1}
-      service = Service::Slack.new('issue_impact_change', {})
-
-      fake_error_response = double('response', :code => '404', :body => 'No service')
-      allow_any_instance_of(Slack::Notifier).to receive(:ping).and_return(fake_error_response)
+      stub_slack_request(:request_body => issue_impact_change_body).to_return(:status => 404, :body => 'No service')
 
       expect {
-        service.receive_issue_impact_change(config, payload)
-      }.to raise_error(/Unexpected response from Slack - HTTP status code: 404/)
+        service.receive_issue_impact_change(payload)
+      }.to raise_error(Service::DisplayableError, 'Unexpected response from Slack - HTTP status code: 404')
     end
   end
 
-  describe '#send_message' do
-    let(:slack_client) { double(Slack::Notifier) }
-    let(:verification_message) do
-      "Boom! Crashlytics issue change notifications have been added.  " +
-        "<http://support.crashlytics.com/knowledgebase/articles/349341-what-kind-of-third-party-integrations-does-crashly" +
-        "|Click here for more info>."
+  describe '#receive_issue_velocity_alert' do
+    let(:payload) do
+      {
+        :event => 'issue_velocity_alert',
+        :display_id => '123',
+        :method => 'method',
+        :title => 'title',
+        :crash_percentage => 1.03,
+        :version => '1.0 (1.1)',
+        :url => 'url',
+        :app => {
+          :name => 'AppName',
+          :bundle_identifier => 'io.fabric.test',
+          :platform => 'platform'
+        }
+      }
+    end
+    let(:issue_velocity_alert_attachments) do
+      [{
+        :fallback => 'Velocity Alert! Issue #123: title method crashed 1.03% of all AppName sessions in the past hour on version 1.0 (1.1)',
+        :color => "danger",
+        :mrkdwn_in => ["text", "fields"],
+        :fields => [
+          { :title => "Summary", :value => 'Issue #123: title method' },
+          { :title => "Platform", :value => 'platform', :short => true },
+          { :title => "Bundle identifier", :value => 'io.fabric.test', :short => true }
+        ]
+      }]
+    end
+    let(:issue_velocity_alert_body) do
+      {
+        :text => 'Velocity Alert! <url|Issue #123: title method> crashed 1.03% of all AppName sessions in the past hour on version 1.0 (1.1)',
+        :channel => 'mychannel',
+        :username => 'crashuser',
+        :attachments => issue_velocity_alert_attachments
+      }.to_json
     end
 
-    before do
-      allow(Slack::Notifier).to receive(:new)
-          .with(config[:url], {:channel=>"mychannel", :username=>"crashuser"})
-          .and_return(slack_client)
+    it 'logs a message on success' do
+      stub_slack_request(:request_body => issue_velocity_alert_body).to_return(:status => 200, :body => 'unused')
+
+      service.receive_issue_velocity_alert(payload)
+      expect(logger).to have_received(:log).with('issue_velocity_alert successful')
     end
 
-    it 'treats 200 response as success by returning true and a message' do
-      fake_response = double(Net::HTTPResponse, :code => '200', :body => 'foo')
-      allow(slack_client).to receive(:ping).with(verification_message, {}).and_return(fake_response)
+    it 'surfaces failures as human readable error messages' do
+      stub_slack_request(:request_body => issue_velocity_alert_body).to_return(:status => 404, :body => 'No service')
 
-      success, message = Service::Slack.new('verification', {}).receive_verification(config, {})
-
-      expect(success).to be true
-      expect(message).to eq('Successfully sent a message to channel mychannel')
-    end
-
-    it 'treats non-200 response as a failure by returning false and an error message' do
-      fake_response = double(Net::HTTPResponse, :code => '404', :body => 'foo')
-      allow(slack_client).to receive(:ping).with(verification_message, {}).and_return(fake_response)
-
-      success, message = Service::Slack.new('verification', {}).receive_verification(config, {})
-
-      expect(success).to be false
-      expect(message).to eq('Unexpected response from Slack - HTTP status code: 404')
+      expect {
+        service.receive_issue_velocity_alert(payload)
+      }.to raise_error(Service::DisplayableError, 'Unexpected response from Slack - HTTP status code: 404')
     end
   end
 end

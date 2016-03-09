@@ -1,10 +1,8 @@
-require 'trello'
-
 class Service::Trello < Service::Base
   title 'Trello'
 
   string :board, placeholder: 'Board ID',
-    label: 
+    label:
       'Your Trello board id:' \
       '<br />' \
       'Example: 4d5ea62fd76aa1136000000c (Trello Development board)'
@@ -15,7 +13,7 @@ class Service::Trello < Service::Base
       'Your Trello API key:' \
       '<br />' \
       'Can be obtained <a href="https://trello.com/1/appKey/generate">here</a> (Key field)'
-  string :token, placeholder: 'Member token',
+  password :token, placeholder: 'Member token',
                  label: <<-EOT
 You should generate a token by opening the following URL. Replace DEVELOPER_PUBLIC_KEY with your key.
 <textarea readonly="true">
@@ -24,21 +22,14 @@ https://trello.com/1/authorize?key=DEVELOPER_PUBLIC_KEY&name=Crashlytics&respons
 Grant access to your account by pressing the Allow button. Paste the returned token into this field.
 EOT
 
-  page 'Board',       [:board, :list]
-  page 'Credentials', [:key, :token]
-
-  def receive_verification(config, _)
-    find_list config
-    [true, "Successfully found board #{config[:board]} with list #{config[:list]}"]
-  rescue Trello::Error => e
-    [false, failure_message(config, e)]
+  def receive_verification
+    find_list
+    log('verification successful')
   end
 
-  def receive_issue_impact_change(config, issue)
-    list = find_list config
-    client = trello_client(config[:key], config[:token])
-    client.create :card, card_params(issue).merge('idList' => list.id)
-    true
+  def receive_issue_impact_change(issue)
+    create_card(issue)
+    log('issue_impact_change successful')
   end
 
   private
@@ -60,24 +51,62 @@ There's a lot more information about this crash on crashlytics.com:
 EOT
   end
 
-  def trello_client(key, token)
-    Trello::Client.new developer_public_key: key, member_token: token
-  end
-
-  def failure_message(config, e)
-    if e.message =~ /invalid token/
+  def failure_message(response_body)
+    if response_body =~ /invalid token/
       "Token #{config[:token]} is invalid"
-    elsif e.message =~ /invalid key/
+    elsif response_body =~ /invalid key/
       "Key #{config[:key]} is invalid"
-    elsif e.message =~ /invalid list/
-      "Unable to find list #{config[:list]} in board #{config[:board]}"
     else
       "Board #{config[:board]} was not found"
     end
   end
 
-  def find_list(config)
-    board = trello_client(config[:key], config[:token]).find :boards, config[:board]
-    board.lists.find { |list| list.name == config[:list] } || fail(Trello::Error, 'invalid list')
+  def find_board
+    response = http_get "https://api.trello.com/1/boards/#{config[:board]}", auth_params
+
+    if response.success?
+      JSON.parse(response.body)
+    else
+      display_error(failure_message(response.body))
+    end
+  end
+
+  def find_list
+    board_id = find_board['id']
+    response = http_get "https://api.trello.com/1/boards/#{board_id}/lists", auth_params.merge(:filter => 'open')
+
+    if response.success?
+      lists = JSON.parse(response.body)
+      list = lists.find { |list| list['name'] == config[:list] } || display_missing_list_error
+    else
+      display_error(failure_message(response.body))
+    end
+  end
+
+  def display_missing_list_error
+    display_error("List #{config[:list]} not found in board #{config[:board]}")
+  end
+
+  def create_card(issue)
+    list = find_list
+
+    response = http_post "https://api.trello.com/1/cards?key=#{config[:key]}&token=#{config[:token]}", auth_params do |req|
+      req.params.merge(auth_params)
+      req.body = {
+        :desc => card_description(issue),
+        :idList => list['id'],
+        :name => issue[:title]
+      }
+    end
+
+    if response.success?
+      # no-op
+    else
+      display_error("Unexpected error while creating a card - #{error_response_details(response)}")
+    end
+  end
+
+  def auth_params
+    { :key => config[:key], :token => config[:token] }
   end
 end

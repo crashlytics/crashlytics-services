@@ -1,11 +1,14 @@
 require 'spec_helper'
-require 'hashie'
+require 'webmock/rspec'
 
-describe Service::Campfire do
+describe Service::Campfire, :type => :service do
   before do
     @config = { :subdomain => "crashlytics",
                 :room => "crashlytics-test",
-                :api_token => "376136523ffbc6b82c289b5831681db8c1835e65" }
+                :api_token => "api_token" }
+
+    @logger = double('fake-logger', :log => nil)
+    @service = Service::Campfire.new(@config, lambda { |message| @logger.log message })
   end
 
   it 'has a title' do
@@ -17,54 +20,28 @@ describe Service::Campfire do
 
     it { is_expected.to include_string_field :subdomain }
     it { is_expected.to include_string_field :room }
-    it { is_expected.to include_string_field :api_token }
-
-    it { is_expected.to include_page 'Chatroom', [:subdomain, :room] }
-    it { is_expected.to include_page 'API Token', [:api_token] }
-  end
-
-  describe 'find_campfire_room' do
-    before do
-      @service = Service::Campfire.new('verification', {})
-    end
-
-    it "should find and return Campfire room" do
-      campfire = double(Tinder::Campfire)
-      expect(Tinder::Campfire).to receive(:new).with(@config[:subdomain], :token => @config[:api_token]).and_return(campfire)
-      expect(campfire).to receive(:find_room_by_name).with(@config[:room])
-
-      proc = Proc.new do |param|
-        find_campfire_room(param)
-      end
-
-      @service.instance_exec @config, &proc
-    end
+    it { is_expected.to include_password_field :api_token }
   end
 
   describe 'receive_verification' do
-    before do
-      @service = Service::Campfire.new('verification', {})
-      @payload = {}
-    end
-
     it 'should succeed upon successful api response' do
-      expect(@service).to receive(:find_campfire_room).with(@config).and_return(double(:name => @config[:room]))
-
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([true, 'Successfully verified Campfire settings'])
+      stub_request(:get, "https://api_token:@crashlytics.campfirenow.com/rooms").
+        to_return(:status => 200, :body => '{"rooms":[{"id":620593,"name":"crashlytics-test"}]}', :headers => {})
+      @service.receive_verification
+      expect(@logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
-      expect(@service).to receive(:find_campfire_room).with(@config).and_return(nil)
-
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([false, "Oops! Can not find #{@config[:room]} room. Please check your settings."])
+      stub_request(:get, "https://api_token:@crashlytics.campfirenow.com/rooms").
+        to_return(:status => 401, :body => "", :headers => {})
+      expect {
+        @service.receive_verification
+      }.to raise_error(Service::DisplayableError, "Oops! Can not find #{@config[:room]} room. Please check your settings.")
     end
   end
 
   describe 'receive_issue_impact_change' do
     before do
-      @service = Service::Campfire.new('issue_impact_change', {})
       @payload = {
         :title => 'foo title',
         :impact_level => 1,
@@ -76,20 +53,24 @@ describe Service::Campfire do
         },
         :url => "http://foo.com/bar"
       }
-
-      @room = double(:name =>@config[:room])
-      expect(@service).to receive(:find_campfire_room).and_return(@room)
+      stub_request(:get, "https://api_token:@crashlytics.campfirenow.com/rooms").
+        to_return(:status => 200, :body => '{"rooms":[{"id":620593,"name":"crashlytics-test"}]}', :headers => {})
     end
 
     it 'should succeed upon successful api response' do
-      expect(@room).to receive(:speak).and_return(Hashie::Mash.new(:message => { :id => 766665427 }))
-      resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to be true
+      stub_request(:post, "https://api_token:@crashlytics.campfirenow.com/room/620593/speak").
+        to_return(:status => 200, :body => '', :headers => {})
+
+      @service.receive_issue_impact_change(@payload)
     end
 
     it 'should fail upon unsuccessful api response' do
-      expect(@room).to receive(:speak).and_return(Hashie::Mash.new)
-      expect { @service.receive_issue_impact_change(@config, @payload) }.to raise_error(/Campfire Message Post Failed/)
+      stub_request(:post, "https://api_token:@crashlytics.campfirenow.com/room/620593/speak").
+        to_return(:status => 401, :body => '', :headers => {})
+
+      expect {
+        @service.receive_issue_impact_change(@payload)
+      }.to raise_error(Service::DisplayableError, /Could not send Campfire message/)
     end
   end
 end

@@ -3,13 +3,11 @@ class Service::FogBugz < Service::Base
 
   string :project_url, :placeholder => "https://yourproject.fogbugz.com",
          :label => 'URL to your FogBugz project:'
-  string :api_token, :placeholder => 'API Token',
-         :label => 'Your FogBugz API Token.'
-
-  page 'API Token', [:project_url, :api_token]
+  password :api_token, :placeholder => 'API Token',
+           :label => 'Your FogBugz API Token.'
 
   # Create an issue
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     http.ssl[:verify] = true
 
     post_body = {
@@ -24,13 +22,14 @@ class Service::FogBugz < Service::Base
     fogbugz_case, error = parse_response(response, 'response/case')
 
     if fogbugz_case && !error
-      true
+      log('issue_impact_change successful')
     else
-      raise "Could not create FogBugz case: Response: #{error}"
+      log("issue_impact_change failure: #{error}")
+      display_error("Could not create FogBugz case")
     end
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     http.ssl[:verify] = true
 
     response = http_get fogbugz_url(:cmd => 'listProjects')
@@ -38,14 +37,10 @@ class Service::FogBugz < Service::Base
     project, error = parse_response(response, 'response/projects')
 
     if project && !error
-      [true,  'Successfully verified Fogbugz settings']
+      log('verification successful')
     else
-      if error
-        log "Received verification failed: Error code #{error.attr('code')} API key: #{config[:api_key]} Response: #{error}"
-      else
-        log "Received verification failed: Response: #{error}"
-      end
-      [false, 'Oops! Please check your API key again.']
+      log "verification failure: #{error}"
+      display_error('Oops! Please check your API key again.')
     end
   end
 

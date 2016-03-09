@@ -1,16 +1,13 @@
 class Service::Redmine < Service::Base
   string :project_url, :placeholder => "http://redmine.acme.com/projects/yourproject",
          :label => "URL to your Redmine project:"
-  string :api_key, :label => 'Paste your API Key (located under "My Account")<br><br>' \
-                             'You must also "Enable REST web service" in ' \
-                             'Admin > Settings > Auth.<br><br>' \
-                             'Tip: Create a Crashlytics user for easier sorting.'
-
-  page "Project", [ :project_url ]
-  page "API Key", [ :api_key ]
+  password :api_key, :label => 'Paste your API Key (located under "My Account")<br><br>' \
+                               'You must also "Enable REST web service" in ' \
+                               'Admin > Settings > Auth.<br><br>' \
+                               'Tip: Create a Crashlytics user for easier sorting.'
 
   # Create an issue on Redmine
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     parsed = parse_url config[:project_url]
     project_id      = parsed[:project_id]
     http.basic_auth   parsed[:user], parsed[:password] if parsed[:user] || parsed[:password]
@@ -46,12 +43,12 @@ class Service::Redmine < Service::Base
       req.body                    = post_body.to_json
     end
     unless resp.status == 201 # created
-      raise "Redmine Issue Create Failed - #{error_response_details(resp)}"
+      display_error("Redmine Issue Create Failed - #{error_response_details(resp)}")
     end
-    true
+    log('issue_impact_change successful')
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     parsed = parse_url config[:project_url]
     http.basic_auth   parsed[:user], parsed[:password] if parsed[:user] || parsed[:password]
 
@@ -59,13 +56,10 @@ class Service::Redmine < Service::Base
     resp = http_get path, :key   => config[:api_key], :project_id => parsed[:project_id],
                           :limit => 1
     if resp.status == 200
-      [true,  "Successfully verified Redmine settings"]
+      log('verification successful')
     else
-      [false, "Unexpected response from Redmine - #{error_response_details(resp)}"]
+      display_error("Unexpected response from Redmine - #{error_response_details(resp)}")
     end
-  rescue => e
-    log "Rescued a verification error in redmine: (url=#{config[:project_url]}) #{e}"
-    [false, "Oops! Is your project url correct?"]
   end
 
   private

@@ -1,34 +1,32 @@
 class Service::OpsGenie < Service::Base
   title "OpsGenie"
 
-  string :api_key, :label => 'Add a new Crashlytics integration at https://www.opsgenie.com/integration?add=Crashlytics and paste the integration\'s API key here.',
+  password :api_key, :label => 'Add a new Crashlytics integration at https://www.opsgenie.com/integration?add=Crashlytics and paste the integration\'s API key here.',
     :placeholder => 'OpsGenie API key'
-  page "API Key", [:api_key]
 
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     body = {
       :payload        => payload,
       :event          => 'issue_impact_change'
     }
     resp = post_to_opsgenie(config, body)
     if resp.success?
-      log "Issue impact change successfully submitted to OpsGenie"
-      true
+      log 'issue_impact_change successful'
     else
-      raise "OpsGenie issue creation failed - #{error_response_details(resp)}"
+      display_error "OpsGenie issue creation failed - #{error_response_details(resp)}"
     end
   end
 
-  def receive_verification(config, _)
+  def receive_verification
     body = {
       :event        => 'verification'
     }
     resp =  post_to_opsgenie(config, body)
     if resp.success?
-      [true,  'Successfully verified OpsGenie settings']
+      log('verification successful')
     else
       log "Receive verification failed, API key: #{config[:api_key]}, OpsGenie response: #{resp[:status]}"
-      [false, 'Couldn\'t verify OpsGenie settings; please check your API key.']
+      display_error 'Couldn\'t verify OpsGenie settings; please check your API key.'
     end
   end
 

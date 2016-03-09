@@ -5,26 +5,22 @@ class Service::GitLab < Service::Base
 
   string :url, :placeholder => 'https://gitlab.com', :label => 'Your GitLab URL:'
   string :project, :placeholder => 'Namespace/Project Name', :label => 'Your GitLab Namespace/Project:'
-  string :private_token, :placeholder => 'GitLab Private Token', :label => 'Your GitLab Private Token:'
+  password :private_token, :placeholder => 'GitLab Private Token', :label => 'Your GitLab Private Token:'
 
-  page 'URL', [:url]
-  page 'Project', [:project]
-  page 'Private Token', [:private_token]
-
-  def receive_verification(config, _)
+  def receive_verification
     http.ssl[:verify] = true
     resp = http_get(project_url(config[:project])) do |req|
       req.headers['PRIVATE-TOKEN'] = config[:private_token]
     end
 
     if resp.success?
-      [true, "Successfully accessed project #{config[:project]}."]
+      log('verification successful')
     else
-      [false, "Could not access project #{config[:project]} - #{error_response_details(resp)}"]
+      display_error("Could not access project #{config[:project]} - #{error_response_details(resp)}")
     end
   end
 
-  def receive_issue_impact_change(config, issue)
+  def receive_issue_impact_change(issue)
     response = create_gitlab_issue(
       config[:project],
       config[:private_token],
@@ -33,10 +29,10 @@ class Service::GitLab < Service::Base
     )
 
     if response.status != 201
-      raise "GitLab issue creation failed - #{error_response_details(response)}"
+      display_error "GitLab issue creation failed - #{error_response_details(response)}"
     end
 
-    true
+    log('issue_impact_change successful')
   end
 
   private

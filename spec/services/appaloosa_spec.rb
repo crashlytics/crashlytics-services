@@ -1,8 +1,16 @@
 require 'spec_helper'
+require 'webmock/rspec'
 
-describe Service::Appaloosa do
+describe Service::Appaloosa, :type => :service do
 
+  let(:logger) { double('fake-logger', :log => nil) }
   let(:web_hook_url) { 'https://www.appaloosa-store.com/123-fake-store/mobile_applications/456/issues?application_token=4d9b0a249ff0b82d47ab12394edd64c202d32edb6d9c44e5993bb38a8be345ca' }
+  let(:config) do
+    { :url => web_hook_url }
+  end
+  let(:service) do
+    Service::Appaloosa.new(config, lambda { |message| logger.log message })
+  end
 
   it 'has a title' do
     expect(Service::Appaloosa.title).to eq('Appaloosa')
@@ -12,38 +20,31 @@ describe Service::Appaloosa do
     subject { Service::Appaloosa }
 
     it { is_expected.to include_string_field :url }
-    it { is_expected.to include_page 'URL', [:url] }
   end
 
   describe 'receive_verification' do
-    before do
-      @config = { :url => web_hook_url }
-      @service = Service::Appaloosa.new('verification', {})
-      @payload = {}
-    end
-
     it 'should succeed upon successful api response' do
       stub_request(:post, "#{web_hook_url}&verification=1").
         to_return(:status => 200, :body => 'fake_body')
 
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([true,  'Successfully sent a message to Appaloosa'])
+      service.receive_verification
+
+      expect(logger).to have_received(:log).with('verification successful')
     end
 
     it 'should fail upon unsuccessful api response' do
       stub_request(:post, "#{web_hook_url}&verification=1").
         to_return(:status => 500, :body => 'fake_body')
 
-      resp = @service.receive_verification(@config, @payload)
-      expect(resp).to eq([false, "Could not send a message to Appaloosa"])
+      expect {
+        service.receive_verification
+      }.to raise_error(Service::DisplayableError, 'Could not send a message to Appaloosa')
     end
   end
 
   describe 'receive_issue_impact_change' do
-    before do
-      @config = { :url => web_hook_url }
-      @service = Service::Appaloosa.new('issue_impact_change', {})
-      @payload = {
+    let(:payload) do
+      {
         :title => 'foo title',
         :impact_level => 1,
         :impacted_devices_count => 1,
@@ -59,8 +60,8 @@ describe Service::Appaloosa do
       stub_request(:post, web_hook_url).
         to_return(:status => 201, :body => 'fake_body')
 
-      resp = @service.receive_issue_impact_change(@config, @payload)
-      expect(resp).to be true
+      service.receive_issue_impact_change(payload)
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
     end
 
     it 'should fail with extra information upon unsuccessful api response' do
@@ -68,8 +69,8 @@ describe Service::Appaloosa do
         to_return(:status => 500, :body => 'fake_body')
 
       expect {
-        @service.receive_issue_impact_change(@config, @payload)
-      }.to raise_error('Appaloosa WebHook issue create failed - HTTP status code: 500')
+        service.receive_issue_impact_change(payload)
+      }.to raise_error(Service::DisplayableError, 'Appaloosa WebHook issue create failed - HTTP status code: 500')
     end
   end
 end

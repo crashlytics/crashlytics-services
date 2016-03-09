@@ -1,24 +1,15 @@
 require 'timeout'
-require 'faraday'
 
 require 'service/attributes'
 require 'service/http'
 require 'service/schema'
-require 'service/display'
+require 'service/displayable_error'
 
 module Service
   class Base
     class << self
       include Service::Attributes
       include Service::Schema
-      include Service::Display
-
-      attr_accessor :root, :env, :host
-      %w(development test production staging).each do |m|
-        define_method "#{m}?" do
-          env == m
-        end
-      end
 
       # Public: Processes an incoming Service event.
       #
@@ -29,12 +20,14 @@ module Service
       # Returns a hash containing information which can be used to find the resource
       #   (eg. a ticket) created on the service, or nil.
       def receive(event, config, payload = nil, logger = nil)
-        svc = new(event, config, payload, logger)
+        svc = new(config, logger)
 
         method = "receive_#{event}"
         if svc.respond_to?(method)
-          Timeout.timeout(20, TimeoutError) do
-            svc.send(method, config, payload)
+          if event == :verification
+            svc.send(method)
+          else
+            svc.send(method, payload)
           end
         end
       end
@@ -47,17 +40,13 @@ module Service
         super
       end
 
-      # Gets the default events that this Service will handle.  This defines
-      # the default event configuration when Hooks are created on Crashlytics.  By
-      # default, Crashlytics Hooks will only send `new_issue` events.
-      #
-      # Returns an Array of Strings (or Symbols).
+      def events_handled
+        @events_handled ||= [:issue_impact_change]
+      end
+
+      # Gets / Sets the default events that this Service handles.
       def handles(*events)
-        if events.empty?
-          @default_events ||= [:issue_impact_change]
-        else
-          @default_events = events
-        end
+        @events_handled = events
       end
     end
 
@@ -66,29 +55,25 @@ module Service
       @logger.call msg
     end
 
+    # raise an exception that will be displayed to the UI
+    # preferred over allowing uncaught exceptions which will just be
+    # rolled up into a generic error message
+    def display_error(message)
+      log(message)
+      raise Service::DisplayableError.new(message)
+    end
+
     # Public: Gets the configuration data for this Service instance.
     #
     # Returns a Hash.
     attr_reader :config
 
-    # Public: Gets the unique payload data for this Service instance.
-    #
-    # Returns a Hash.
-    attr_reader :payload
-
-    # Public: Gets the identifier for the Service's event.
-    #
-    # Returns a Symbol.
-    attr_reader :event
-
-    def initialize(event, config, payload = nil, logger = Proc.new {})
-      @event   = event.to_sym
+    def initialize(config, logger = Proc.new {})
       @config  = config
-      @payload = payload
       @logger  = logger
-      @http    = nil
     end
 
+    # Note: this ordering is important
     include Service::HTTP
   end
 end

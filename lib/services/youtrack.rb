@@ -6,28 +6,19 @@ class Service::YouTrack < Service::Base
   string :username, :label => 'Email address:', :placeholder => 'user@domain.com'
   password :password, :label => 'Password:'
 
-  page 'YouTrack Project', [:base_url, :project_id]
-  page 'Login Information', [:username, :password]
-
-  def receive_verification(config, _)
-    begin
-      cookie_header = login_from_config(config)
-    rescue => e
-      return [false, e.message]
-    end
+  def receive_verification
+    cookie_header = login_from_config(config)
 
     if project_exists?(config[:base_url], config[:project_id], cookie_header)
-      [true, 'Successfully connected to your YouTrack project!']
+      log('verification successful')
     else
-      [false, "Oops! We couldn't access YouTrack project: #{config[:project_id]}"]
+      display_error("Oops! We couldn't access YouTrack project: #{config[:project_id]}")
     end
-  rescue => e
-    [false, "Oops! We couldn't access YouTrack project: #{config[:project_id]}"]
   end
 
-  def receive_issue_impact_change(config, payload)
+  def receive_issue_impact_change(payload)
     cookie_header = login_from_config(config)
-    raise "Invalid login for project_id: #{config[:project_id]}" unless cookie_header
+    display_error("Invalid login for project_id: #{config[:project_id]}") unless cookie_header
 
     resp = http_method :put, "#{config[:base_url]}/rest/issue" do |req|
       req.headers['cookie'] = cookie_header
@@ -39,9 +30,9 @@ class Service::YouTrack < Service::Base
     end
 
     if resp.status == 201
-      true
+      log('issue_impact_change successful')
     else
-      raise "YouTrack issue creation failed - #{error_response_details(resp)}"
+      display_error("YouTrack issue creation failed - #{error_response_details(resp)}")
     end
   end
 
@@ -86,13 +77,14 @@ class Service::YouTrack < Service::Base
     begin
       resp = http_post "#{youtrack_base_url}/rest/user/login", :login => username, :password => password
     rescue => e
-      raise "YouTrack login had an unexpected error."
+      log(e.message)
+      display_error("YouTrack login had an unexpected error.")
     end
 
     if resp.status == 200
       resp.headers['set-cookie']
     else
-      raise "YouTrack login failed - #{error_response_details(resp)}"
+      display_error("YouTrack login failed - #{error_response_details(resp)}")
     end
   end
 end
