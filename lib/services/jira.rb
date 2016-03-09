@@ -5,6 +5,7 @@ require 'json'
 
 class Service::Jira < Service::Base
   title "Jira"
+  handles :issue_impact_change, :issue_velocity_alert
 
   string :project_url, :placeholder => "https://yourdomain.atlassian.net/projects/XX",
          :label => 'Your Jira project URL:'
@@ -24,42 +25,43 @@ class Service::Jira < Service::Base
     @project_key = url_components[:project_key]
   end
 
-  # Create an issue on Jira
-  def receive_issue_impact_change(payload)
-    project = lookup_jira_project
+  def receive_verification
+    lookup_jira_project
+    log('verification successful')
+  end
 
+  def receive_issue_impact_change(payload)
     users_text = if payload[:impacted_devices_count] == 1
       'This issue is affecting at least 1 user who has crashed '
     else
-      "This issue is affecting at least #{ payload[:impacted_devices_count] } users who have crashed "
+      "This issue is affecting at least #{payload[:impacted_devices_count]} users who have crashed "
     end
 
     crashes_text = if payload[:crashes_count] == 1
       "at least 1 time.\n\n"
     else
-      "at least #{ payload[:crashes_count] } times.\n\n"
+      "at least #{payload[:crashes_count]} times.\n\n"
     end
 
-    issue_description = "Crashlytics detected a new issue.\n" + \
-                 "#{ payload[:title] } in #{ payload[:method] }\n\n" + \
-                 users_text + \
-                 crashes_text + \
-                 "More information: #{ payload[:url] }"
+    description = "Crashlytics detected a new issue.\n" + \
+      "#{payload[:title]} in #{payload[:method]}\n\n" + \
+      users_text + \
+      crashes_text + \
+      "More information: #{payload[:url]}"
 
-    post_body = { 'fields' => {
-        'project' => { 'id' => project['id'] },
-        'summary'     => payload[:title] + ' [Crashlytics]',
-        'description' => issue_description,
-        'issuetype' => { 'name' => config[:issue_type] || 'Bug' }
-      }
-    }
-
-    create_jira_issue(post_body)
+    create_jira_issue("#{payload[:title]} [Crashlytics]", description)
+    log('issue_impact_change successful')
   end
 
-  def receive_verification
-    lookup_jira_project
-    log('verification successful')
+  def receive_issue_velocity_alert(payload)
+    description = "Velocity alert!\n" + \
+      "#{payload[:title]} in #{payload[:method]}\n\n" + \
+      "This issue crashed #{payload[:crash_percentage]}% of all #{payload[:app][:name]} " + \
+      "sessions in the past hour on version #{payload[:version]}" + \
+      "More information: #{payload[:url]}"
+
+    create_jira_issue("#{payload[:title]} [Crashlytics]", description)
+    log('issue_velocity_alert successful')
   end
 
   def lookup_jira_project
@@ -74,15 +76,28 @@ class Service::Jira < Service::Base
     end
   end
 
-  def create_jira_issue(body)
+  def create_jira_issue(summary, description)
+    project = lookup_jira_project
+
+    post_body = {
+      :fields => {
+        :project => { :id => project['id'] },
+        :summary => summary,
+        :description => description,
+        :issuetype => {
+          :name => config[:issue_type] || 'Bug'
+        }
+      }
+    }
+
     api_url = "#{@base_api_url}/rest/api/2/issue"
 
-    resp = http_post(api_url, body.to_json) do |req|
+    resp = http_post(api_url, post_body.to_json) do |req|
       req.headers['Content-Type'] = 'application/json'
     end
 
     if resp.success?
-      log('issue_impact_change successful')
+      log('create_jira_issue successful')
     else
       errors = resp.body['errors'] if resp.body
       if errors

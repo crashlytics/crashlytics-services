@@ -1,4 +1,12 @@
 =======
+5.5.0
+-----
+- Add `issue_velocity_alert` support to Jira
+
+5.4.0
+-----
+- Add `issue_velocity_alert` support to Slack
+
 5.3.0
 -----
 HipChat updates:

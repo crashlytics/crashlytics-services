@@ -29,7 +29,84 @@ describe Service::Jira, :type => :service do
     it { is_expected.to include_string_field :issue_type }
   end
 
-  describe 'receive_verification' do
+  describe '#receive_issue_impact_change' do
+
+    def build_issue_impact_payload(overrides = {})
+      {
+        :title => 'foo title',
+        :impact_level => 1,
+        :impacted_devices_count => 1,
+        :crashes_count => 1,
+        :app => {
+          :name => 'foo name',
+          :bundle_identifier => 'foo.bar.baz'
+        }
+      }.merge(overrides)
+    end
+
+    before do
+      allow(service).to receive(:create_jira_issue).with(anything, anything)
+    end
+
+    it 'customizes the issue description to account for singularization of the counts' do
+      service.receive_issue_impact_change(build_issue_impact_payload(:impacted_devices_count => 1, :crashes_count => 1))
+
+      expect(service).to have_received(:create_jira_issue).with(anything, /at least 1 user who has crashed at least 1 time./)
+    end
+
+    it 'customizes the issue description to account for pluralization of the counts' do
+      service.receive_issue_impact_change(build_issue_impact_payload(:impacted_devices_count => 2, :crashes_count => 2))
+
+      expect(service).to have_received(:create_jira_issue).with(anything, /at least 2 users who have crashed at least 2 times./)
+    end
+
+    it 'logs a message on success' do
+      service.receive_issue_impact_change(build_issue_impact_payload)
+
+      expect(logger).to have_received(:log).with('issue_impact_change successful')
+    end
+
+    it 'includes the issue description to account for singularization of the counts' do
+      service.receive_issue_impact_change(build_issue_impact_payload(:impacted_devices_count => 1, :crashes_count => 1))
+
+      expect(service).to have_received(:create_jira_issue).with(anything, /at least 1 user who has crashed at least 1 time./)
+    end
+  end
+
+  describe '#receive_issue_velocity_alert' do
+
+    def build_issue_velocity_alert(overrides = {})
+      {
+        :event => 'issue_velocity_alert',
+        :display_id => '123',
+        :method => 'method',
+        :title => 'title',
+        :crash_percentage => 1.03,
+        :version => '1.0 (1.1)',
+        :url => 'url',
+        :app => {
+          :name => 'AppName',
+          :bundle_identifier => 'io.fabric.test',
+          :platform => 'platform'
+        }
+      }.merge(overrides)
+    end
+
+    before do
+      allow(service).to receive(:create_jira_issue).with(anything, anything)
+    end
+
+    it 'includes the dynamic and interesting velocity alerting info in the description of the issue it creates' do
+      service.receive_issue_velocity_alert(
+        build_issue_velocity_alert(:crash_percentage => 1.05, :version => '2.2.2 (2.x)', :app => { :name => 'AppName' }))
+
+      expect(service).to have_received(:create_jira_issue).with(anything,
+        /This issue crashed 1.05% of all AppName sessions in the past hour on version 2.2.2 \(2.x\)/
+      )
+    end
+  end
+
+  describe '#receive_verification' do
     it 'should succeed upon successful api response' do
       stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
          to_return(:status => 200, :body => '{"id":12345}')
@@ -61,18 +138,16 @@ describe Service::Jira, :type => :service do
     end
   end
 
-  describe 'receive_issue_impact_change' do
-    let(:payload) do
-      {
-        :title => 'foo title',
-        :impact_level => 1,
-        :impacted_devices_count => 1,
-        :crashes_count => 1,
-        :app => {
-          :name => 'foo name',
-          :bundle_identifier => 'foo.bar.baz'
-        }
-      }
+  describe '#create_jira_issue' do
+    it 'sends the summary and description as part of the post body' do
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+         to_return(:status => 200, :body => '{"id":12345}')
+
+     stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
+        with(:body => /\"summary\":\"fake_summary\",\"description\":\"fake_description\"/).
+        to_return(:status => 201, :body => '{"id":"foo"}')
+
+      service.create_jira_issue('fake_summary', 'fake_description')
     end
 
     it 'sends issuetype name of Bug by default' do
@@ -83,24 +158,22 @@ describe Service::Jira, :type => :service do
          with(:body => /\"issuetype\":{\"name\":\"Bug\"}}/).
          to_return(:status => 201, :body => '{"id":"foo"}')
 
-      service.receive_issue_impact_change(payload)
-      expect(logger).to have_received(:log).with('issue_impact_change successful')
+      service.create_jira_issue('fake_summary', 'fake_description')
+      expect(logger).to have_received(:log).with('create_jira_issue successful')
     end
 
     it 'sends custom issuetype name if provided' do
-      service = Service::Jira.new({
-        :project_url => 'https://example.com/browse/project_key',
-        :issue_type => 'Crash'}, logger_function)
+      service = Service::Jira.new(config.merge(:issue_type => 'Crash'), logger_function)
 
-      stub_request(:get, "https://example.com/rest/api/2/project/project_key").
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
          to_return(:status => 200, :body => '{"id":12345}')
 
-      stub_request(:post, "https://example.com/rest/api/2/issue").
+      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
          with(:body => /\"issuetype\":{\"name\":\"Crash\"}}/).
          to_return(:status => 201, :body => '{"id":"foo"}')
 
-      service.receive_issue_impact_change(payload)
-      expect(logger).to have_received(:log).with('issue_impact_change successful')
+      service.create_jira_issue('fake_summary', 'fake_description')
+      expect(logger).to have_received(:log).with('create_jira_issue successful')
     end
 
     it 'should succeed upon successful api response' do
@@ -110,8 +183,8 @@ describe Service::Jira, :type => :service do
       stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
          to_return(:status => 201, :body => '{"id":"foo"}')
 
-      service.receive_issue_impact_change(payload)
-      expect(logger).to have_received(:log).with('issue_impact_change successful')
+      service.create_jira_issue('fake_summary', 'fake_description')
+      expect(logger).to have_received(:log).with('create_jira_issue successful')
     end
 
     it 'logs error details if they are provided in the response body' do
@@ -122,7 +195,7 @@ describe Service::Jira, :type => :service do
          to_return(:status =>  400, :body => '{"errors":{"key":"error_details"}}')
 
       expect {
-        service.receive_issue_impact_change(payload)
+        service.create_jira_issue('fake_summary', 'fake_description')
       }.to raise_error(Service::DisplayableError, /Jira Issue Create Failed/)
       expect(logger).to have_received(:log).with(/error_details/)
     end
@@ -135,20 +208,22 @@ describe Service::Jira, :type => :service do
          to_return(:status => 500, :body => '{"id":"foo","key":"bar"}')
 
       expect {
-        service.receive_issue_impact_change(payload)
+        service.create_jira_issue('fake_summary', 'fake_description')
       }.to raise_error(Service::DisplayableError, /Jira Issue Create Failed/)
     end
 
     it 'should handle context path properly' do
-      config[:project_url] = 'https://mycompany.atlassian.net/jira/browse/PROJECT-KEY'
+      service = Service::Jira.new(
+        config.merge(:project_url => 'https://mycompany.atlassian.net/jira/browse/PROJECT-KEY'), logger_function)
+
       stub_request(:get, "https://username:password@mycompany.atlassian.net/jira/rest/api/2/project/PROJECT-KEY").
          to_return(:status => 200, :body => '{"id":12345}')
 
       stub_request(:post, "https://username:password@mycompany.atlassian.net/jira/rest/api/2/issue").
          to_return(:status => 201, :body => '{"id":"foo"}')
 
-      service.receive_issue_impact_change(payload)
-      expect(logger).to have_received(:log).with('issue_impact_change successful')
+      service.create_jira_issue('fake_summary', 'fake_description')
+      expect(logger).to have_received(:log).with('create_jira_issue successful')
     end
   end
 
