@@ -99,10 +99,7 @@ class Service::Jira < Service::Base
     if resp.success?
       log('create_jira_issue successful')
     else
-      errors = resp.body['errors'] if resp.body
-      if errors
-        log("error_details: #{errors}")
-      end
+      log_error_details(resp)
       display_error "Jira Issue Create Failed - #{error_response_details(resp)}"
     end
   end
@@ -124,5 +121,11 @@ class Service::Jira < Service::Base
       raise "Unexpected URL format"
     end
     { :protocol => matches[1], :domain => matches[2], :context_path => matches[3] || '', :project_key => matches[5] }
+  end
+
+  def log_error_details(response)
+    if response.body && response.body =~ /error/
+      log("error details: #{response.body}")
+    end
   end
 end
