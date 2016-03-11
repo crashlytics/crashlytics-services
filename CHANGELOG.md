@@ -1,4 +1,8 @@
 =======
+5.5.1
+-----
+- Improve Jira error logging to aid troubleshooting.
+
 5.5.0
 -----
 - Add `issue_velocity_alert` support to Jira
