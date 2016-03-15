@@ -1,4 +1,8 @@
 =======
+5.6.0
+-----
+- Make Moxtra and Appaloosa extend WebHook to eliminate duplication.
+
 5.5.1
 -----
 - Improve Jira error logging to aid troubleshooting.
