@@ -11,4 +11,4 @@ end
 
 require 'service/base'
 
-Dir["#{File.dirname(__FILE__)}/services/**/*.rb"].each { |service| load service }
+Dir["#{File.dirname(__FILE__)}/services/**/*.rb"].each { |service| require "services/#{File.basename(service, '.rb')}" }

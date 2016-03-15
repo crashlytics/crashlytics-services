@@ -1,4 +1,8 @@
 =======
+5.6.1
+-----
+- Fix bug with duplicate loading of WebHook
+
 5.6.0
 -----
 - Make Moxtra and Appaloosa extend WebHook to eliminate duplication.
