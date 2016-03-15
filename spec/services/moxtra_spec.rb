@@ -48,7 +48,7 @@ describe Service::Moxtra, :type => :service do
 
       expect {
         @service.receive_verification
-      }.to raise_error(Service::DisplayableError, 'Could not send a message to Moxtra binder')
+      }.to raise_error(Service::DisplayableError, 'Moxtra verification failed - HTTP status code: 500')
     end
   end
 
@@ -94,7 +94,7 @@ describe Service::Moxtra, :type => :service do
 
       expect {
         @service.receive_issue_impact_change(@payload)
-      }.to raise_error(Service::DisplayableError, 'Moxtra WebHook issue create failed - HTTP status code: 500')
+      }.to raise_error(Service::DisplayableError, 'Moxtra issue create failed - HTTP status code: 500')
     end
   end
 end
