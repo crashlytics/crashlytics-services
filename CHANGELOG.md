@@ -1,4 +1,8 @@
 =======
+5.6.2
+-----
+- Clarify error messaging for WebHook issue impact change failures.
+
 5.6.1
 -----
 - Fix bug with duplicate loading of WebHook
