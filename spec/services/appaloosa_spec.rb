@@ -38,7 +38,7 @@ describe Service::Appaloosa, :type => :service do
 
       expect {
         service.receive_verification
-      }.to raise_error(Service::DisplayableError, 'Could not send a message to Appaloosa')
+      }.to raise_error(Service::DisplayableError, 'Appaloosa verification failed - HTTP status code: 500')
     end
   end
 
@@ -70,7 +70,7 @@ describe Service::Appaloosa, :type => :service do
 
       expect {
         service.receive_issue_impact_change(payload)
-      }.to raise_error(Service::DisplayableError, 'Appaloosa WebHook issue create failed - HTTP status code: 500')
+      }.to raise_error(Service::DisplayableError, 'Appaloosa issue impact change failed - HTTP status code: 500')
     end
   end
 end

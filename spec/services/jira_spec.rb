@@ -192,12 +192,12 @@ describe Service::Jira, :type => :service do
          to_return(:status => 200, :body => '{"id":12345}')
 
       stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
-         to_return(:status =>  400, :body => '{"errors":{"key":"error_details"}}')
+         to_return(:status =>  400, :body => '{"errorMessages":[],"errors":{"fixVersions":"Fix Version/s is required."}}')
 
       expect {
         service.create_jira_issue('fake_summary', 'fake_description')
       }.to raise_error(Service::DisplayableError, /Jira Issue Create Failed/)
-      expect(logger).to have_received(:log).with(/error_details/)
+      expect(logger).to have_received(:log).with(/fixVersions/)
     end
 
     it 'should fail upon unsuccessful api response' do

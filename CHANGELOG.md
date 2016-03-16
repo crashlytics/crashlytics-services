@@ -1,4 +1,24 @@
 =======
+5.7.0
+-----
+- Add Flock
+
+5.6.2
+-----
+- Clarify error messaging for WebHook issue impact change failures.
+
+5.6.1
+-----
+- Fix bug with duplicate loading of WebHook
+
+5.6.0
+-----
+- Make Moxtra and Appaloosa extend WebHook to eliminate duplication.
+
+5.5.1
+-----
+- Improve Jira error logging to aid troubleshooting.
+
 5.5.0
 -----
 - Add `issue_velocity_alert` support to Jira

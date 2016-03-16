@@ -1,16 +1,15 @@
 class Service::WebHook < Service::Base
-  title "Web Hook"
-  string :url, :placeholder => "https://[user:pass@]acme.com?key=123",
+  title 'WebHook'
+  string :url, :placeholder => 'https://[user:pass@]acme.com?key=123',
          :label => 'Enter the URL to receive our JSON data POST. ' \
                    '(<a href="http://support.crashlytics.com/knowledgebase/articles/102391-how-do-i-configure-a-custom-web-hook" target="_blank">more info</a>)'
 
-  # Create an issue
   def receive_issue_impact_change(payload)
     response = post_event(config[:url], 'issue_impact_change', 'issue', payload)
     if response.success?
       log('issue_impact_change successful')
     else
-      display_error "WebHook issue create failed - #{error_response_details(response)}"
+      display_error "#{self.class.title} issue impact change failed - #{error_response_details(response)}"
     end
   end
 
@@ -19,7 +18,7 @@ class Service::WebHook < Service::Base
     if response.success?
       log('verification successful')
     else
-      display_error("WebHook verification failed - #{error_response_details(response)}")
+      display_error("#{self.class.title} verification failed - #{error_response_details(response)}")
     end
   end
 
