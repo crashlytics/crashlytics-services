@@ -66,7 +66,7 @@ describe Service::WebHook, :type => :service do
 
       expect {
         service.receive_issue_impact_change(payload)
-      }.to raise_error(Service::DisplayableError, 'WebHook issue create failed - HTTP status code: 500')
+      }.to raise_error(Service::DisplayableError, 'WebHook issue impact change failed - HTTP status code: 500')
     end
   end
 end

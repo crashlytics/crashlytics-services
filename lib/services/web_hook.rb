@@ -9,7 +9,7 @@ class Service::WebHook < Service::Base
     if response.success?
       log('issue_impact_change successful')
     else
-      display_error "#{self.class.title} issue create failed - #{error_response_details(response)}"
+      display_error "#{self.class.title} issue impact change failed - #{error_response_details(response)}"
     end
   end
 
