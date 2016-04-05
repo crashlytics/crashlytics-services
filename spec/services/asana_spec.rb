@@ -9,7 +9,7 @@ describe Service::Asana, :type => :service do
   describe 'schema and display configuration' do
     subject { Service::Asana }
 
-    it { is_expected.to include_password_field :api_key }
+    it { is_expected.to include_password_field :access_token }
     it { is_expected.to include_string_field :project_id }
   end
 
@@ -17,7 +17,7 @@ describe Service::Asana, :type => :service do
     let(:logger) { double('fake-logger', :log => nil) }
     let(:config) do
       {
-        :api_key => 'key',
+        :access_token => 'key',
         :project_id => 'project_id_foo'
       }
     end
@@ -54,6 +54,15 @@ describe Service::Asana, :type => :service do
         stub_request(:get, "https://key:@app.asana.com/api/1.0/projects/project_id_foo").
           to_return(:status => 200, :body => '{}')
 
+        service.receive_verification
+        expect(logger).to have_received(:log).with('verification successful')
+      end
+
+      it 'allows the fallback use of a legacy api_key' do
+        stub_request(:get, "https://legacy-api-key:@app.asana.com/api/1.0/projects/project_id_foo").
+          to_return(:status => 200, :body => '{}')
+
+        service = Service::Asana.new({ :project_id => 'project_id_foo', :api_key => 'legacy-api-key' }, lambda { |message| logger.log message })
         service.receive_verification
         expect(logger).to have_received(:log).with('verification successful')
       end
