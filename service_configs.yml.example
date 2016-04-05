@@ -10,3 +10,5 @@ slack:
 github:
   repo: <your-org>/<your-repo>
   access_token: abc1234
+pagerduty:
+  api_key: TBD
