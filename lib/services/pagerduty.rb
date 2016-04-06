@@ -57,7 +57,8 @@ class Service::Pagerduty < Service::Base
         'version' => payload[:version],
         'crash percentage' => payload[:crash_percentage],
         'method' => payload[:method],
-        'title' => payload[:title]        
+        'title' => payload[:title],
+        'url' => payload[:url]        
       }
     end
 
