@@ -1,7 +1,7 @@
 =======
 5.7.1
 -----
-- Add `issue_velocity_alert` support to Jira
+- Add `issue_velocity_alert` support to Pagerduty
 
 5.7.0
 -----
