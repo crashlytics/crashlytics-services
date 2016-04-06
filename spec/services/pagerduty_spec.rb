@@ -96,4 +96,54 @@ describe Service::Pagerduty, :type => :service do
       }.to raise_error(Service::DisplayableError, 'Pagerduty issue impact change failed - HTTP status code: 500')
     end
   end
+
+  describe 'receive_issue_velocity_alert' do
+    before do
+      @payload = {
+        :event => 'issue_velocity_alert',
+        :display_id => '1',
+        :method => 'TestMethod',
+        :title => 'TestTitle',
+        :crash_percentage => 1.02,
+        :version => '1.0 (1.1)',
+        :url => 'http://example.com',
+        :app => {
+          :name => 'foo name',
+          :bundle_identifier => 'foo.bar.baz',
+          :platform => 'platform'
+        }
+      }
+    end
+
+    it 'should succeed upon successful api response' do
+      test = Faraday.new do |builder|
+        builder.adapter :test do |stub|
+          stub.post('/generic/2010-04-15/create_event.json') { [200, {}, "{\"incident_key\":\"foo\"}"] }
+        end
+      end
+
+      expect(@service).to receive(:http_post)
+        .with('https://events.pagerduty.com/generic/2010-04-15/create_event.json')
+        .and_return(test.post('/generic/2010-04-15/create_event.json'))
+
+      @service.receive_issue_velocity_alert(@payload)
+      expect(@logger).to have_received(:log).with('issue_velocity_alert successful')
+    end
+
+    it 'should fail upon unsuccessful api response' do
+      test = Faraday.new do |builder|
+        builder.adapter :test do |stub|
+          stub.post('/generic/2010-04-15/create_event.json') { [500, {}, "{\"incident_key\":\"foo\"}"] }
+        end
+      end
+
+      expect(@service).to receive(:http_post)
+        .with('https://events.pagerduty.com/generic/2010-04-15/create_event.json')
+        .and_return(test.post('/generic/2010-04-15/create_event.json'))
+
+      expect {
+        @service.receive_issue_velocity_alert(@payload)
+      }.to raise_error(Service::DisplayableError, 'Pagerduty issue velocity alert failed - HTTP status code: 500')
+    end
+  end
 end
