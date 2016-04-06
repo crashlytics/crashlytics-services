@@ -100,9 +100,11 @@ describe Service::Pagerduty, :type => :service do
   describe 'receive_issue_velocity_alert' do
     before do
       @payload = {
-        :title => 'foo title',
-        :crash_percentage => 1,
-        :impacted_devices_count => 1,
+        :event => 'issue_velocity_alert',
+        :display_id => '1',
+        :method => 'TestMethod',
+        :title => 'TestTitle',
+        :crash_percentage => 1.02,
         :crashes_count => 1,
         :version => '1.0 (1.1)',
         :app => {

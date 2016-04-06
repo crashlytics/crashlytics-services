@@ -49,11 +49,15 @@ class Service::Pagerduty < Service::Base
         'crashes' => payload[:crashes_count],
       }
     elsif event == 'issues_velocity_alert'
-      issue_description = "[Crashlytics] Velocity Alert! #{payload[:url]}#{payload[:description]} crashed #{payload[:crash_percentage]}% of all #{payload[:app][:bundle_identifier]} sessions in the past hour on version #{payload[:version]}"
+      issue_description = "[Crashlytics] Velocity Alert! One issue crashed #{payload[:crash_percentage]}% of all #{payload[:app][:bundle_identifier]} sessions in the past hour on version #{payload[:version]}"
       issue_details = {
-        'impacted devices' => payload[:impacted_devices_count],
-        'crashes' => payload[:crashes_count],
+        'application' => payload[:app][:name],
+        'bundle identifer' => payload[:app][:bundle_identifier],
+        'platform' => payload[:app][:platform],
+        'version' => payload[:version],
         'crash percentage' => payload[:crash_percentage],
+        'method' => payload[:method],
+        'title' => payload[:title]        
       }
     end
 
