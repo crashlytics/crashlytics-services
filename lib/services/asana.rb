@@ -1,15 +1,14 @@
 class Service::Asana < Service::Base
   title 'Asana'
 
-  password :api_key, :placeholder => 'Asana API key',
-         :label => 'Your Asana API key can be found in Asana by ' \
-         'clicking on your name in the lower lefthand pane, ' \
-         'clicking \'Account Settings\' and selecting the \'APPS\' tab.'
+  password :access_token, :placeholder => 'Asana Access Token',
+         :label => 'Your can create a personal access token for yourself ' \
+         'on the \'apps\' tab of your profile settings.'
 
   string :project_id, :placeholder => 'Asana project ID',
          :label => 'You can find this using the Asana API or ' \
          'by using the web UI.  In the Asana web UI, click on ' \
-         'a project in the left pane, and then take the first long number in the URL.'
+         'a project, and then take the first long number in the URL.'
 
   def initialize(config, logger = Proc.new {})
     super
@@ -40,8 +39,13 @@ class Service::Asana < Service::Base
 
   private
 
+  # use the access token if available, fall back to api_key for legacy
+  def access_token
+    config[:access_token] || config[:api_key]
+  end
+
   def configure_http
-    http.basic_auth(config[:api_key], nil)
+    http.basic_auth(access_token, nil)
   end
 
   def request_headers
