@@ -1,3 +1,7 @@
+5.7.3
+-----
+- Add optional `component_id` to Jira integrations
+
 5.7.2
 -----
 - Switch Asana to prefer `access_token` over `api_key`
