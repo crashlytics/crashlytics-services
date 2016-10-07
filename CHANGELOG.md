@@ -1,4 +1,11 @@
-=======
+5.7.2
+-----
+- Switch Asana to prefer `access_token` over `api_key`
+
+5.7.1
+-----
+- Add `issue_velocity_alert` support to Pagerduty
+
 5.7.0
 -----
 - Add Flock
