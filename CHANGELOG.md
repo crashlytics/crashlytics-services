@@ -1,6 +1,7 @@
 5.7.3
 -----
 - Add optional `component_id` to Jira integrations
+- Add optional `status_id`, `tracker_id`, and `project_id` fields to Redmine integrations
 
 5.7.2
 -----
