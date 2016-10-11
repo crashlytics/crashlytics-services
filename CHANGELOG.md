@@ -1,3 +1,9 @@
+5.7.3
+-----
+- Add optional `component_id` to Jira integrations
+- Add optional `status_id`, `tracker_id`, and `project_id` fields to Redmine integrations
+- Add Flock appstore support to Flock
+
 5.7.2
 -----
 - Switch Asana to prefer `access_token` over `api_key`

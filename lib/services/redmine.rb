@@ -5,11 +5,20 @@ class Service::Redmine < Service::Base
                                'You must also "Enable REST web service" in ' \
                                'Admin > Settings > Auth.<br><br>' \
                                'Tip: Create a Crashlytics user for easier sorting.'
+  string :project_id, :placeholder => '00000', :required => false,
+         :label => '(Optional) Project ID:'
+  string :tracker_id, :placeholder => '0', :required => false,
+         :label => '(Optional) Tracker ID:'
+  string :status_id, :placeholder => '0', :required => false,
+         :label => '(Optional) Status ID:'
 
   # Create an issue on Redmine
   def receive_issue_impact_change(payload)
     parsed = parse_url config[:project_url]
-    project_id      = parsed[:project_id]
+    project_id = config[:project_id] || parsed[:project_id]
+    tracker_id = config[:tracker_id]
+    status_id = config[:status_id]
+
     http.basic_auth   parsed[:user], parsed[:password] if parsed[:user] || parsed[:password]
 
     users_text = if payload[:impacted_devices_count] == 1
@@ -34,7 +43,17 @@ class Service::Redmine < Service::Base
       :issue => {
         :subject     => payload[:title] + " [Crashlytics]",
         :project_id  => project_id,
-        :description => issue_body } }
+        :description => issue_body
+      }
+    }
+
+    if tracker_id
+      post_body[:issue][:tracker_id] = tracker_id
+    end
+
+    if status_id
+      post_body[:issue][:status_id] = status_id
+    end
 
     path = parsed[:url_prefix] + "/issues.json"
     resp = http_post path do |req|
@@ -42,9 +61,11 @@ class Service::Redmine < Service::Base
       req.params['key']           = config[:api_key]
       req.body                    = post_body.to_json
     end
+
     unless resp.status == 201 # created
       display_error("Redmine Issue Create Failed - #{error_response_details(resp)}")
     end
+
     log('issue_impact_change successful')
   end
 
