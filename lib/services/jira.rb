@@ -16,6 +16,8 @@ class Service::Jira < Service::Base
          :label => 'Your Jira password:'
   string :issue_type, :placeholder => 'Bug', :required => false,
          :label => '(Optional) Issue Type:'
+  string :component_id, :placeholder => '10000', :required => false,
+         :label => '(Optional) Component ID:'
 
   def initialize(config, logger = Proc.new {})
     super(config, logger)
@@ -89,6 +91,10 @@ class Service::Jira < Service::Base
         }
       }
     }
+
+    if config[:component_id]
+      post_body[:fields][:components] = [{:id => config[:component_id]}]
+    end
 
     api_url = "#{@base_api_url}/rest/api/2/issue"
 

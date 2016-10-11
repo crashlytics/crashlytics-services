@@ -27,6 +27,7 @@ describe Service::Jira, :type => :service do
     it { is_expected.to include_string_field :username }
     it { is_expected.to include_password_field :password }
     it { is_expected.to include_string_field :issue_type }
+    it { is_expected.to include_string_field :component_id }
   end
 
   describe '#receive_issue_impact_change' do
@@ -176,6 +177,20 @@ describe Service::Jira, :type => :service do
       expect(logger).to have_received(:log).with('create_jira_issue successful')
     end
 
+    it 'sends custom component_id if provided' do
+      service = Service::Jira.new(config.merge(:component_id => '55555'), logger_function)
+
+      stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
+         to_return(:status => 200, :body => '{"id":12345}')
+
+      stub_request(:post, "https://username:password@example.com/rest/api/2/issue").
+         with(:body => /\"components\":\[{\"id\":\"55555\"}\]/).
+         to_return(:status => 201, :body => '{"id":"foo"}')
+
+      service.create_jira_issue('fake_summary', 'fake_description')
+      expect(logger).to have_received(:log).with('create_jira_issue successful')
+    end
+
     it 'should succeed upon successful api response' do
       stub_request(:get, "https://username:password@example.com/rest/api/2/project/project_key").
          to_return(:status => 200, :body => '{"id":12345}')
@@ -185,6 +200,9 @@ describe Service::Jira, :type => :service do
 
       service.create_jira_issue('fake_summary', 'fake_description')
       expect(logger).to have_received(:log).with('create_jira_issue successful')
+
+      # verify optional field not sent by default
+      expect(WebMock).not_to have_requested(:post, "https://username:password@example.com/rest/api/2/issue").with(:body => /component_id/)
     end
 
     it 'logs error details if they are provided in the response body' do
