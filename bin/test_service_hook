@@ -11,6 +11,11 @@
 require 'service'
 require 'yaml'
 
+if ARGV.empty?
+  puts "Usage: bundle exec bin/test_service_hook <service-config.yml> <service-name>"
+  exit(1)
+end
+
 service_hook_config_file = ARGV[0]
 service = ARGV[1]
 config = {}
