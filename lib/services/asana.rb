@@ -68,14 +68,15 @@ class Service::Asana < Service::Base
   def create_task(project, issue)
     workspace_id = project['data']['workspace']['id']
 
-    response = http_post("#{asana_url}/tasks") do |request|
+    response = http_post(tasks_url) do |request|
       request.headers.merge!(request_headers)
       request.body = {
         :data => {
           :workspace => workspace_id,
           :name => issue[:title],
           :notes => create_notes(issue),
-          :assignee => 'me'
+          :assignee => 'me',
+          :projects => [config[:project_id]]
         }
       }.to_json
     end
@@ -83,6 +84,10 @@ class Service::Asana < Service::Base
 
   def asana_url
     "https://app.asana.com/api/1.0"
+  end
+
+  def tasks_url
+    "#{asana_url}/tasks"
   end
 
   def project_url
