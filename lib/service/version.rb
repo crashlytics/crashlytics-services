@@ -1,3 +1,3 @@
 module Service
-  VERSION = '5.7.3'
+  VERSION = '5.7.4'
 end

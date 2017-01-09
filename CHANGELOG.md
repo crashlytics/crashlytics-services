@@ -1,3 +1,7 @@
+5.7.4
+-----
+- Assign Asana tasks to the configured project.
+
 5.7.3
 -----
 - Add optional `component_id` to Jira integrations
