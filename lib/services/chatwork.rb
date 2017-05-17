@@ -39,7 +39,7 @@ class Service::ChatWork < Service::Base
   end
 
   def send_message(config, message)
-    res = http_post "https://api.chatwork.com/v1/rooms/#{config[:room]}/messages" do |req|
+    res = http_post "https://api.chatwork.com/v2/rooms/#{config[:room]}/messages" do |req|
       req.headers['X-ChatWorkToken'] = config[:api_token]
       req.params['body'] = message
     end
