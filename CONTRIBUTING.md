@@ -2,7 +2,7 @@
 
 ## Bugs, Issues, Suggestions, Problems
 
-Having problems with your integrations?  Have some ideas of how to make it even better?  Please share on our [Twitter Developers Forum](https://twittercommunity.com/c/fabric)
+Having problems with your integrations?  Have some ideas of how to make it even better?  Please share on Stack Overflow with the [google-fabric](https://stackoverflow.com/questions/tagged/google-fabric) tag.
 
 ## Bugfixes
 
