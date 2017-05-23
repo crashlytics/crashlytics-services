@@ -32,13 +32,13 @@ describe Service::ChatWork, :type => :service do
     it 'should fail upon unsuccessful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
-          stub.post("v1/rooms/#{config[:room]}/messages") { [500, {}, ''] }
+          stub.post("v2/rooms/#{config[:room]}/messages") { [500, {}, ''] }
         end
       end
 
       expect(service).to receive(:http_post)
-        .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
-        .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
+        .with("https://api.chatwork.com/v2/rooms/#{config[:room]}/messages")
+        .and_return(test.post("v2/rooms/#{config[:room]}/messages"))
 
       expect(service).to receive(:verification_message)
 
@@ -68,14 +68,14 @@ describe Service::ChatWork, :type => :service do
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
-          response = '{"message_id":12345}'
-          stub.post("v1/rooms/#{config[:room]}/messages") { [201, {}, response] }
+          response = '{"message_id":"12345"}'
+          stub.post("v2/rooms/#{config[:room]}/messages") { [201, {}, response] }
         end
       end
 
       expect(service).to receive(:http_post)
-        .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
-        .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
+        .with("https://api.chatwork.com/v2/rooms/#{config[:room]}/messages")
+        .and_return(test.post("v2/rooms/#{config[:room]}/messages"))
 
       service.receive_issue_impact_change(payload)
       expect(logger).to have_received(:log).with('issue_impact_change successful')
@@ -84,13 +84,13 @@ describe Service::ChatWork, :type => :service do
     it 'should fail upon unsuccessful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
-          stub.post("v1/rooms/#{config[:room]}/messages") { [500, {}, ''] }
+          stub.post("v2/rooms/#{config[:room]}/messages") { [500, {}, ''] }
         end
       end
 
       expect(service).to receive(:http_post)
-        .with("https://api.chatwork.com/v1/rooms/#{config[:room]}/messages")
-        .and_return(test.post("v1/rooms/#{config[:room]}/messages"))
+        .with("https://api.chatwork.com/v2/rooms/#{config[:room]}/messages")
+        .and_return(test.post("v2/rooms/#{config[:room]}/messages"))
 
       expect {
         service.receive_issue_impact_change(payload)
