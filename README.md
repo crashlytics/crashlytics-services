@@ -6,7 +6,7 @@ Simple, powerful, declarative integrations for popular third-party services.
 
 # Contributing #
 
-Feel free to directly submit PRs that fix bugs or security improvements to existing PRs.  If you want to add a feature or introduce a new service integration, ping us at support(at)fabric(dot)io!
+Feel free to directly submit PRs that fix bugs or security improvements to existing integrations.  If you want to add a feature or introduce a new service integration, ping us at support(at)fabric(dot)io!
 
 See [CONTRIBUTING.md](https://github.com/crashlytics/crashlytics-services/blob/master/CONTRIBUTING.md)
 
