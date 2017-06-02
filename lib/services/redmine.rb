@@ -40,9 +40,9 @@ class Service::Redmine < Service::Base
                  "More information: #{ payload[:url] }"
 
     post_body = {
+      :project_id  => project_id,
       :issue => {
         :subject     => payload[:title] + " [Crashlytics]",
-        :project_id  => project_id,
         :description => issue_body
       }
     }
