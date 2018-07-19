@@ -64,7 +64,7 @@ class Service::GitLab < Service::Base
   def project_url(project)
     project ||= ''
 
-    "#{config[:url]}/api/v3/projects/#{CGI.escape(project)}"
+    "#{config[:url]}/api/v4/projects/#{CGI.escape(project)}"
   end
 
   def project_issues_url(project)

@@ -26,7 +26,7 @@ describe Service::GitLab, :type => :service do
 
   describe :receive_verification do
     it 'reports success' do
-      stub_request(:get, 'https://www.gitlabhq.com/api/v3/projects/root%2Fexample-project').
+      stub_request(:get, 'https://www.gitlabhq.com/api/v4/projects/root%2Fexample-project').
         with(:headers => { 'Private-Token' => 'foo_access_token' }).
         to_return(:status => 200, :body => '{"message":"Awesome"}')
 
@@ -35,7 +35,7 @@ describe Service::GitLab, :type => :service do
     end
 
     it 'reports failure details on an unsuccessful attempt' do
-      stub_request(:get, 'https://www.gitlabhq.com/api/v3/projects/root%2Fexample-project').
+      stub_request(:get, 'https://www.gitlabhq.com/api/v4/projects/root%2Fexample-project').
         with(:headers => { 'Private-Token' => 'foo_access_token' }).
         to_return(:status => 401, :body => '{"message":"401 Unauthorized"}')
 
