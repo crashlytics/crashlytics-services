@@ -1,3 +1,7 @@
+5.7.6
+-----
+- Fix Pivotal to use v5 API
+
 5.7.4
 -----
 - Assign Asana tasks to the configured project.
