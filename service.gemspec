@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'faraday', '~> 0.9'
   s.add_dependency 'faraday_middleware', '~> 0.9'
-  s.add_dependency 'nokogiri', '~> 1.5'
+  s.add_dependency 'nokogiri', '1.8.4'
 
   # enforce consistency with worker pipeline version of eventmachine
   s.add_dependency 'eventmachine', '~> 1.0'
