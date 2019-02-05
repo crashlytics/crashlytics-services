@@ -23,13 +23,13 @@ describe Service::Pivotal, :type => :service do
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
-          stub.get('/services/v3/projects/foo_project') { [200, {}, ''] }
+          stub.get('/services/v5/projects/foo_project/webhooks') { [200, {}, ''] }
         end
       end
 
       expect(@service).to receive(:http_get)
-        .with('https://www.pivotaltracker.com/services/v3/projects/foo_project')
-        .and_return(test.get('/services/v3/projects/foo_project'))
+        .with('https://www.pivotaltracker.com/services/v5/projects/foo_project/webhooks')
+        .and_return(test.get('/services/v5/projects/foo_project/webhooks'))
 
       @service.receive_verification
       expect(@logger).to have_received(:log).with('verification successful')
@@ -38,13 +38,13 @@ describe Service::Pivotal, :type => :service do
     it 'should fail upon unsuccessful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
-          stub.get('/services/v3/projects/foo_project') { [500, {}, ''] }
+          stub.get('/services/v5/projects/foo_project/webhooks') { [500, {}, ''] }
         end
       end
 
       expect(@service).to receive(:http_get)
-        .with('https://www.pivotaltracker.com/services/v3/projects/foo_project')
-        .and_return(test.get('/services/v3/projects/foo_project'))
+        .with('https://www.pivotaltracker.com/services/v5/projects/foo_project/webhooks')
+        .and_return(test.get('/services/v5/projects/foo_project/webhooks'))
 
       expect {
         @service.receive_verification
@@ -69,14 +69,14 @@ describe Service::Pivotal, :type => :service do
     it 'should succeed upon successful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
-          response = '<?xml version="1.0" encoding="UTF-8"?><story><id type="integer">foo_id</id></story>'
-          stub.post('/services/v3/projects/foo_project/stories') { [201, {}, response] }
+          response = {:id => 'foo_id'}.to_json
+          stub.post('/services/v5/projects/foo_project/stories') { [201, {}, response] }
         end
       end
 
       expect(@service).to receive(:http_post)
-        .with('https://www.pivotaltracker.com/services/v3/projects/foo_project/stories')
-        .and_return(test.post('/services/v3/projects/foo_project/stories'))
+        .with('https://www.pivotaltracker.com/services/v5/projects/foo_project/stories')
+        .and_return(test.post('/services/v5/projects/foo_project/stories'))
 
       @service.receive_issue_impact_change(@payload)
       expect(@logger).to have_received(:log).with('issue_impact_change successful')
@@ -85,13 +85,13 @@ describe Service::Pivotal, :type => :service do
     it 'should fail upon unsuccessful api response' do
       test = Faraday.new do |builder|
         builder.adapter :test do |stub|
-          stub.post('/services/v3/projects/foo_project/stories') { [500, {}, ''] }
+          stub.post('/services/v5/projects/foo_project/stories') { [500, {}, ''] }
         end
       end
 
       expect(@service).to receive(:http_post)
-        .with('https://www.pivotaltracker.com/services/v3/projects/foo_project/stories')
-        .and_return(test.post('/services/v3/projects/foo_project/stories'))
+        .with('https://www.pivotaltracker.com/services/v5/projects/foo_project/stories')
+        .and_return(test.post('/services/v5/projects/foo_project/stories'))
 
       expect {
         @service.receive_issue_impact_change(@payload)
